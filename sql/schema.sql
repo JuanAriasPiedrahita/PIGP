@@ -146,19 +146,12 @@ CREATE INDEX idx_lideres_zona ON lideres(zona_id);
 -- Datos semilla (catálogos básicos para empezar a probar de inmediato)
 -- =====================================================================
 
+-- Zonas reales (14 zonas). Los puestos de votación de cada zona se capturan
+-- desde el menú "Zonas" de la aplicación; no se siembran datos de ejemplo.
 INSERT INTO zonas (codigo) VALUES
-  ('01'),
-  ('02'),
-  ('03')
+  ('01'),('02'),('03'),('04'),('05'),('06'),('07'),('08'),('09'),('10'),('11'),
+  ('90'),('98'),('99')
 ON DUPLICATE KEY UPDATE codigo = VALUES(codigo);
-
-INSERT INTO puestos (zona_id, numero, nombre, num_mesas) VALUES
-  ((SELECT id FROM (SELECT id FROM zonas WHERE codigo='01') z), '01', 'I.E. Central', 8),
-  ((SELECT id FROM (SELECT id FROM zonas WHERE codigo='01') z), '02', 'Coliseo Municipal', 12),
-  ((SELECT id FROM (SELECT id FROM zonas WHERE codigo='02') z), '01', 'Escuela San José', 6),
-  ((SELECT id FROM (SELECT id FROM zonas WHERE codigo='02') z), '02', 'Casa de la Cultura', 10),
-  ((SELECT id FROM (SELECT id FROM zonas WHERE codigo='03') z), '01', 'Polideportivo Norte', 9)
-ON DUPLICATE KEY UPDATE nombre = VALUES(nombre);
 
 -- Comunas y barrios reales (Pereira). El orden de inserción determina el id
 -- autoincremental (1..20) que usan los barrios de abajo vía comuna_id;
