@@ -11,6 +11,7 @@ export interface Puesto {
   zona_id: number;
   numero: string;
   nombre: string;
+  direccion: string | null;
   num_mesas: number;
 }
 

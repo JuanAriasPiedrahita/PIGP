@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS puestos (
   zona_id     INT          NOT NULL,
   numero      CHAR(2)      NOT NULL,
   nombre      VARCHAR(150) NOT NULL,
+  direccion   VARCHAR(200) NULL,
   num_mesas   INT          NOT NULL DEFAULT 1,
   created_at  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE KEY uq_puestos_zona_numero (zona_id, numero),

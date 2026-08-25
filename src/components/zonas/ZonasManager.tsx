@@ -16,7 +16,7 @@ export function ZonasManager() {
   const [zonaEditing, setZonaEditing] = useState(false);
   const [deleteZonaId, setDeleteZonaId] = useState<number | null>(null);
 
-  const [puestoForm, setPuestoForm] = useState({ id: 0, numero: "", nombre: "", num_mesas: "1" });
+  const [puestoForm, setPuestoForm] = useState({ id: 0, numero: "", nombre: "", direccion: "", num_mesas: "1" });
   const [puestoEditing, setPuestoEditing] = useState(false);
   const [deletePuestoId, setDeletePuestoId] = useState<number | null>(null);
 
@@ -86,7 +86,7 @@ export function ZonasManager() {
   }
 
   function resetPuestoForm() {
-    setPuestoForm({ id: 0, numero: "", nombre: "", num_mesas: "1" });
+    setPuestoForm({ id: 0, numero: "", nombre: "", direccion: "", num_mesas: "1" });
     setPuestoEditing(false);
   }
 
@@ -102,6 +102,7 @@ export function ZonasManager() {
         zona_id: selectedZona,
         numero: puestoForm.numero,
         nombre: puestoForm.nombre.trim(),
+        direccion: puestoForm.direccion.trim() || null,
         num_mesas: Number(puestoForm.num_mesas) || 1,
       };
       if (puestoForm.id) {
@@ -119,7 +120,7 @@ export function ZonasManager() {
   }
 
   function editPuesto(p: Puesto) {
-    setPuestoForm({ id: p.id, numero: p.numero, nombre: p.nombre, num_mesas: String(p.num_mesas) });
+    setPuestoForm({ id: p.id, numero: p.numero, nombre: p.nombre, direccion: p.direccion || "", num_mesas: String(p.num_mesas) });
     setPuestoEditing(true);
   }
 
@@ -210,6 +211,12 @@ export function ZonasManager() {
                 placeholder="Mesas"
                 className="field-input"
               />
+              <input
+                value={puestoForm.direccion}
+                onChange={(e) => setPuestoForm((f) => ({ ...f, direccion: e.target.value }))}
+                placeholder="Dirección (opcional)"
+                className="field-input sm:col-span-4"
+              />
               <div className="flex gap-2 sm:col-span-4">
                 <button className="btn-primary">{puestoEditing ? "Guardar cambios" : "Agregar puesto"}</button>
                 {puestoEditing && <button type="button" className="btn-secondary" onClick={resetPuestoForm}>Cancelar</button>}
@@ -223,6 +230,7 @@ export function ZonasManager() {
                     <span className="font-mono font-semibold text-brand-700">{p.numero}</span>{" "}
                     <span className="text-slate-700">{p.nombre}</span>{" "}
                     <span className="text-xs text-slate-400">({p.num_mesas} mesas)</span>
+                    {p.direccion && <p className="text-xs text-slate-400">{p.direccion}</p>}
                   </span>
                   <span className="flex gap-1">
                     <button onClick={() => editPuesto(p)} className="btn-ghost !px-2 !py-1">Editar</button>
