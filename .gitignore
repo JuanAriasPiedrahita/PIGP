@@ -1,0 +1,33 @@
+# dependencies
+/node_modules
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# env
+.env*.local
+.env
+
+# uploads (contenido subido por usuarios, no versionar)
+/public/uploads/*
+!/public/uploads/.gitkeep
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# Visual Studio (metadatos locales del IDE, no del proyecto)
+.vs/
