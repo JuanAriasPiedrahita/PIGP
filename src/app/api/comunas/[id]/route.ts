@@ -4,12 +4,12 @@ import pool, { friendlyDbError } from "@/lib/db";
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const body = await req.json();
-    const { codigo, descripcion } = body;
-    if (!codigo || !descripcion) {
-      return NextResponse.json({ error: "Código y descripción son obligatorios." }, { status: 400 });
+    const { descripcion } = body;
+    if (!descripcion) {
+      return NextResponse.json({ error: "La descripción de la comuna es obligatoria." }, { status: 400 });
     }
-    await pool.query("UPDATE comunas SET codigo = ?, descripcion = ? WHERE id = ?", [codigo, descripcion, params.id]);
-    return NextResponse.json({ id: Number(params.id), codigo, descripcion });
+    await pool.query("UPDATE comunas SET descripcion = ? WHERE id = ?", [descripcion, params.id]);
+    return NextResponse.json({ id: Number(params.id), descripcion });
   } catch (err) {
     const { message, status } = friendlyDbError(err);
     return NextResponse.json({ error: message }, { status });

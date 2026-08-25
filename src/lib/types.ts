@@ -4,7 +4,6 @@ export type Estado = "ACTIVO" | "INACTIVO";
 export interface Zona {
   id: number;
   codigo: string;
-  nombre: string | null;
 }
 
 export interface Puesto {
@@ -17,7 +16,6 @@ export interface Puesto {
 
 export interface Comuna {
   id: number;
-  codigo: string;
   descripcion: string;
 }
 

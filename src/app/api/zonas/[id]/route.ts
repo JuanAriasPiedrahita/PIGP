@@ -4,12 +4,12 @@ import pool, { friendlyDbError } from "@/lib/db";
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const body = await req.json();
-    const { codigo, nombre } = body;
+    const { codigo } = body;
     if (!codigo || !/^[0-9]{2}$/.test(codigo)) {
       return NextResponse.json({ error: "El código de zona debe tener exactamente 2 dígitos (ej: 01)." }, { status: 400 });
     }
-    await pool.query("UPDATE zonas SET codigo = ?, nombre = ? WHERE id = ?", [codigo, nombre || null, params.id]);
-    return NextResponse.json({ id: Number(params.id), codigo, nombre });
+    await pool.query("UPDATE zonas SET codigo = ? WHERE id = ?", [codigo, params.id]);
+    return NextResponse.json({ id: Number(params.id), codigo });
   } catch (err) {
     const { message, status } = friendlyDbError(err);
     return NextResponse.json({ error: message }, { status });

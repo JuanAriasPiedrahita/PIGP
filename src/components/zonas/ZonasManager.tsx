@@ -12,7 +12,7 @@ export function ZonasManager() {
   const [loading, setLoading] = useState(true);
   const [selectedZona, setSelectedZona] = useState<number | null>(null);
 
-  const [zonaForm, setZonaForm] = useState({ id: 0, codigo: "", nombre: "" });
+  const [zonaForm, setZonaForm] = useState({ id: 0, codigo: "" });
   const [zonaEditing, setZonaEditing] = useState(false);
   const [deleteZonaId, setDeleteZonaId] = useState<number | null>(null);
 
@@ -42,7 +42,7 @@ export function ZonasManager() {
   }, []);
 
   function resetZonaForm() {
-    setZonaForm({ id: 0, codigo: "", nombre: "" });
+    setZonaForm({ id: 0, codigo: "" });
     setZonaEditing(false);
   }
 
@@ -54,10 +54,10 @@ export function ZonasManager() {
     }
     try {
       if (zonaForm.id) {
-        await apiPutJson(`/api/zonas/${zonaForm.id}`, { codigo: zonaForm.codigo, nombre: zonaForm.nombre });
+        await apiPutJson(`/api/zonas/${zonaForm.id}`, { codigo: zonaForm.codigo });
         toast.show("Zona actualizada", "success");
       } else {
-        await apiPostJson("/api/zonas", { codigo: zonaForm.codigo, nombre: zonaForm.nombre });
+        await apiPostJson("/api/zonas", { codigo: zonaForm.codigo });
         toast.show("Zona creada", "success");
       }
       resetZonaForm();
@@ -68,7 +68,7 @@ export function ZonasManager() {
   }
 
   function editZona(z: Zona) {
-    setZonaForm({ id: z.id, codigo: z.codigo, nombre: z.nombre || "" });
+    setZonaForm({ id: z.id, codigo: z.codigo });
     setZonaEditing(true);
   }
 
@@ -146,21 +146,13 @@ export function ZonasManager() {
       <div className="card space-y-4 p-5 lg:col-span-2">
         <h3 className="text-sm font-semibold text-slate-700">Zonas</h3>
         <form onSubmit={submitZona} className="space-y-3">
-          <div className="grid grid-cols-2 gap-2">
-            <input
-              value={zonaForm.codigo}
-              onChange={(e) => setZonaForm((f) => ({ ...f, codigo: e.target.value }))}
-              placeholder="Código (01)"
-              maxLength={2}
-              className="field-input"
-            />
-            <input
-              value={zonaForm.nombre}
-              onChange={(e) => setZonaForm((f) => ({ ...f, nombre: e.target.value }))}
-              placeholder="Nombre (opcional)"
-              className="field-input"
-            />
-          </div>
+          <input
+            value={zonaForm.codigo}
+            onChange={(e) => setZonaForm((f) => ({ ...f, codigo: e.target.value }))}
+            placeholder="Código (01)"
+            maxLength={2}
+            className="field-input"
+          />
           <div className="flex gap-2">
             <button className="btn-primary flex-1">{zonaEditing ? "Guardar cambios" : "Agregar zona"}</button>
             {zonaEditing && <button type="button" className="btn-secondary" onClick={resetZonaForm}>Cancelar</button>}
@@ -176,10 +168,7 @@ export function ZonasManager() {
                 selectedZona === z.id ? "bg-brand-50" : "hover:bg-slate-50"
               }`}
             >
-              <span>
-                <span className="font-mono font-semibold text-brand-700">{z.codigo}</span>{" "}
-                <span className="text-slate-600">{z.nombre}</span>
-              </span>
+              <span className="font-mono font-semibold text-brand-700">{z.codigo}</span>
               <span className="flex gap-1">
                 <button onClick={(e) => { e.stopPropagation(); editZona(z); }} className="btn-ghost !px-2 !py-1">Editar</button>
                 <button onClick={(e) => { e.stopPropagation(); setDeleteZonaId(z.id); }} className="btn-ghost !px-2 !py-1 text-red-500 hover:bg-red-50">Eliminar</button>

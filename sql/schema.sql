@@ -15,7 +15,6 @@ USE PIGP;
 CREATE TABLE IF NOT EXISTS zonas (
   id          INT AUTO_INCREMENT PRIMARY KEY,
   codigo      CHAR(2)      NOT NULL UNIQUE,
-  nombre      VARCHAR(100) NULL,
   created_at  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
@@ -35,8 +34,7 @@ CREATE TABLE IF NOT EXISTS puestos (
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS comunas (
   id          INT AUTO_INCREMENT PRIMARY KEY,
-  codigo      VARCHAR(10)  NOT NULL UNIQUE,
-  descripcion VARCHAR(150) NOT NULL,
+  descripcion VARCHAR(150) NOT NULL UNIQUE,
   created_at  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
@@ -148,11 +146,11 @@ CREATE INDEX idx_lideres_zona ON lideres(zona_id);
 -- Datos semilla (catálogos básicos para empezar a probar de inmediato)
 -- =====================================================================
 
-INSERT INTO zonas (codigo, nombre) VALUES
-  ('01', 'Zona 1'),
-  ('02', 'Zona 2'),
-  ('03', 'Zona 3')
-ON DUPLICATE KEY UPDATE nombre = VALUES(nombre);
+INSERT INTO zonas (codigo) VALUES
+  ('01'),
+  ('02'),
+  ('03')
+ON DUPLICATE KEY UPDATE codigo = VALUES(codigo);
 
 INSERT INTO puestos (zona_id, numero, nombre, num_mesas) VALUES
   ((SELECT id FROM (SELECT id FROM zonas WHERE codigo='01') z), '01', 'I.E. Central', 8),
@@ -162,18 +160,18 @@ INSERT INTO puestos (zona_id, numero, nombre, num_mesas) VALUES
   ((SELECT id FROM (SELECT id FROM zonas WHERE codigo='03') z), '01', 'Polideportivo Norte', 9)
 ON DUPLICATE KEY UPDATE nombre = VALUES(nombre);
 
-INSERT INTO comunas (codigo, descripcion) VALUES
-  ('01', 'Comuna 1 - Centro'),
-  ('02', 'Comuna 2 - Norte'),
-  ('03', 'Comuna 3 - Sur')
+INSERT INTO comunas (descripcion) VALUES
+  ('Comuna 1 - Centro'),
+  ('Comuna 2 - Norte'),
+  ('Comuna 3 - Sur')
 ON DUPLICATE KEY UPDATE descripcion = VALUES(descripcion);
 
 INSERT INTO barrios (comuna_id, nombre) VALUES
-  ((SELECT id FROM (SELECT id FROM comunas WHERE codigo='01') c), 'El Centro'),
-  ((SELECT id FROM (SELECT id FROM comunas WHERE codigo='01') c), 'La Estación'),
-  ((SELECT id FROM (SELECT id FROM comunas WHERE codigo='02') c), 'Los Pinos'),
-  ((SELECT id FROM (SELECT id FROM comunas WHERE codigo='02') c), 'Villa Norte'),
-  ((SELECT id FROM (SELECT id FROM comunas WHERE codigo='03') c), 'San Fernando');
+  ((SELECT id FROM (SELECT id FROM comunas WHERE descripcion='Comuna 1 - Centro') c), 'El Centro'),
+  ((SELECT id FROM (SELECT id FROM comunas WHERE descripcion='Comuna 1 - Centro') c), 'La Estación'),
+  ((SELECT id FROM (SELECT id FROM comunas WHERE descripcion='Comuna 2 - Norte') c), 'Los Pinos'),
+  ((SELECT id FROM (SELECT id FROM comunas WHERE descripcion='Comuna 2 - Norte') c), 'Villa Norte'),
+  ((SELECT id FROM (SELECT id FROM comunas WHERE descripcion='Comuna 3 - Sur') c), 'San Fernando');
 
 INSERT INTO profesiones (descripcion) VALUES
   ('Abogado(a)'), ('Ingeniero(a)'), ('Médico(a)'), ('Docente'),

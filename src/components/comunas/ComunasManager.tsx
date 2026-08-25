@@ -12,7 +12,7 @@ export function ComunasManager() {
   const [loading, setLoading] = useState(true);
   const [selectedComuna, setSelectedComuna] = useState<number | null>(null);
 
-  const [comunaForm, setComunaForm] = useState({ id: 0, codigo: "", descripcion: "" });
+  const [comunaForm, setComunaForm] = useState({ id: 0, descripcion: "" });
   const [comunaEditing, setComunaEditing] = useState(false);
   const [deleteComunaId, setDeleteComunaId] = useState<number | null>(null);
 
@@ -42,22 +42,22 @@ export function ComunasManager() {
   }, []);
 
   function resetComunaForm() {
-    setComunaForm({ id: 0, codigo: "", descripcion: "" });
+    setComunaForm({ id: 0, descripcion: "" });
     setComunaEditing(false);
   }
 
   async function submitComuna(e: React.FormEvent) {
     e.preventDefault();
-    if (!comunaForm.codigo.trim() || !comunaForm.descripcion.trim()) {
-      toast.show("Código y descripción son obligatorios", "error");
+    if (!comunaForm.descripcion.trim()) {
+      toast.show("La descripción de la comuna es obligatoria", "error");
       return;
     }
     try {
       if (comunaForm.id) {
-        await apiPutJson(`/api/comunas/${comunaForm.id}`, { codigo: comunaForm.codigo, descripcion: comunaForm.descripcion });
+        await apiPutJson(`/api/comunas/${comunaForm.id}`, { descripcion: comunaForm.descripcion });
         toast.show("Comuna actualizada", "success");
       } else {
-        await apiPostJson("/api/comunas", { codigo: comunaForm.codigo, descripcion: comunaForm.descripcion });
+        await apiPostJson("/api/comunas", { descripcion: comunaForm.descripcion });
         toast.show("Comuna creada", "success");
       }
       resetComunaForm();
@@ -68,7 +68,7 @@ export function ComunasManager() {
   }
 
   function editComuna(c: Comuna) {
-    setComunaForm({ id: c.id, codigo: c.codigo, descripcion: c.descripcion });
+    setComunaForm({ id: c.id, descripcion: c.descripcion });
     setComunaEditing(true);
   }
 
@@ -140,20 +140,12 @@ export function ComunasManager() {
       <div className="card space-y-4 p-5 lg:col-span-2">
         <h3 className="text-sm font-semibold text-slate-700">Comunas</h3>
         <form onSubmit={submitComuna} className="space-y-3">
-          <div className="grid grid-cols-3 gap-2">
-            <input
-              value={comunaForm.codigo}
-              onChange={(e) => setComunaForm((f) => ({ ...f, codigo: e.target.value }))}
-              placeholder="Código"
-              className="field-input"
-            />
-            <input
-              value={comunaForm.descripcion}
-              onChange={(e) => setComunaForm((f) => ({ ...f, descripcion: e.target.value }))}
-              placeholder="Descripción"
-              className="field-input col-span-2"
-            />
-          </div>
+          <input
+            value={comunaForm.descripcion}
+            onChange={(e) => setComunaForm((f) => ({ ...f, descripcion: e.target.value }))}
+            placeholder="Descripción de la comuna"
+            className="field-input"
+          />
           <div className="flex gap-2">
             <button className="btn-primary flex-1">{comunaEditing ? "Guardar cambios" : "Agregar comuna"}</button>
             {comunaEditing && <button type="button" className="btn-secondary" onClick={resetComunaForm}>Cancelar</button>}
@@ -169,10 +161,7 @@ export function ComunasManager() {
                 selectedComuna === c.id ? "bg-brand-50" : "hover:bg-slate-50"
               }`}
             >
-              <span>
-                <span className="font-mono font-semibold text-brand-700">{c.codigo}</span>{" "}
-                <span className="text-slate-600">{c.descripcion}</span>
-              </span>
+              <span className="text-slate-700">{c.descripcion}</span>
               <span className="flex gap-1">
                 <button onClick={(e) => { e.stopPropagation(); editComuna(c); }} className="btn-ghost !px-2 !py-1">Editar</button>
                 <button onClick={(e) => { e.stopPropagation(); setDeleteComunaId(c.id); }} className="btn-ghost !px-2 !py-1 text-red-500 hover:bg-red-50">Eliminar</button>

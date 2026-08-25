@@ -33,7 +33,7 @@ export function LocationSelects({ catalogos, values, errors, onChange }: Props) 
           onChange("comuna_id", e.target.value);
           onChange("barrio_id", "");
         }}
-        options={catalogos.comunas.map((c) => ({ value: c.id, label: `${c.codigo} - ${c.descripcion}` }))}
+        options={catalogos.comunas.map((c) => ({ value: c.id, label: c.descripcion }))}
       />
       <Select
         label="Barrio"
@@ -54,7 +54,7 @@ export function LocationSelects({ catalogos, values, errors, onChange }: Props) 
           onChange("zona_id", e.target.value);
           onChange("puesto_id", "");
         }}
-        options={catalogos.zonas.map((z) => ({ value: z.id, label: `${z.codigo}${z.nombre ? " - " + z.nombre : ""}` }))}
+        options={catalogos.zonas.map((z) => ({ value: z.id, label: z.codigo }))}
       />
       <Select
         label="Puesto de votación"
