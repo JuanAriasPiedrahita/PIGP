@@ -4,10 +4,10 @@
 -- Host: 127.0.0.1  Usuario: root
 -- =====================================================================
 
-CREATE DATABASE IF NOT EXISTS campana_politica
+CREATE DATABASE IF NOT EXISTS PIGP
   CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
-USE campana_politica;
+USE PIGP;
 
 -- ---------------------------------------------------------------------
 -- Tablas de votación: zonas y puestos

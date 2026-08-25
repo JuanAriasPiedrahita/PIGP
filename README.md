@@ -38,7 +38,7 @@ PIGP/
 
 ## 2. Crear la base de datos
 
-Ejecuta el script SQL inicial (crea la BD `campana_politica`, todas las tablas y datos semilla de zonas/comunas/profesiones/ocupaciones/parentescos de ejemplo):
+Ejecuta el script SQL inicial (crea la BD `PIGP`, todas las tablas y datos semilla de zonas/comunas/profesiones/ocupaciones/parentescos de ejemplo):
 
 ```powershell
 & "C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe" -h 127.0.0.1 -u root -pjuanda2005 < sql\schema.sql
@@ -63,7 +63,7 @@ DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_USER=root
 DB_PASSWORD=juanda2005
-DB_NAME=campana_politica
+DB_NAME=PIGP
 ```
 
 Si cambias credenciales, edita este archivo (no se sube a git, ver `.gitignore`).

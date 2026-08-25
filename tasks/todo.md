@@ -1,7 +1,7 @@
 # Plan: App de Registro de Colaboradores para Campaña Política
 
 ## Stack
-Next.js 14 (App Router) + TypeScript + Tailwind CSS + mysql2 (pool) contra MariaDB/MySQL en 127.0.0.1, user root / pass juanda2005, base de datos `campana_politica`.
+Next.js 14 (App Router) + TypeScript + Tailwind CSS + mysql2 (pool) contra MariaDB/MySQL en 127.0.0.1, user root / pass juanda2005, base de datos `PIGP` (renombrada desde `campana_politica` el 2026-08-25, conservando los datos existentes).
 
 ## Modelo de datos (script SQL inicial)
 - [x] `zonas` (id, codigo CHAR(2) UNIQUE, nombre)

@@ -31,3 +31,6 @@ next-env.d.ts
 
 # Visual Studio (metadatos locales del IDE, no del proyecto)
 .vs/
+
+# Herramientas locales descargadas (GitHub CLI portable, etc.)
+.tools/

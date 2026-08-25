@@ -13,7 +13,7 @@ function createPool(): mysql.Pool {
     port: Number(process.env.DB_PORT) || 3306,
     user: process.env.DB_USER || "root",
     password: process.env.DB_PASSWORD || "",
-    database: process.env.DB_NAME || "campana_politica",
+    database: process.env.DB_NAME || "PIGP",
     waitForConnections: true,
     connectionLimit: 10,
     maxIdle: 10,
@@ -53,7 +53,7 @@ export function friendlyDbError(err: unknown): { message: string; status: number
     return { message: "No fue posible conectar a la base de datos. Verifique que MariaDB/MySQL esté corriendo en 127.0.0.1.", status: 503 };
   }
   if (e?.code === "ER_BAD_DB_ERROR") {
-    return { message: "La base de datos 'campana_politica' no existe. Ejecute el script sql/schema.sql.", status: 503 };
+    return { message: "La base de datos 'PIGP' no existe. Ejecute el script sql/schema.sql.", status: 503 };
   }
   if (e?.code === "ER_NO_SUCH_TABLE") {
     return { message: "Faltan tablas en la base de datos. Ejecute el script sql/schema.sql.", status: 503 };
