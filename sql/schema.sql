@@ -147,12 +147,107 @@ CREATE INDEX idx_lideres_zona ON lideres(zona_id);
 -- Datos semilla (catálogos básicos para empezar a probar de inmediato)
 -- =====================================================================
 
--- Zonas reales (14 zonas). Los puestos de votación de cada zona se capturan
--- desde el menú "Zonas" de la aplicación; no se siembran datos de ejemplo.
+-- Zonas reales (14 zonas)
 INSERT INTO zonas (codigo) VALUES
   ('01'),('02'),('03'),('04'),('05'),('06'),('07'),('08'),('09'),('10'),('11'),
   ('90'),('98'),('99')
 ON DUPLICATE KEY UPDATE codigo = VALUES(codigo);
+
+-- Puestos de votación reales (87 puestos). Se relacionan con su zona por
+-- código en vez de por id, para no depender del orden de inserción anterior.
+INSERT INTO puestos (zona_id, numero, nombre, direccion, num_mesas)
+SELECT z.id, v.numero, v.nombre, v.direccion, v.num_mesas
+FROM (
+  SELECT '01' zcodigo, '01' numero, 'I.e. villasantana' nombre, 'cl 14d este # 14-40 monserrate' direccion, 24 num_mesas
+  UNION ALL SELECT '01','02','I.e. Compartir Las Brisas','cl 23 este # 35 - 25 las brisas',8
+  UNION ALL SELECT '01','03','I.e. Jaime Salazar Robledo','kr 23 # 16 este - 35 br. tokio',9
+  UNION ALL SELECT '01','04','I.e. Manos Unidas Sede Guayabal','Cll 16E Cra34 Guayabal Contiguo a la Iglesia',6
+  UNION ALL SELECT '02','01','I.e. jorge Eliecer Gaitan','kr. 7 #. 1e - 31 alfonso lopez',21
+  UNION ALL SELECT '02','02','I.e.  Kennedy','kr 12 #. 9e - 12',28
+  UNION ALL SELECT '02','03','Esc. General Mosquera Sede 2','av del rio cra 1a. con calles 3 y 4',9
+  UNION ALL SELECT '02','04','I.e.  Marco Fidel Suarez','calle 8 no 11-34',15
+  UNION ALL SELECT '02','05','Colegio Basico Centenario','kr 9a. #. 4 - 06',14
+  UNION ALL SELECT '02','06','I.e. Lestonac SD','CRA 10 # 7E-81',2
+  UNION ALL SELECT '03','01','I.e. Carlota Sanchez','cl 19 # 3 - 38',27
+  UNION ALL SELECT '03','02','I.e. Alfredo Garcia','kr 2a # 34 b 40',38
+  UNION ALL SELECT '03','03','Colegio San Jose','kr 3a #. 27 - 76',17
+  UNION ALL SELECT '03','04','I.e. Carlota Sanchez 2','Cl 20 # 3 - 23',19
+  UNION ALL SELECT '03','05','Coliseo menor','Cl 19 # 4-01',14
+  UNION ALL SELECT '03','06','I.e. Augusto Zuluaga Patiño','Kr 3 BIS # 33B 16',7
+  UNION ALL SELECT '03','07','I.e. La Palabra','Cl 26 N 3 08',3
+  UNION ALL SELECT '04','01','Colegio Gimnasio Pereira','kr 13 #. 3e - 99 br. la aurora',17
+  UNION ALL SELECT '04','02','Complejo Educ La Julita','calle 14 carrera 17-02 esq',11
+  UNION ALL SELECT '04','03','Univ.tecnologica De Pereira','cl 11 # 27 - 59 alamos',16
+  UNION ALL SELECT '05','01','I.e.  Boyaca','kr 5a. #. 21 - 02',17
+  UNION ALL SELECT '05','02','Centro Cultural Lucy Tejada','kr.9 entre cls 16 y 17',48
+  UNION ALL SELECT '06','01','Col.oficial La Inmaculada','kr. 8 #. 39 - 40',32
+  UNION ALL SELECT '06','02','Sena','kr. 8 #. 26 - 75',37
+  UNION ALL SELECT '06','03','Gobernacion De Risaralda','kr 13 cll 19 parque olaya',38
+  UNION ALL SELECT '06','05','I.e. Maria Dolorosa','Cl 33 # 8B 14',16
+  UNION ALL SELECT '06','08','I.e. Rafael Uribe Uribe','Cl 27 # 7-72',5
+  UNION ALL SELECT '07','01','Colegio San Nicolas','kr. 15 #. 30 - 34 san nicolás',21
+  UNION ALL SELECT '07','02','Colegio Normal Superior','kr 17 bis # 46 - 50 urb. el jardin ii etapa',16
+  UNION ALL SELECT '07','03','Colegio Sur Oriental','cl 17 # 23 b 26 br. boston',21
+  UNION ALL SELECT '07','04','I.e.  Providencia','kr. 20 #. 23 - 15',14
+  UNION ALL SELECT '07','05','Centro Educ.el Rocío','inspección urbana el rocío',6
+  UNION ALL SELECT '07','06','I.e. Deogracias cardona Sede Camilo Torres','Cl 19 N 16 43 Mejia Robledo',1
+  UNION ALL SELECT '07','07','I.e. Deogracias Cardona','Kr 19 No 25-60 El Vergel',3
+  UNION ALL SELECT '08','01','I.e.  Ciudad Boquia','kr 6a # 63 - 50 sec. e ciudadela del café',42
+  UNION ALL SELECT '08','02','Liceo Cial Aquilino Bedoya','av 30 de agosto #. 62 - 59',19
+  UNION ALL SELECT '08','03','I.e. Hugo Angel Jaramillo','Sector Malaga',11
+  UNION ALL SELECT '08','04','I.e. Ciudad Boquia Sede 2','Cl  63A N 3A 62 Boquia',13
+  UNION ALL SELECT '08','05','I.e. Matecaña Sede La Libertad','Cl 74 N 11 27 La Libertad',2
+  UNION ALL SELECT '09','01','I.e. Remigio Antonio Cañarte','kr 22 b # 29 - 40 br. el poblado i etapa',19
+  UNION ALL SELECT '09','02','I.e. Samaria','kr 34 # 32c - 35 Samaria i',21
+  UNION ALL SELECT '09','03','Centro Educ.naranjito','cl 66 d # 44 - 45 vereda naranjito',28
+  UNION ALL SELECT '09','05','I.e. El Dorado','Kr 29 # 47A 01 MZA 1 CSA 1',7
+  UNION ALL SELECT '09','06','Caseta Comunal Panorama II','Barrio Panorama II Contiguo a CAI Consota',2
+  UNION ALL SELECT '10','01','Colegio Oficial Ciudadela Cuba','cl. 71 cra. 28 barrio los cristales',32
+  UNION ALL SELECT '10','02','I.e. Bayron Gaviria','cl 75 # 36f - 26 los héroes',37
+  UNION ALL SELECT '10','03','Colegio Basico San Joaquin','cl 86 # 36 - 40 san joaquín',27
+  UNION ALL SELECT '10','04','I.e. Sofia Hernandez Marin','kr 26 b # 74 a 35 cuba',11
+  UNION ALL SELECT '10','05','Col Rodrigo Arenas Betancur','cl 80 no 36b-30',3
+  UNION ALL SELECT '10','06','I.e. Hans Drews Arango','Cl 85 # 26B 45',20
+  UNION ALL SELECT '10','07','I.e. Carlos Eduardo Vasco','Kr 38 # 88-116 Via Alcala',2
+  UNION ALL SELECT '11','01','Uni.libre De Pereira Belmonte','av de las américas sector belmonte',17
+  UNION ALL SELECT '11','02','I.e. Luis Carlos Gonzalez','cl 82 kr 17 bis gamma ii',16
+  UNION ALL SELECT '11','03','Col Basico Alfonso Jaramillo','kr. 25 #. 77 - 18 br. corales',27
+  UNION ALL SELECT '11','04','I.e. San Fernando','cl 70 #. 23b - 20 cuba',38
+  UNION ALL SELECT '11','05','Centro Educativo Juan XXIII','kr. 23 bis #.74 - 40 cuba',24
+  UNION ALL SELECT '11','06','I.e. Jesus Maria Ormaza','Kr 22 BIS # 75 00',8
+  UNION ALL SELECT '11','07','Estadio Hernan Ramirez Villegas','Entrada Occidental Puertas 5 y 6 Villa Olimpica',9
+  UNION ALL SELECT '90','01','Inem Felipe Perez Jardin 1','barrio el jardin etapa 1',31
+  UNION ALL SELECT '98','01','Carcel','kr. 8a #. 41 - 97',1
+  UNION ALL SELECT '99','05','Altagracia','ctro educativo maría cristina gomez',12
+  UNION ALL SELECT '99','08','La Florida','i.e héctor angel arcila',6
+  UNION ALL SELECT '99','09','C.E. El Porvenir','El Porvenir, Vereda, KM 3 VIA La Florida',3
+  UNION ALL SELECT '99','10','El Chocho','ctro educativo ana arango de uribe',3
+  UNION ALL SELECT '99','13','La Bella','i.e. la bella',5
+  UNION ALL SELECT '99','21','Mundo Nuevo','instituto docente mundo nuevo',3
+  UNION ALL SELECT '99','22','La Graminea','ctro educativo la gramínea',2
+  UNION ALL SELECT '99','23','El Manzano','inst. docente el manzano',2
+  UNION ALL SELECT '99','30','Tribunas Corcega','col. oficial josé antonio galán',12
+  UNION ALL SELECT '99','34','Arabia','inst agrícola san francisco de asis',6
+  UNION ALL SELECT '99','39','Betulia','ctro docente betulia',3
+  UNION ALL SELECT '99','40','Yarumal','inst. docente yarumal',2
+  UNION ALL SELECT '99','41','Puerto Caldas Puente Bolivar','c.e. enrique millán rubio',9
+  UNION ALL SELECT '99','48','Caimalito','i.e. gabriel trujillo',9
+  UNION ALL SELECT '99','61','Combia Baja','esc. el placer',8
+  UNION ALL SELECT '99','65','La Honda','ctro educativo la honda',1
+  UNION ALL SELECT '99','70','La Convencion','esc. san vicente',3
+  UNION ALL SELECT '99','74','Combia Alta','instituto educativo el pital',5
+  UNION ALL SELECT '99','85','Cerritos','colegio comunitario cerritos',18
+  UNION ALL SELECT '99','90','Morelia','ctro docente morelia',7
+  UNION ALL SELECT '99','96','La Estrella La Palmilla','esc. rural la estrella - la palmilla',4
+  UNION ALL SELECT '99','06','Caseta Comunal Altagracia','Via Ppal Altagracia-Centro',14
+  UNION ALL SELECT '99','49','I.e. La Carbonera','Vereda La Carbonera en Caimalito',1
+  UNION ALL SELECT '99','62','I.e. Combia','Km 5 Via a Marsella Crucero de Combia',4
+  UNION ALL SELECT '99','80','I.e. Comunitario Cerritos Sede Primaria','Km 14 Via Cerritos',19
+  UNION ALL SELECT '99','81','Uniminuto','Km 11 Via Galicia-Pereira',18
+  UNION ALL SELECT '99','91','I.e. Salamanca','Kr 38 N 78 130 Ciudadela Salamanca',4
+) v
+JOIN zonas z ON z.codigo = v.zcodigo
+ON DUPLICATE KEY UPDATE nombre = VALUES(nombre), direccion = VALUES(direccion), num_mesas = VALUES(num_mesas);
 
 -- Comunas y barrios reales (Pereira). El orden de inserción determina el id
 -- autoincremental (1..20) que usan los barrios de abajo vía comuna_id;
