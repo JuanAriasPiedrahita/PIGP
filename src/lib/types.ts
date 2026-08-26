@@ -41,6 +41,11 @@ export interface Parentesco {
   descripcion: string;
 }
 
+export interface Dependencia {
+  id: number;
+  descripcion: string;
+}
+
 export interface Atributos {
   vehiculo: boolean;
   redes_sociales: boolean;
@@ -69,12 +74,17 @@ export interface Lider extends Atributos {
   foto: string | null;
   usuario: string;
   // "clave" nunca se retorna al cliente
+  contratista: boolean;
+  objeto_contrato: string | null;
+  vencimiento_contrato: string | null;
+  dependencia_id: number | null;
   comuna_descripcion?: string;
   barrio_nombre?: string;
   zona_codigo?: string;
   puesto_nombre?: string;
   profesion_descripcion?: string | null;
   ocupacion_descripcion?: string | null;
+  dependencia_descripcion?: string | null;
   created_at?: string;
   updated_at?: string;
 }

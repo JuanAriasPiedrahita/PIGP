@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { apiGet } from "@/lib/api";
-import type { Zona, Puesto, Comuna, Barrio, Profesion, Ocupacion, Parentesco } from "@/lib/types";
+import type { Zona, Puesto, Comuna, Barrio, Profesion, Ocupacion, Parentesco, Dependencia } from "@/lib/types";
 
 export interface Catalogos {
   zonas: Zona[];
@@ -12,6 +12,7 @@ export interface Catalogos {
   profesiones: Profesion[];
   ocupaciones: Ocupacion[];
   parentescos: Parentesco[];
+  dependencias: Dependencia[];
 }
 
 const EMPTY: Catalogos = {
@@ -22,6 +23,7 @@ const EMPTY: Catalogos = {
   profesiones: [],
   ocupaciones: [],
   parentescos: [],
+  dependencias: [],
 };
 
 /**
@@ -37,7 +39,7 @@ export function useCatalogos() {
     setLoading(true);
     setError(null);
     try {
-      const [zonas, puestos, comunas, barrios, profesiones, ocupaciones, parentescos] = await Promise.all([
+      const [zonas, puestos, comunas, barrios, profesiones, ocupaciones, parentescos, dependencias] = await Promise.all([
         apiGet<Zona[]>("/api/zonas"),
         apiGet<Puesto[]>("/api/puestos"),
         apiGet<Comuna[]>("/api/comunas"),
@@ -45,8 +47,9 @@ export function useCatalogos() {
         apiGet<Profesion[]>("/api/profesiones"),
         apiGet<Ocupacion[]>("/api/ocupaciones"),
         apiGet<Parentesco[]>("/api/parentescos"),
+        apiGet<Dependencia[]>("/api/dependencias"),
       ]);
-      setData({ zonas, puestos, comunas, barrios, profesiones, ocupaciones, parentescos });
+      setData({ zonas, puestos, comunas, barrios, profesiones, ocupaciones, parentescos, dependencias });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error cargando catálogos");
     } finally {

@@ -4,6 +4,7 @@ import type { RowDataPacket, ResultSetHeader } from "mysql2";
 import bcrypt from "bcryptjs";
 import { savePhoto } from "@/lib/upload";
 import { isValidCedula, isValidCelular, isValidEmail } from "@/lib/validations";
+import { parseContratista } from "@/lib/contratista";
 
 const LIST_SQL = `
   SELECT
@@ -11,6 +12,7 @@ const LIST_SQL = `
     l.comuna_id, l.barrio_id, l.direccion, l.zona_id, l.puesto_id,
     l.profesion_id, l.ocupacion_id, l.fecha_nacimiento, l.estado, l.foto, l.usuario,
     l.vehiculo, l.redes_sociales, l.orador_publico, l.cantante, l.testigo_electoral,
+    l.contratista, l.objeto_contrato, l.vencimiento_contrato, l.dependencia_id,
     l.created_at, l.updated_at,
     co.descripcion AS comuna_descripcion,
     b.nombre AS barrio_nombre,
@@ -18,6 +20,7 @@ const LIST_SQL = `
     p.nombre AS puesto_nombre,
     pr.descripcion AS profesion_descripcion,
     oc.descripcion AS ocupacion_descripcion,
+    dep.descripcion AS dependencia_descripcion,
     (SELECT COUNT(*) FROM referidos r WHERE r.lider_id = l.id) AS total_referidos
   FROM lideres l
   LEFT JOIN comunas co ON co.id = l.comuna_id
@@ -26,6 +29,7 @@ const LIST_SQL = `
   LEFT JOIN puestos p ON p.id = l.puesto_id
   LEFT JOIN profesiones pr ON pr.id = l.profesion_id
   LEFT JOIN ocupaciones oc ON oc.id = l.ocupacion_id
+  LEFT JOIN dependencias dep ON dep.id = l.dependencia_id
 `;
 
 export async function GET(req: NextRequest) {
@@ -86,6 +90,10 @@ export async function POST(req: NextRequest) {
     if (!fecha_nacimiento) errors.fecha_nacimiento = "La fecha de nacimiento es obligatoria";
     if (!usuario) errors.usuario = "El usuario es obligatorio";
     if (!clave || clave.length < 4) errors.clave = "La clave debe tener al menos 4 caracteres";
+
+    const { data: contratistaData, error: contratistaError } = parseContratista(form);
+    if (contratistaError) errors.contratista = contratistaError;
+
     if (Object.keys(errors).length > 0) {
       return NextResponse.json({ error: "Datos inválidos", fields: errors }, { status: 400 });
     }
@@ -103,12 +111,14 @@ export async function POST(req: NextRequest) {
       `INSERT INTO lideres
         (nombre, apellidos, sexo, cedula, celular, email, comuna_id, barrio_id, direccion,
          zona_id, puesto_id, profesion_id, ocupacion_id, fecha_nacimiento, estado, foto,
-         usuario, clave, vehiculo, redes_sociales, orador_publico, cantante, testigo_electoral)
-       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+         usuario, clave, vehiculo, redes_sociales, orador_publico, cantante, testigo_electoral,
+         contratista, objeto_contrato, vencimiento_contrato, dependencia_id)
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
       [
         nombre, apellidos, sexo, cedula, celular, email || null, comuna_id, barrio_id, direccion,
         zona_id, puesto_id, profesion_id || null, ocupacion_id || null, fecha_nacimiento, estado, fotoPath,
         usuario, claveHash, ...bools,
+        contratistaData.contratista, contratistaData.objeto_contrato, contratistaData.vencimiento_contrato, contratistaData.dependencia_id,
       ]
     );
 

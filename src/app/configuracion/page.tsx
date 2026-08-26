@@ -7,6 +7,7 @@ const TABS = [
   { key: "profesiones", label: "Profesiones", endpoint: "/api/profesiones", singular: "profesión", placeholder: "Ej: Ingeniero(a)" },
   { key: "ocupaciones", label: "Ocupaciones", endpoint: "/api/ocupaciones", singular: "ocupación", placeholder: "Ej: Independiente" },
   { key: "parentescos", label: "Parentescos", endpoint: "/api/parentescos", singular: "parentesco", placeholder: "Ej: Hermano(a)" },
+  { key: "dependencias", label: "Dependencias", endpoint: "/api/dependencias", singular: "dependencia", placeholder: "Ej: Secretaría de Gobierno" },
 ] as const;
 
 export default function ConfiguracionPage() {

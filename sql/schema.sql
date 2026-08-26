@@ -65,6 +65,11 @@ CREATE TABLE IF NOT EXISTS parentescos (
   descripcion VARCHAR(100) NOT NULL UNIQUE
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS dependencias (
+  id          INT AUTO_INCREMENT PRIMARY KEY,
+  descripcion VARCHAR(150) NOT NULL UNIQUE
+) ENGINE=InnoDB;
+
 -- ---------------------------------------------------------------------
 -- Líderes
 -- ---------------------------------------------------------------------
@@ -93,14 +98,19 @@ CREATE TABLE IF NOT EXISTS lideres (
   orador_publico     TINYINT(1)    NOT NULL DEFAULT 0,
   cantante           TINYINT(1)    NOT NULL DEFAULT 0,
   testigo_electoral  TINYINT(1)    NOT NULL DEFAULT 0,
+  contratista           TINYINT(1)    NOT NULL DEFAULT 0,
+  objeto_contrato       VARCHAR(255)  NULL,
+  vencimiento_contrato  DATE          NULL,
+  dependencia_id        INT           NULL,
   created_at         TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at         TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  CONSTRAINT fk_lideres_comuna    FOREIGN KEY (comuna_id)    REFERENCES comunas(id),
-  CONSTRAINT fk_lideres_barrio    FOREIGN KEY (barrio_id)    REFERENCES barrios(id),
-  CONSTRAINT fk_lideres_zona      FOREIGN KEY (zona_id)      REFERENCES zonas(id),
-  CONSTRAINT fk_lideres_puesto    FOREIGN KEY (puesto_id)    REFERENCES puestos(id),
-  CONSTRAINT fk_lideres_profesion FOREIGN KEY (profesion_id) REFERENCES profesiones(id),
-  CONSTRAINT fk_lideres_ocupacion FOREIGN KEY (ocupacion_id) REFERENCES ocupaciones(id)
+  CONSTRAINT fk_lideres_comuna      FOREIGN KEY (comuna_id)      REFERENCES comunas(id),
+  CONSTRAINT fk_lideres_barrio      FOREIGN KEY (barrio_id)      REFERENCES barrios(id),
+  CONSTRAINT fk_lideres_zona        FOREIGN KEY (zona_id)        REFERENCES zonas(id),
+  CONSTRAINT fk_lideres_puesto      FOREIGN KEY (puesto_id)      REFERENCES puestos(id),
+  CONSTRAINT fk_lideres_profesion   FOREIGN KEY (profesion_id)   REFERENCES profesiones(id),
+  CONSTRAINT fk_lideres_ocupacion   FOREIGN KEY (ocupacion_id)   REFERENCES ocupaciones(id),
+  CONSTRAINT fk_lideres_dependencia FOREIGN KEY (dependencia_id) REFERENCES dependencias(id)
 ) ENGINE=InnoDB;
 
 -- ---------------------------------------------------------------------
@@ -392,4 +402,9 @@ ON DUPLICATE KEY UPDATE descripcion = VALUES(descripcion);
 INSERT INTO parentescos (descripcion) VALUES
   ('Padre'), ('Madre'), ('Hijo(a)'), ('Hermano(a)'), ('Cónyuge'),
   ('Primo(a)'), ('Amigo(a)'), ('Vecino(a)'), ('Otro')
+ON DUPLICATE KEY UPDATE descripcion = VALUES(descripcion);
+
+INSERT INTO dependencias (descripcion) VALUES
+  ('Secretaría de Gobierno'), ('Secretaría de Salud'), ('Secretaría de Educación'),
+  ('Secretaría de Infraestructura'), ('Secretaría de Desarrollo Social'), ('Otra')
 ON DUPLICATE KEY UPDATE descripcion = VALUES(descripcion);

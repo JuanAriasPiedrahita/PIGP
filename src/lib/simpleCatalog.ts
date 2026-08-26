@@ -4,11 +4,11 @@ import type { RowDataPacket, ResultSetHeader } from "mysql2";
 
 /**
  * Fábrica de handlers CRUD para catálogos simples de una sola columna
- * (id + descripcion): profesiones, ocupaciones, parentescos.
+ * (id + descripcion): profesiones, ocupaciones, parentescos, dependencias.
  * Los nombres de tabla están controlados internamente (no vienen del usuario),
  * por lo que interpolarlos en el SQL es seguro.
  */
-export function simpleCatalogHandlers(table: "profesiones" | "ocupaciones" | "parentescos") {
+export function simpleCatalogHandlers(table: "profesiones" | "ocupaciones" | "parentescos" | "dependencias") {
   async function list() {
     try {
       const [rows] = await pool.query<RowDataPacket[]>(

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Input, Select, RadioGroup } from "@/components/ui/FormControls";
+import { Input, Select, RadioGroup, Checkbox } from "@/components/ui/FormControls";
 import { PasswordInput } from "@/components/ui/PasswordInput";
 import { PhotoUpload } from "@/components/ui/PhotoUpload";
 import { LocationSelects } from "@/components/shared/LocationSelects";
@@ -30,6 +30,9 @@ interface FormState {
   estado: string;
   usuario: string;
   clave: string;
+  objeto_contrato: string;
+  vencimiento_contrato: string;
+  dependencia_id: string;
 }
 
 const EMPTY_FORM: FormState = {
@@ -50,6 +53,9 @@ const EMPTY_FORM: FormState = {
   estado: "ACTIVO",
   usuario: "",
   clave: "",
+  objeto_contrato: "",
+  vencimiento_contrato: "",
+  dependencia_id: "",
 };
 
 interface Props {
@@ -62,6 +68,7 @@ interface Props {
 export function LiderForm({ catalogos, liderId, onSaved, onCancel }: Props) {
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [atributos, setAtributos] = useState<Atributos>(DEFAULT_ATRIBUTOS);
+  const [contratista, setContratista] = useState(false);
   const [fotoFile, setFotoFile] = useState<File | null>(null);
   const [fotoUrl, setFotoUrl] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -91,6 +98,9 @@ export function LiderForm({ catalogos, liderId, onSaved, onCancel }: Props) {
           estado: l.estado,
           usuario: l.usuario,
           clave: "",
+          objeto_contrato: l.objeto_contrato || "",
+          vencimiento_contrato: l.vencimiento_contrato?.slice(0, 10) || "",
+          dependencia_id: l.dependencia_id ? String(l.dependencia_id) : "",
         });
         setAtributos({
           vehiculo: l.vehiculo,
@@ -99,6 +109,7 @@ export function LiderForm({ catalogos, liderId, onSaved, onCancel }: Props) {
           cantante: l.cantante,
           testigo_electoral: l.testigo_electoral,
         });
+        setContratista(l.contratista);
         setFotoUrl(l.foto || null);
       })
       .catch((err) => toast.show(err.message, "error"))
@@ -127,6 +138,11 @@ export function LiderForm({ catalogos, liderId, onSaved, onCancel }: Props) {
     if (!form.usuario.trim()) errs.usuario = "Obligatorio";
     if (!liderId && form.clave.length < 4) errs.clave = "Mínimo 4 caracteres";
     if (liderId && form.clave && form.clave.length < 4) errs.clave = "Mínimo 4 caracteres";
+    if (contratista) {
+      if (!form.objeto_contrato.trim()) errs.objeto_contrato = "Obligatorio";
+      if (!form.vencimiento_contrato) errs.vencimiento_contrato = "Obligatorio";
+      if (!form.dependencia_id) errs.dependencia_id = "Seleccione la dependencia";
+    }
     setErrors(errs);
     return Object.keys(errs).length === 0;
   }
@@ -142,6 +158,7 @@ export function LiderForm({ catalogos, liderId, onSaved, onCancel }: Props) {
       const fd = new FormData();
       Object.entries(form).forEach(([k, v]) => fd.append(k, v));
       Object.entries(atributos).forEach(([k, v]) => fd.append(k, String(v)));
+      fd.set("contratista", String(contratista));
       if (fotoFile) fd.append("foto", fotoFile);
 
       if (liderId) {
@@ -226,6 +243,38 @@ export function LiderForm({ catalogos, liderId, onSaved, onCancel }: Props) {
       </div>
 
       <AtributosCheckboxes value={atributos} onChange={setAtributos} />
+
+      <div className="space-y-4 border-t border-slate-100 pt-4">
+        <Checkbox label="Contratista" checked={contratista} onChange={setContratista} />
+        {contratista && (
+          <div className="grid grid-cols-1 gap-4 rounded-lg bg-slate-50 p-4 sm:grid-cols-2">
+            <Input
+              label="Objeto del contrato"
+              required
+              value={form.objeto_contrato}
+              error={errors.objeto_contrato}
+              onChange={(e) => set("objeto_contrato", e.target.value)}
+              className="sm:col-span-2"
+            />
+            <Input
+              label="Vencimiento"
+              type="date"
+              required
+              value={form.vencimiento_contrato}
+              error={errors.vencimiento_contrato}
+              onChange={(e) => set("vencimiento_contrato", e.target.value)}
+            />
+            <Select
+              label="Dependencia"
+              required
+              value={form.dependencia_id}
+              error={errors.dependencia_id}
+              onChange={(e) => set("dependencia_id", e.target.value)}
+              options={catalogos.dependencias.map((d) => ({ value: d.id, label: d.descripcion }))}
+            />
+          </div>
+        )}
+      </div>
 
       <div className="flex justify-end gap-2 border-t border-slate-100 pt-4">
         <button type="button" className="btn-secondary" onClick={onCancel} disabled={saving}>

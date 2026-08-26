@@ -4,11 +4,12 @@ import type { RowDataPacket } from "mysql2";
 import bcrypt from "bcryptjs";
 import { savePhoto, deletePhoto } from "@/lib/upload";
 import { isValidCedula, isValidCelular, isValidEmail } from "@/lib/validations";
+import { parseContratista } from "@/lib/contratista";
 
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const [rows] = await pool.query<RowDataPacket[]>(
-      "SELECT id, nombre, apellidos, sexo, cedula, celular, email, comuna_id, barrio_id, direccion, zona_id, puesto_id, profesion_id, ocupacion_id, fecha_nacimiento, estado, foto, usuario, vehiculo, redes_sociales, orador_publico, cantante, testigo_electoral FROM lideres WHERE id = ?",
+      "SELECT id, nombre, apellidos, sexo, cedula, celular, email, comuna_id, barrio_id, direccion, zona_id, puesto_id, profesion_id, ocupacion_id, fecha_nacimiento, estado, foto, usuario, vehiculo, redes_sociales, orador_publico, cantante, testigo_electoral, contratista, objeto_contrato, vencimiento_contrato, dependencia_id FROM lideres WHERE id = ?",
       [params.id]
     );
     if (rows.length === 0) return NextResponse.json({ error: "Líder no encontrado" }, { status: 404 });
@@ -58,6 +59,10 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     if (!fecha_nacimiento) errors.fecha_nacimiento = "La fecha de nacimiento es obligatoria";
     if (!usuario) errors.usuario = "El usuario es obligatorio";
     if (clave && clave.length < 4) errors.clave = "La clave debe tener al menos 4 caracteres";
+
+    const { data: contratistaData, error: contratistaError } = parseContratista(form);
+    if (contratistaError) errors.contratista = contratistaError;
+
     if (Object.keys(errors).length > 0) {
       return NextResponse.json({ error: "Datos inválidos", fields: errors }, { status: 400 });
     }
@@ -75,29 +80,35 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
     const bools = BOOL_FIELDS.map((f) => (form.get(f) === "true" || form.get(f) === "on" ? 1 : 0));
 
+    const contratistaValues = [
+      contratistaData.contratista, contratistaData.objeto_contrato, contratistaData.vencimiento_contrato, contratistaData.dependencia_id,
+    ];
+
     if (clave) {
       const claveHash = await bcrypt.hash(clave, 10);
       await pool.query(
         `UPDATE lideres SET nombre=?, apellidos=?, sexo=?, cedula=?, celular=?, email=?, comuna_id=?, barrio_id=?,
           direccion=?, zona_id=?, puesto_id=?, profesion_id=?, ocupacion_id=?, fecha_nacimiento=?, estado=?, foto=?,
-          usuario=?, clave=?, vehiculo=?, redes_sociales=?, orador_publico=?, cantante=?, testigo_electoral=?
+          usuario=?, clave=?, vehiculo=?, redes_sociales=?, orador_publico=?, cantante=?, testigo_electoral=?,
+          contratista=?, objeto_contrato=?, vencimiento_contrato=?, dependencia_id=?
          WHERE id=?`,
         [
           nombre, apellidos, sexo, cedula, celular, email || null, comuna_id, barrio_id,
           direccion, zona_id, puesto_id, profesion_id || null, ocupacion_id || null, fecha_nacimiento, estado, fotoPath,
-          usuario, claveHash, ...bools, params.id,
+          usuario, claveHash, ...bools, ...contratistaValues, params.id,
         ]
       );
     } else {
       await pool.query(
         `UPDATE lideres SET nombre=?, apellidos=?, sexo=?, cedula=?, celular=?, email=?, comuna_id=?, barrio_id=?,
           direccion=?, zona_id=?, puesto_id=?, profesion_id=?, ocupacion_id=?, fecha_nacimiento=?, estado=?, foto=?,
-          usuario=?, vehiculo=?, redes_sociales=?, orador_publico=?, cantante=?, testigo_electoral=?
+          usuario=?, vehiculo=?, redes_sociales=?, orador_publico=?, cantante=?, testigo_electoral=?,
+          contratista=?, objeto_contrato=?, vencimiento_contrato=?, dependencia_id=?
          WHERE id=?`,
         [
           nombre, apellidos, sexo, cedula, celular, email || null, comuna_id, barrio_id,
           direccion, zona_id, puesto_id, profesion_id || null, ocupacion_id || null, fecha_nacimiento, estado, fotoPath,
-          usuario, ...bools, params.id,
+          usuario, ...bools, ...contratistaValues, params.id,
         ]
       );
     }
