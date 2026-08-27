@@ -10,6 +10,7 @@ interface DashboardData {
   totalLideres: number;
   lideresActivos: number;
   lideresInactivos: number;
+  totalContratistas: number;
   totalReferidos: number;
   referidosQueVotaron: number;
   referidosDamnificados: number;
@@ -74,13 +75,14 @@ export default function DashboardPage() {
               }
             />
             <StatCard
-              label="Promedio referidos / líder"
-              value={data && data.totalLideres > 0 ? (data.totalReferidos / data.totalLideres).toFixed(1) : "0"}
+              label="Contratistas"
+              value={data?.totalContratistas ?? 0}
               accent="amber"
               icon={
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="24" height="24">
-                  <path d="M3 17l6-6 4 4 8-8" strokeLinecap="round" strokeLinejoin="round" />
-                  <path d="M14 7h7v7" strokeLinecap="round" strokeLinejoin="round" />
+                  <rect x="4" y="7" width="16" height="13" rx="1.5" />
+                  <path d="M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M4 12h16" strokeLinecap="round" />
                 </svg>
               }
             />

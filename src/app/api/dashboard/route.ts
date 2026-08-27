@@ -5,7 +5,7 @@ import type { RowDataPacket } from "mysql2";
 export async function GET() {
   try {
     const [[lideresRow]] = await pool.query<RowDataPacket[]>(
-      "SELECT COUNT(*) AS total, SUM(estado='ACTIVO') AS activos, SUM(estado='INACTIVO') AS inactivos FROM lideres"
+      "SELECT COUNT(*) AS total, SUM(estado='ACTIVO') AS activos, SUM(estado='INACTIVO') AS inactivos, SUM(contratista=1) AS contratistas FROM lideres"
     ) as unknown as [RowDataPacket[]];
     const [[referidosRow]] = await pool.query<RowDataPacket[]>(
       "SELECT COUNT(*) AS total, SUM(voto_anterior=1) AS votaron, SUM(damnificado_terremoto=1) AS damnificados FROM referidos"
@@ -26,6 +26,7 @@ export async function GET() {
       totalLideres: Number(lideresRow?.total || 0),
       lideresActivos: Number(lideresRow?.activos || 0),
       lideresInactivos: Number(lideresRow?.inactivos || 0),
+      totalContratistas: Number(lideresRow?.contratistas || 0),
       totalReferidos: Number(referidosRow?.total || 0),
       referidosQueVotaron: Number(referidosRow?.votaron || 0),
       referidosDamnificados: Number(referidosRow?.damnificados || 0),
