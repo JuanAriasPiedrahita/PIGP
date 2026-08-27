@@ -64,9 +64,20 @@ DB_PORT=3306
 DB_USER=root
 DB_PASSWORD=juanda2005
 DB_NAME=PIGP
+AUTH_SECRET=<clave aleatoria para firmar la sesión de login>
 ```
 
 Si cambias credenciales, edita este archivo (no se sube a git, ver `.gitignore`).
+
+## 4.1 Usuarios de acceso a la aplicación
+
+La app pide **usuario y clave** antes de dejar entrar a cualquier pantalla. Las credenciales viven en el archivo `users.txt` (raíz del proyecto, **no se sube a git** porque guarda claves en texto plano), un usuario por línea:
+
+```
+usuario:contrasena
+```
+
+Ya existe uno de ejemplo (`admin:changeme123`) — **cámbialo** antes de usar la app en serio. Para agregar más usuarios, agrega más líneas con el mismo formato y reinicia el servidor (`npm run dev` / `npm start`) para que tome los cambios. Hay una plantilla en `users.txt.example`.
 
 ## 5. Correr en desarrollo
 
@@ -89,6 +100,7 @@ npm start
 
 ## Cómo probar cada característica
 
+0. **Login**: al abrir la app se pide usuario y clave (ver sección 4.1). Con credenciales incorrectas muestra un error; con las correctas entra y queda una sesión de 8 horas. El botón de la esquina superior derecha (junto al nombre de usuario) cierra sesión.
 1. **Menú hamburguesa**: al entrar, el panel lateral está oculto y solo se ve el Dashboard. Haz clic en el ícono ☰ (arriba a la izquierda) para mostrar/ocultar el menú.
 2. **Dashboard**: muestra total de líderes, total de referidos, promedio de referidos por líder, damnificados por terremoto, líderes por comuna y el top 5 de líderes con más referidos.
 3. **Zonas** (menú → Zonas): crea zonas (código de 2 dígitos, ej. `01`) y, al seleccionar una zona, agrega sus puestos de votación (número de 2 dígitos, nombre y número de mesas).
@@ -107,3 +119,4 @@ npm start
 
 - La clave del líder se guarda **hasheada** (bcrypt) en la base de datos; nunca se devuelve en las respuestas de la API. El campo del formulario solo permite mostrar/ocultar el texto mientras se digita.
 - Las fotos se guardan en `public/uploads/lideres/` con nombre aleatorio; solo se aceptan JPG/PNG/WEBP hasta 5MB.
+- El login de la aplicación usa `users.txt` con contraseñas **en texto plano**, tal como se pidió — es un mecanismo simple pensado para uso interno/local, no equivalente en seguridad al hash de las claves de líderes. La sesión se guarda en una cookie `httpOnly` firmada (HMAC), no en el propio archivo.

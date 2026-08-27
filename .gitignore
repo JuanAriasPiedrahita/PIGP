@@ -16,6 +16,9 @@
 .env*.local
 .env
 
+# credenciales de acceso a la app (contiene contraseñas en texto plano)
+users.txt
+
 # uploads (contenido subido por usuarios, no versionar)
 /public/uploads/*
 !/public/uploads/.gitkeep

@@ -1,12 +1,19 @@
 "use client";
 
 import { ReactNode, useState } from "react";
+import { usePathname } from "next/navigation";
 import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
 import { ToastProvider } from "@/components/ui/Toast";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const pathname = usePathname();
+
+  // La pantalla de login no lleva el menú/topbar de la aplicación.
+  if (pathname === "/login") {
+    return <ToastProvider>{children}</ToastProvider>;
+  }
 
   return (
     <ToastProvider>

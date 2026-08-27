@@ -1,0 +1,4 @@
+# Un usuario por línea, formato: usuario:contrasena
+# Las líneas vacías o que empiecen con # se ignoran.
+# Copia este archivo como "users.txt" (no se sube a git) y cambia las credenciales.
+admin:changeme123
