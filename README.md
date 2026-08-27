@@ -114,6 +114,11 @@ npm start
    - La lista se puede **filtrar por líder** con el combo superior, y buscar por nombre/cédula.
 8. **Validaciones**: cédula (solo números), celular, email, y todos los campos obligatorios muestran mensajes de error en rojo antes de permitir guardar; los errores de base de datos (duplicados, conexión caída, etc.) se muestran como notificación (toast).
 9. **Responsive**: reduce el ancho del navegador o pruébalo en un celular; las tablas hacen scroll horizontal y los formularios se apilan en una sola columna.
+10. **Captura para líderes** (`/captura`): portal aparte para que cada líder gestione sus propios referidos, sin entrar al panel de administración.
+    - Cada líder ingresa con el **usuario y clave que tiene registrados como líder** (los mismos campos "Usuario"/"Clave" de su ficha en el panel admin).
+    - Al entrar ve **únicamente sus propios referidos**, con búsqueda, crear/editar/eliminar.
+    - El formulario de referido **no pide líder** — el backend lo asigna automáticamente al líder que inició sesión; un líder no puede ver ni modificar referidos de otro (se valida en el servidor, no solo se oculta en la pantalla).
+    - Sesión independiente de la del panel admin (`/login`); cada una usa su propia cookie.
 
 ## Notas de seguridad
 

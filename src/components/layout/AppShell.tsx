@@ -10,9 +10,10 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
 
-  // La pantalla de login no lleva el menú/topbar de la aplicación.
-  if (pathname === "/login") {
-    return <ToastProvider>{children}</ToastProvider>;
+  // El login y la zona de captura de líderes no llevan el menú/topbar del admin
+  // (la zona de captura ya trae su propio ToastProvider).
+  if (pathname === "/login" || pathname.startsWith("/captura")) {
+    return <>{children}</>;
   }
 
   return (
