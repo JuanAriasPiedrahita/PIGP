@@ -30,7 +30,7 @@ export function ReferidoTable({ referidos, onEdit, onDelete }: Props) {
         </thead>
         <tbody className="divide-y divide-slate-100">
           {referidos.map((r) => (
-            <tr key={r.id} className="hover:bg-slate-50">
+            <tr key={r.id} onClick={() => onEdit(r.id)} className="cursor-pointer hover:bg-slate-50">
               <td className="py-3 pl-2 pr-3">
                 <p className="font-medium text-slate-800">{r.nombre} {r.apellidos}</p>
                 <p className="text-xs text-slate-400">{r.celular}</p>
@@ -56,13 +56,13 @@ export function ReferidoTable({ referidos, onEdit, onDelete }: Props) {
               </td>
               <td className="py-3 pl-3 pr-2">
                 <div className="flex justify-end gap-1">
-                  <button onClick={() => onEdit(r.id)} className="btn-ghost !px-2 !py-1" aria-label="Editar">
+                  <button onClick={(e) => { e.stopPropagation(); onEdit(r.id); }} className="btn-ghost !px-2 !py-1" aria-label="Editar">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="17" height="17">
                       <path d="M12 20h9" strokeLinecap="round" />
                       <path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z" strokeLinejoin="round" />
                     </svg>
                   </button>
-                  <button onClick={() => onDelete(r.id)} className="btn-ghost !px-2 !py-1 text-red-500 hover:bg-red-50" aria-label="Eliminar">
+                  <button onClick={(e) => { e.stopPropagation(); onDelete(r.id); }} className="btn-ghost !px-2 !py-1 text-red-500 hover:bg-red-50" aria-label="Eliminar">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="17" height="17">
                       <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
