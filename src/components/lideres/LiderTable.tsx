@@ -25,7 +25,7 @@ export function LiderTable({ lideres, onEdit, onDelete }: Props) {
             <th className="px-3 py-3 font-medium">Ubicación</th>
             <th className="px-3 py-3 font-medium">Votación</th>
             <th className="px-3 py-3 font-medium">Referidos</th>
-            <th className="px-3 py-3 font-medium">Estado</th>
+            <th className="px-3 py-3 font-medium">Edad</th>
             <th className="py-3 pl-3 pr-2 text-right font-medium">Acciones</th>
           </tr>
         </thead>
@@ -47,7 +47,7 @@ export function LiderTable({ lideres, onEdit, onDelete }: Props) {
                   </div>
                   <div className="min-w-0">
                     <p className={`truncate font-medium ${sexoTextClass(l.sexo)}`}>{l.nombre} {l.apellidos}</p>
-                    <p className="truncate text-xs text-slate-400">{l.usuario}</p>
+                    {l.contratista && <p className="truncate text-xs text-amber-600">Contratista</p>}
                   </div>
                 </div>
               </td>
@@ -67,11 +67,7 @@ export function LiderTable({ lideres, onEdit, onDelete }: Props) {
               <td className="px-3 py-3">
                 <span className="badge bg-brand-50 text-brand-700">{l.total_referidos ?? 0}</span>
               </td>
-              <td className="px-3 py-3">
-                <span className={`badge ${l.estado === "ACTIVO" ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-500"}`}>
-                  {l.estado === "ACTIVO" ? "Activo" : "Inactivo"}
-                </span>
-              </td>
+              <td className="px-3 py-3 text-slate-600">{l.edad ?? "—"}</td>
               <td className="py-3 pl-3 pr-2">
                 <div className="flex justify-end">
                   <button onClick={(e) => { e.stopPropagation(); onDelete(l.id); }} className="btn-ghost !px-2 !py-1 text-red-500 hover:bg-red-50" aria-label="Eliminar">

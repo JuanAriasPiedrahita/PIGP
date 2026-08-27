@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 import { savePhoto } from "@/lib/upload";
 import { isValidCedula, isValidCelular, isValidEmail } from "@/lib/validations";
 import { parseContratista } from "@/lib/contratista";
+import { calcularEdad, sentinelBirthYear } from "@/lib/edad";
 
 const LIST_SQL = `
   SELECT
@@ -32,19 +33,50 @@ const LIST_SQL = `
   LEFT JOIN dependencias dep ON dep.id = l.dependencia_id
 `;
 
+const ATRIBUTO_PARAMS = ["vehiculo", "redes_sociales", "orador_publico", "cantante", "testigo_electoral"] as const;
+
 export async function GET(req: NextRequest) {
   try {
-    const q = req.nextUrl.searchParams.get("q");
+    const params = req.nextUrl.searchParams;
+    const q = params.get("q");
     let sql = LIST_SQL;
-    const args: string[] = [];
+    const conditions: string[] = [];
+    const args: (string | number)[] = [];
+
+    const eqFilters: [string, string | null][] = [
+      ["l.comuna_id", params.get("comuna_id")],
+      ["l.barrio_id", params.get("barrio_id")],
+      ["l.puesto_id", params.get("puesto_id")],
+    ];
+    for (const [column, value] of eqFilters) {
+      if (value) {
+        conditions.push(`${column} = ?`);
+        args.push(value);
+      }
+    }
+
+    if (params.get("contratista") === "true") {
+      conditions.push("l.contratista = 1");
+    }
+
+    for (const atributo of ATRIBUTO_PARAMS) {
+      if (params.get(atributo) === "true") {
+        conditions.push(`l.${atributo} = 1`);
+      }
+    }
+
     if (q) {
-      sql += ` WHERE l.nombre LIKE ? OR l.apellidos LIKE ? OR l.cedula LIKE ?`;
+      conditions.push("(l.nombre LIKE ? OR l.apellidos LIKE ? OR l.cedula LIKE ?)");
       const like = `%${q}%`;
       args.push(like, like, like);
     }
+
+    if (conditions.length) sql += " WHERE " + conditions.join(" AND ");
     sql += " ORDER BY l.created_at DESC";
     const [rows] = await pool.query<RowDataPacket[]>(sql, args);
-    return NextResponse.json(rows);
+    const sentinel = sentinelBirthYear();
+    const rowsConEdad = rows.map((r) => ({ ...r, edad: calcularEdad(r.fecha_nacimiento as string, sentinel) }));
+    return NextResponse.json(rowsConEdad);
   } catch (err) {
     const { message, status } = friendlyDbError(err);
     return NextResponse.json({ error: message }, { status });
@@ -88,8 +120,8 @@ export async function POST(req: NextRequest) {
     if (!zona_id) errors.zona_id = "Seleccione la zona de votación";
     if (!puesto_id) errors.puesto_id = "Seleccione el puesto de votación";
     if (!fecha_nacimiento) errors.fecha_nacimiento = "La fecha de nacimiento es obligatoria";
-    if (!usuario) errors.usuario = "El usuario es obligatorio";
-    if (!clave || clave.length < 4) errors.clave = "La clave debe tener al menos 4 caracteres";
+    // Usuario y clave son opcionales: un líder puede quedar sin acceso a /captura por ahora.
+    if (clave && clave.length < 4) errors.clave = "La clave debe tener al menos 4 caracteres";
 
     const { data: contratistaData, error: contratistaError } = parseContratista(form);
     if (contratistaError) errors.contratista = contratistaError;
@@ -104,7 +136,7 @@ export async function POST(req: NextRequest) {
       fotoPath = await savePhoto(fotoFile);
     }
 
-    const claveHash = await bcrypt.hash(clave, 10);
+    const claveHash = clave ? await bcrypt.hash(clave, 10) : null;
     const bools = BOOL_FIELDS.map((f) => (form.get(f) === "true" || form.get(f) === "on" ? 1 : 0));
 
     const [result] = await pool.query<ResultSetHeader>(
@@ -117,7 +149,7 @@ export async function POST(req: NextRequest) {
       [
         nombre, apellidos, sexo, cedula, celular, email || null, comuna_id, barrio_id, direccion,
         zona_id, puesto_id, profesion_id || null, ocupacion_id || null, fecha_nacimiento, estado, fotoPath,
-        usuario, claveHash, ...bools,
+        usuario || null, claveHash, ...bools,
         contratistaData.contratista, contratistaData.objeto_contrato, contratistaData.vencimiento_contrato, contratistaData.dependencia_id,
       ]
     );

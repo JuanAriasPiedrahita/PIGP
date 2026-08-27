@@ -72,12 +72,13 @@ export interface Lider extends Atributos {
   fecha_nacimiento: string;
   estado: Estado;
   foto: string | null;
-  usuario: string;
+  usuario: string | null;
   // "clave" nunca se retorna al cliente
   contratista: boolean;
   objeto_contrato: string | null;
   vencimiento_contrato: string | null;
   dependencia_id: number | null;
+  edad?: number;
   comuna_descripcion?: string;
   barrio_nombre?: string;
   zona_codigo?: string;

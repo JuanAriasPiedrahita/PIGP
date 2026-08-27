@@ -96,7 +96,7 @@ export function LiderForm({ catalogos, liderId, onSaved, onCancel }: Props) {
           ocupacion_id: l.ocupacion_id ? String(l.ocupacion_id) : "",
           fecha_nacimiento: l.fecha_nacimiento?.slice(0, 10) || "",
           estado: l.estado,
-          usuario: l.usuario,
+          usuario: l.usuario || "",
           clave: "",
           objeto_contrato: l.objeto_contrato || "",
           vencimiento_contrato: l.vencimiento_contrato?.slice(0, 10) || "",
@@ -135,9 +135,7 @@ export function LiderForm({ catalogos, liderId, onSaved, onCancel }: Props) {
     if (!form.zona_id) errs.zona_id = "Seleccione la zona";
     if (!form.puesto_id) errs.puesto_id = "Seleccione el puesto";
     if (!form.fecha_nacimiento) errs.fecha_nacimiento = "Obligatorio";
-    if (!form.usuario.trim()) errs.usuario = "Obligatorio";
-    if (!liderId && form.clave.length < 4) errs.clave = "Mínimo 4 caracteres";
-    if (liderId && form.clave && form.clave.length < 4) errs.clave = "Mínimo 4 caracteres";
+    if (form.clave && form.clave.length < 4) errs.clave = "Mínimo 4 caracteres";
     if (contratista) {
       if (!form.objeto_contrato.trim()) errs.objeto_contrato = "Obligatorio";
       if (!form.vencimiento_contrato) errs.vencimiento_contrato = "Obligatorio";
@@ -232,14 +230,21 @@ export function LiderForm({ catalogos, liderId, onSaved, onCancel }: Props) {
           onChange={(v) => set("estado", v)}
           options={[{ value: "ACTIVO", label: "Activo" }, { value: "INACTIVO", label: "Inactivo" }]}
         />
-        <Input label="Usuario" required value={form.usuario} error={errors.usuario} onChange={(e) => set("usuario", e.target.value)} autoComplete="username" />
-        <PasswordInput
-          label="Clave"
-          value={form.clave}
-          error={errors.clave}
-          onChange={(v) => set("clave", v)}
-          hint={liderId ? "Deje en blanco para no cambiar la clave actual" : "Mínimo 4 caracteres"}
-        />
+      </div>
+
+      <div className="flex flex-wrap gap-4">
+        <div className="w-36">
+          <Input label="Usuario" value={form.usuario} error={errors.usuario} onChange={(e) => set("usuario", e.target.value)} autoComplete="username" />
+        </div>
+        <div className="w-36">
+          <PasswordInput
+            label="Clave"
+            value={form.clave}
+            error={errors.clave}
+            onChange={(v) => set("clave", v)}
+            hint={liderId ? "Sin cambios si se deja en blanco" : "Opcional, mín. 4 caracteres"}
+          />
+        </div>
       </div>
 
       <AtributosCheckboxes value={atributos} onChange={setAtributos} />

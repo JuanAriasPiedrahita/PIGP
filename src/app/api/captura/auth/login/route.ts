@@ -21,6 +21,10 @@ export async function POST(req: NextRequest) {
     }
 
     const lider = rows[0];
+    if (!lider.clave) {
+      // El líder existe pero aún no tiene clave asignada en su ficha.
+      return NextResponse.json({ error: "Usuario o clave incorrectos" }, { status: 401 });
+    }
     const ok = await bcrypt.compare(clave, lider.clave);
     if (!ok) {
       return NextResponse.json({ error: "Usuario o clave incorrectos" }, { status: 401 });

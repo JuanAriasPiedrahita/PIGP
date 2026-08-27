@@ -107,8 +107,10 @@ npm start
 4. **Comunas** (menú → Comunas): crea comunas (código + descripción) y, al seleccionar una, agrega sus barrios.
 5. **Configuración** (menú → Configuración): tres pestañas para gestionar Profesiones, Ocupaciones y Parentescos (catálogos usados luego en los formularios).
 6. **Líderes** (menú → Líderes):
-   - Clic en "Nuevo líder" abre el formulario completo: datos personales, sexo (radio), comuna→barrio y zona→puesto en cascada, profesión/ocupación (combos), fecha de nacimiento (date picker), estado (Activo/Inactivo), foto (subir imagen y verla en tamaño carné), usuario y clave (con botón de mostrar/ocultar), y los 5 checkboxes de atributos.
-   - La tabla permite buscar por nombre/apellido/cédula, editar y eliminar (eliminar un líder borra también sus referidos).
+   - Clic en "Nuevo líder" abre el formulario completo: datos personales, sexo (radio), comuna→barrio y zona→puesto en cascada, profesión/ocupación (combos), fecha de nacimiento (date picker), estado (Activo/Inactivo), foto (subir imagen y verla en tamaño carné), usuario y clave (opcionales, en una línea corta, con botón de mostrar/ocultar clave), los 5 checkboxes de atributos y la sección "Contratista".
+   - La tabla muestra la **edad** (calculada desde la fecha de nacimiento; si nació en el año centinela `SENTINEL_BIRTH_YEAR` del `.env`, se muestra edad 0) y, debajo del nombre, la etiqueta "Contratista" cuando aplica.
+   - Filtros por comuna, barrio (en cascada), puesto de votación, atributos y "solo contratistas", además de la búsqueda por nombre/apellido/cédula.
+   - Clic en cualquier parte de la fila abre la edición; eliminar un líder borra también sus referidos.
 7. **Referidos** (menú → Referidos):
    - Requiere al menos un líder creado. El formulario pide el líder al que pertenece, datos personales, ubicación (comuna/barrio, zona/puesto), parentesco, checkboxes "votó la vez pasada" y "damnificado en terremoto", y los mismos 5 atributos.
    - La lista se puede **filtrar por líder** con el combo superior, y buscar por nombre/cédula.

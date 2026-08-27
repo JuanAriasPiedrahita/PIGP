@@ -57,7 +57,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     if (!zona_id) errors.zona_id = "Seleccione la zona de votación";
     if (!puesto_id) errors.puesto_id = "Seleccione el puesto de votación";
     if (!fecha_nacimiento) errors.fecha_nacimiento = "La fecha de nacimiento es obligatoria";
-    if (!usuario) errors.usuario = "El usuario es obligatorio";
+    // Usuario y clave son opcionales; clave vacía = no cambiar la existente.
     if (clave && clave.length < 4) errors.clave = "La clave debe tener al menos 4 caracteres";
 
     const { data: contratistaData, error: contratistaError } = parseContratista(form);
@@ -95,7 +95,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
         [
           nombre, apellidos, sexo, cedula, celular, email || null, comuna_id, barrio_id,
           direccion, zona_id, puesto_id, profesion_id || null, ocupacion_id || null, fecha_nacimiento, estado, fotoPath,
-          usuario, claveHash, ...bools, ...contratistaValues, params.id,
+          usuario || null, claveHash, ...bools, ...contratistaValues, params.id,
         ]
       );
     } else {
@@ -108,7 +108,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
         [
           nombre, apellidos, sexo, cedula, celular, email || null, comuna_id, barrio_id,
           direccion, zona_id, puesto_id, profesion_id || null, ocupacion_id || null, fecha_nacimiento, estado, fotoPath,
-          usuario, ...bools, ...contratistaValues, params.id,
+          usuario || null, ...bools, ...contratistaValues, params.id,
         ]
       );
     }
