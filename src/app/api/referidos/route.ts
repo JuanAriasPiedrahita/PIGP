@@ -25,22 +25,45 @@ const LIST_SQL = `
   LEFT JOIN parentescos pa ON pa.id = r.parentesco_id
 `;
 
+const ATRIBUTO_PARAMS = ["vehiculo", "redes_sociales", "orador_publico", "cantante", "testigo_electoral"] as const;
+
 export async function GET(req: NextRequest) {
   try {
-    const liderId = req.nextUrl.searchParams.get("lider_id");
-    const q = req.nextUrl.searchParams.get("q");
+    const params = req.nextUrl.searchParams;
+    const q = params.get("q");
     let sql = LIST_SQL;
     const conditions: string[] = [];
-    const args: string[] = [];
-    if (liderId) {
-      conditions.push("r.lider_id = ?");
-      args.push(liderId);
+    const args: (string | number)[] = [];
+
+    const eqFilters: [string, string | null][] = [
+      ["r.lider_id", params.get("lider_id")],
+      ["r.comuna_id", params.get("comuna_id")],
+      ["r.barrio_id", params.get("barrio_id")],
+      ["r.puesto_id", params.get("puesto_id")],
+    ];
+    for (const [column, value] of eqFilters) {
+      if (value) {
+        conditions.push(`${column} = ?`);
+        args.push(value);
+      }
     }
+
+    if (params.get("damnificado") === "true") {
+      conditions.push("r.damnificado_terremoto = 1");
+    }
+
+    for (const atributo of ATRIBUTO_PARAMS) {
+      if (params.get(atributo) === "true") {
+        conditions.push(`r.${atributo} = 1`);
+      }
+    }
+
     if (q) {
       conditions.push("(r.nombre LIKE ? OR r.apellidos LIKE ? OR r.cedula LIKE ?)");
       const like = `%${q}%`;
       args.push(like, like, like);
     }
+
     if (conditions.length) sql += " WHERE " + conditions.join(" AND ");
     sql += " ORDER BY r.created_at DESC";
     const [rows] = await pool.query<RowDataPacket[]>(sql, args);
