@@ -27,7 +27,7 @@ function CapturaContent() {
     fetch("/api/captura/auth/me")
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then((data) => setNombreLider(data.nombre))
-      .catch(() => router.replace("/captura/login"));
+      .catch(() => router.replace("/login"));
   }, [router]);
 
   const load = useCallback(async (q: string) => {
@@ -79,7 +79,7 @@ function CapturaContent() {
 
   async function handleLogout() {
     await fetch("/api/captura/auth/logout", { method: "POST" });
-    router.replace("/captura/login");
+    router.replace("/login");
     router.refresh();
   }
 

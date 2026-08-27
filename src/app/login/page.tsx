@@ -31,7 +31,10 @@ function LoginForm() {
         setError(body?.error || "No se pudo iniciar sesión");
         return;
       }
-      const next = params.get("next") || "/";
+      // Un líder autenticado aquí no tiene sesión de panel de administración:
+      // se le manda siempre a /captura, ignorando el "next" (que apuntaría a
+      // una pantalla del panel a la que no tiene acceso).
+      const next = body?.tipo === "lider" ? "/captura" : params.get("next") || "/";
       router.replace(next);
       router.refresh();
     } catch {

@@ -16,7 +16,8 @@ export async function middleware(req: NextRequest) {
     if (pathname.startsWith("/api/")) {
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
     }
-    const loginUrl = new URL("/captura/login", req.url);
+    // Entrada unificada: /login decide si es admin o líder (ver /api/auth/login).
+    const loginUrl = new URL("/login", req.url);
     loginUrl.searchParams.set("next", pathname + search);
     return NextResponse.redirect(loginUrl);
   }
