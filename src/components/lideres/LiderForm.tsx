@@ -103,13 +103,13 @@ export function LiderForm({ catalogos, liderId, onSaved, onCancel }: Props) {
           dependencia_id: l.dependencia_id ? String(l.dependencia_id) : "",
         });
         setAtributos({
-          vehiculo: l.vehiculo,
-          redes_sociales: l.redes_sociales,
-          orador_publico: l.orador_publico,
-          cantante: l.cantante,
-          testigo_electoral: l.testigo_electoral,
+          vehiculo: !!l.vehiculo,
+          redes_sociales: !!l.redes_sociales,
+          orador_publico: !!l.orador_publico,
+          cantante: !!l.cantante,
+          testigo_electoral: !!l.testigo_electoral,
         });
-        setContratista(l.contratista);
+        setContratista(!!l.contratista);
         setFotoUrl(l.foto || null);
       })
       .catch((err) => toast.show(err.message, "error"))

@@ -21,6 +21,17 @@ function createPool(): mysql.Pool {
     idleTimeout: 60000,
     queueLimit: 0,
     dateStrings: true,
+    // mysql2 devuelve las columnas TINYINT(1) como number (0/1), no como boolean de JS.
+    // Eso rompe cualquier código que espere true/false real (p. ej. al reenviar el valor
+    // tal cual venía de la API sin volver a tocar un checkbox). Aquí se castean a boolean
+    // real todas las columnas TINYINT(1) del esquema (vehiculo, contratista, voto_anterior, etc.).
+    typeCast: (field, next) => {
+      if (field.type === "TINY" && field.length === 1) {
+        const value = field.string();
+        return value === null ? null : value === "1";
+      }
+      return next();
+    },
   });
 }
 
