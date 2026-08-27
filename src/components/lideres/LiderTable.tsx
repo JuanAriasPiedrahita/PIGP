@@ -1,6 +1,7 @@
 "use client";
 
 import type { Lider } from "@/lib/types";
+import { sexoTextClass } from "@/lib/sexoColor";
 
 interface Props {
   lideres: (Lider & { total_referidos?: number })[];
@@ -45,7 +46,7 @@ export function LiderTable({ lideres, onEdit, onDelete }: Props) {
                     )}
                   </div>
                   <div className="min-w-0">
-                    <p className="truncate font-medium text-slate-800">{l.nombre} {l.apellidos}</p>
+                    <p className={`truncate font-medium ${sexoTextClass(l.sexo)}`}>{l.nombre} {l.apellidos}</p>
                     <p className="truncate text-xs text-slate-400">{l.usuario}</p>
                   </div>
                 </div>

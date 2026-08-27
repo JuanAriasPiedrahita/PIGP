@@ -1,6 +1,7 @@
 "use client";
 
 import type { Referido } from "@/lib/types";
+import { sexoTextClass } from "@/lib/sexoColor";
 
 interface Props {
   referidos: Referido[];
@@ -32,7 +33,7 @@ export function ReferidoTable({ referidos, onEdit, onDelete }: Props) {
           {referidos.map((r) => (
             <tr key={r.id} onClick={() => onEdit(r.id)} className="cursor-pointer hover:bg-slate-50">
               <td className="py-3 pl-2 pr-3">
-                <p className="font-medium text-slate-800">{r.nombre} {r.apellidos}</p>
+                <p className={`font-medium ${sexoTextClass(r.sexo)}`}>{r.nombre} {r.apellidos}</p>
                 <p className="text-xs text-slate-400">{r.celular}</p>
               </td>
               <td className="px-3 py-3 text-slate-600">{r.cedula}</td>
