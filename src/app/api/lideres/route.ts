@@ -57,8 +57,6 @@ export async function GET(req: NextRequest) {
 
     if (params.get("contratista") === "true") {
       conditions.push("l.contratista = 1");
-    } else if (params.get("contratista") === "false") {
-      conditions.push("l.contratista = 0");
     }
 
     for (const atributo of ATRIBUTO_PARAMS) {
