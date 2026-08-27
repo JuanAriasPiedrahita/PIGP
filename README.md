@@ -7,7 +7,7 @@ Aplicación web para llevar el registro de **líderes** y sus **referidos** en u
 - **Next.js 14** (App Router) + **TypeScript**
 - **Tailwind CSS**
 - **MariaDB / MySQL** (vía `mysql2`) — conexión a `127.0.0.1`
-- `bcryptjs` para el hash de la clave de cada líder
+- Cifrado reversible (AES-256-GCM) para la clave de cada líder (ver Notas de seguridad)
 
 ## Estructura del proyecto
 
@@ -100,7 +100,7 @@ npm start
 
 ## Cómo probar cada característica
 
-0. **Login**: al abrir la app se pide usuario y clave (ver sección 4.1). Con credenciales incorrectas muestra un error; con las correctas entra y queda una sesión de 8 horas. El botón de la esquina superior derecha (junto al nombre de usuario) cierra sesión.
+0. **Login unificado** (`/login`): al abrir la app se pide usuario y clave (ver sección 4.1). Primero se valida contra `users.txt`: si el usuario existe ahí, entra al panel de administración completo. Si no, se busca ese mismo usuario/clave en la tabla `lideres` y, de coincidir, entra directo a `/captura` (su propio portal de referidos) en vez del panel. Con credenciales incorrectas muestra un error; con las correctas queda una sesión de 8 horas. El botón de la esquina superior derecha (junto al nombre de usuario) cierra sesión y vuelve a `/login`.
 1. **Menú hamburguesa**: al entrar, el panel lateral está oculto y solo se ve el Dashboard. Haz clic en el ícono ☰ (arriba a la izquierda) para mostrar/ocultar el menú.
 2. **Dashboard**: muestra total de líderes, total de referidos, promedio de referidos por líder, damnificados por terremoto, líderes por comuna y el top 5 de líderes con más referidos.
 3. **Zonas** (menú → Zonas): crea zonas (código de 2 dígitos, ej. `01`) y, al seleccionar una zona, agrega sus puestos de votación (número de 2 dígitos, nombre y número de mesas).
@@ -117,13 +117,13 @@ npm start
 8. **Validaciones**: cédula (solo números), celular, email, y todos los campos obligatorios muestran mensajes de error en rojo antes de permitir guardar; los errores de base de datos (duplicados, conexión caída, etc.) se muestran como notificación (toast).
 9. **Responsive**: reduce el ancho del navegador o pruébalo en un celular; las tablas hacen scroll horizontal y los formularios se apilan en una sola columna.
 10. **Captura para líderes** (`/captura`): portal aparte para que cada líder gestione sus propios referidos, sin entrar al panel de administración.
-    - Cada líder ingresa con el **usuario y clave que tiene registrados como líder** (los mismos campos "Usuario"/"Clave" de su ficha en el panel admin).
+    - Se llega ahí iniciando sesión en `/login` con el usuario/clave del líder (ver punto 0), o directamente en `/captura/login` con esas mismas credenciales.
     - Al entrar ve **únicamente sus propios referidos**, con búsqueda, crear/editar/eliminar.
     - El formulario de referido **no pide líder** — el backend lo asigna automáticamente al líder que inició sesión; un líder no puede ver ni modificar referidos de otro (se valida en el servidor, no solo se oculta en la pantalla).
-    - Sesión independiente de la del panel admin (`/login`); cada una usa su propia cookie.
+    - Sesión independiente de la del panel admin; cada una usa su propia cookie.
 
 ## Notas de seguridad
 
-- La clave del líder se guarda **hasheada** (bcrypt) en la base de datos; nunca se devuelve en las respuestas de la API. El campo del formulario solo permite mostrar/ocultar el texto mientras se digita.
+- La clave del líder se guarda **cifrada de forma reversible** (AES-256-GCM, clave derivada de `AUTH_SECRET`) en vez de con hash bcrypt: al editar un líder desde el panel, el campo Clave viene prellenado con su clave actual (protegida, con botón de mostrar/ocultar), para poder decírsela si la olvidó sin tener que asignarle una nueva. Es una decisión consciente de seguridad más baja a cambio de esa funcionalidad — el listado de líderes nunca incluye la clave, solo la edición individual la descifra. Líderes creados antes de este cambio (con clave en bcrypt) no se pueden migrar automáticamente; hay que asignarles una clave nueva.
 - Las fotos se guardan en `public/uploads/lideres/` con nombre aleatorio; solo se aceptan JPG/PNG/WEBP hasta 5MB.
 - El login de la aplicación usa `users.txt` con contraseñas **en texto plano**, tal como se pidió — es un mecanismo simple pensado para uso interno/local, no equivalente en seguridad al hash de las claves de líderes. La sesión se guarda en una cookie `httpOnly` firmada (HMAC), no en el propio archivo.

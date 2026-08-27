@@ -73,7 +73,9 @@ export interface Lider extends Atributos {
   estado: Estado;
   foto: string | null;
   usuario: string | null;
-  // "clave" nunca se retorna al cliente
+  // "clave" solo viene poblada al pedir un líder individual (edición); en el
+  // listado nunca se selecciona/retorna. Va descifrada (ver src/lib/liderClave.ts).
+  clave?: string | null;
   contratista: boolean;
   objeto_contrato: string | null;
   vencimiento_contrato: string | null;

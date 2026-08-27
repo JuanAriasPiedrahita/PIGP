@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import pool, { friendlyDbError } from "@/lib/db";
 import type { RowDataPacket, ResultSetHeader } from "mysql2";
-import bcrypt from "bcryptjs";
+import { encryptClave } from "@/lib/liderClave";
 import { savePhoto } from "@/lib/upload";
 import { isValidCedula, isValidCelular, isValidEmail } from "@/lib/validations";
 import { parseContratista } from "@/lib/contratista";
@@ -136,7 +136,7 @@ export async function POST(req: NextRequest) {
       fotoPath = await savePhoto(fotoFile);
     }
 
-    const claveHash = clave ? await bcrypt.hash(clave, 10) : null;
+    const claveCifrada = clave ? encryptClave(clave) : null;
     const bools = BOOL_FIELDS.map((f) => (form.get(f) === "true" || form.get(f) === "on" ? 1 : 0));
 
     const [result] = await pool.query<ResultSetHeader>(
@@ -149,7 +149,7 @@ export async function POST(req: NextRequest) {
       [
         nombre, apellidos, sexo, cedula, celular, email || null, comuna_id, barrio_id, direccion,
         zona_id, puesto_id, profesion_id || null, ocupacion_id || null, fecha_nacimiento, estado, fotoPath,
-        usuario || null, claveHash, ...bools,
+        usuario || null, claveCifrada, ...bools,
         contratistaData.contratista, contratistaData.objeto_contrato, contratistaData.vencimiento_contrato, contratistaData.dependencia_id,
       ]
     );

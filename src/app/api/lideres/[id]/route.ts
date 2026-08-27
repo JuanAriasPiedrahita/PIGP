@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import pool, { friendlyDbError } from "@/lib/db";
 import type { RowDataPacket } from "mysql2";
-import bcrypt from "bcryptjs";
+import { encryptClave, decryptClave } from "@/lib/liderClave";
 import { savePhoto, deletePhoto } from "@/lib/upload";
 import { isValidCedula, isValidCelular, isValidEmail } from "@/lib/validations";
 import { parseContratista } from "@/lib/contratista";
@@ -9,11 +9,14 @@ import { parseContratista } from "@/lib/contratista";
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const [rows] = await pool.query<RowDataPacket[]>(
-      "SELECT id, nombre, apellidos, sexo, cedula, celular, email, comuna_id, barrio_id, direccion, zona_id, puesto_id, profesion_id, ocupacion_id, fecha_nacimiento, estado, foto, usuario, vehiculo, redes_sociales, orador_publico, cantante, testigo_electoral, contratista, objeto_contrato, vencimiento_contrato, dependencia_id FROM lideres WHERE id = ?",
+      "SELECT id, nombre, apellidos, sexo, cedula, celular, email, comuna_id, barrio_id, direccion, zona_id, puesto_id, profesion_id, ocupacion_id, fecha_nacimiento, estado, foto, usuario, clave, vehiculo, redes_sociales, orador_publico, cantante, testigo_electoral, contratista, objeto_contrato, vencimiento_contrato, dependencia_id FROM lideres WHERE id = ?",
       [params.id]
     );
     if (rows.length === 0) return NextResponse.json({ error: "Líder no encontrado" }, { status: 404 });
-    return NextResponse.json(rows[0]);
+    // Se descifra solo aquí (edición individual), nunca en el listado: es la
+    // única pantalla donde un admin necesita ver la clave actual del líder.
+    const { clave, ...lider } = rows[0];
+    return NextResponse.json({ ...lider, clave: decryptClave(clave as string | null) });
   } catch (err) {
     const { message, status } = friendlyDbError(err);
     return NextResponse.json({ error: message }, { status });
@@ -85,7 +88,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     ];
 
     if (clave) {
-      const claveHash = await bcrypt.hash(clave, 10);
+      const claveCifrada = encryptClave(clave);
       await pool.query(
         `UPDATE lideres SET nombre=?, apellidos=?, sexo=?, cedula=?, celular=?, email=?, comuna_id=?, barrio_id=?,
           direccion=?, zona_id=?, puesto_id=?, profesion_id=?, ocupacion_id=?, fecha_nacimiento=?, estado=?, foto=?,
@@ -95,7 +98,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
         [
           nombre, apellidos, sexo, cedula, celular, email || null, comuna_id, barrio_id,
           direccion, zona_id, puesto_id, profesion_id || null, ocupacion_id || null, fecha_nacimiento, estado, fotoPath,
-          usuario || null, claveHash, ...bools, ...contratistaValues, params.id,
+          usuario || null, claveCifrada, ...bools, ...contratistaValues, params.id,
         ]
       );
     } else {

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import bcrypt from "bcryptjs";
+import { decryptClave } from "@/lib/liderClave";
 import pool, { friendlyDbError } from "@/lib/db";
 import type { RowDataPacket } from "mysql2";
 import { createLiderSessionToken, LIDER_COOKIE_NAME, LIDER_SESSION_HOURS } from "@/lib/liderSession";
@@ -21,12 +21,9 @@ export async function POST(req: NextRequest) {
     }
 
     const lider = rows[0];
-    if (!lider.clave) {
-      // El líder existe pero aún no tiene clave asignada en su ficha.
-      return NextResponse.json({ error: "Usuario o clave incorrectos" }, { status: 401 });
-    }
-    const ok = await bcrypt.compare(clave, lider.clave);
-    if (!ok) {
+    const claveGuardada = decryptClave(lider.clave);
+    if (claveGuardada === null || claveGuardada !== clave) {
+      // El líder no existe, no tiene clave asignada, o la clave no coincide.
       return NextResponse.json({ error: "Usuario o clave incorrectos" }, { status: 401 });
     }
 

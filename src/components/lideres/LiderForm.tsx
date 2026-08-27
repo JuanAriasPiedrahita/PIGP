@@ -97,7 +97,7 @@ export function LiderForm({ catalogos, liderId, onSaved, onCancel }: Props) {
           fecha_nacimiento: l.fecha_nacimiento?.slice(0, 10) || "",
           estado: l.estado,
           usuario: l.usuario || "",
-          clave: "",
+          clave: l.clave || "",
           objeto_contrato: l.objeto_contrato || "",
           vencimiento_contrato: l.vencimiento_contrato?.slice(0, 10) || "",
           dependencia_id: l.dependencia_id ? String(l.dependencia_id) : "",
@@ -242,7 +242,13 @@ export function LiderForm({ catalogos, liderId, onSaved, onCancel }: Props) {
             value={form.clave}
             error={errors.clave}
             onChange={(v) => set("clave", v)}
-            hint={liderId ? "Sin cambios si se deja en blanco" : "Opcional, mín. 4 caracteres"}
+            hint={
+              liderId
+                ? form.clave
+                  ? "Esta es la clave actual del líder — cámbiala para asignar una nueva"
+                  : "Sin clave asignada todavía. Sin cambios si se deja en blanco"
+                : "Opcional, mín. 4 caracteres"
+            }
           />
         </div>
       </div>
