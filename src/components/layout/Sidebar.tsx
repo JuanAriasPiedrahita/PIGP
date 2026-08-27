@@ -45,6 +45,18 @@ const items: NavItem[] = [
     ),
   },
   {
+    href: "/gestiones",
+    label: "Gestiones",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="20" height="20">
+        <path d="M9 5H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2v-1" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M9 4.5a1.5 1.5 0 011.5-1.5h3A1.5 1.5 0 0115 4.5V6H9V4.5z" strokeLinejoin="round" />
+        <path d="M9 12h4M9 16h6" strokeLinecap="round" />
+        <path d="M15.5 15.5l2 2 4-4" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    ),
+  },
+  {
     href: "/zonas",
     label: "Zonas",
     icon: (
@@ -108,7 +120,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
         </div>
         <nav className="flex-1 space-y-1 px-3 py-4">
           {items.map((item) => {
-            const active = pathname === item.href;
+            const active = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href + "/"));
             return (
               <Link
                 key={item.href}

@@ -121,6 +121,12 @@ npm start
     - Al entrar ve **únicamente sus propios referidos**, con búsqueda, crear/editar/eliminar.
     - El formulario de referido **no pide líder** — el backend lo asigna automáticamente al líder que inició sesión; un líder no puede ver ni modificar referidos de otro (se valida en el servidor, no solo se oculta en la pantalla).
     - Sesión independiente de la del panel admin; cada una usa su propia cookie.
+11. **Gestiones** (menú → Gestiones): seguimiento de ayudas/favores solicitados por los referidos.
+    - La pantalla principal lista solo los referidos que **ya tienen alguna gestión**, ordenados por la fecha límite pendiente más próxima a vencer (las vencidas quedan primero, resaltadas), con columnas Nombre, Próxima fecha, Total, Pendientes, No viables, Vencidas y Barrio.
+    - Arriba hay un **buscador por nombre/cédula** que encuentra cualquier referido (tenga o no gestiones) para abrirle su pantalla y registrarle la primera.
+    - Clic en un referido (de la lista o del buscador) abre su pantalla de gestiones: tabla de sus gestiones + botón "Nueva gestión".
+    - Cada gestión captura: tipo de ayuda (catálogo), responsable (catálogo de gestores, nombre + email), fecha límite, observaciones, y estado (Pendiente / No viable / Resuelto). **Costo** y **fotografías** están deshabilitados y solo se pueden diligenciar cuando el estado pasa a "Resuelto".
+    - Catálogos "Tipos de ayuda" y "Gestores" se administran desde **Configuración**.
 
 ## Notas de seguridad
 

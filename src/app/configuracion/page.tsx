@@ -2,12 +2,15 @@
 
 import { useState } from "react";
 import { SimpleCatalogManager } from "@/components/catalogos/SimpleCatalogManager";
+import { GestoresManager } from "@/components/catalogos/GestoresManager";
 
 const TABS = [
-  { key: "profesiones", label: "Profesiones", endpoint: "/api/profesiones", singular: "profesión", placeholder: "Ej: Ingeniero(a)" },
-  { key: "ocupaciones", label: "Ocupaciones", endpoint: "/api/ocupaciones", singular: "ocupación", placeholder: "Ej: Independiente" },
-  { key: "parentescos", label: "Parentescos", endpoint: "/api/parentescos", singular: "parentesco", placeholder: "Ej: Hermano(a)" },
-  { key: "dependencias", label: "Dependencias", endpoint: "/api/dependencias", singular: "dependencia", placeholder: "Ej: Secretaría de Gobierno" },
+  { key: "profesiones", label: "Profesiones", kind: "simple", endpoint: "/api/profesiones", singular: "profesión", placeholder: "Ej: Ingeniero(a)" },
+  { key: "ocupaciones", label: "Ocupaciones", kind: "simple", endpoint: "/api/ocupaciones", singular: "ocupación", placeholder: "Ej: Independiente" },
+  { key: "parentescos", label: "Parentescos", kind: "simple", endpoint: "/api/parentescos", singular: "parentesco", placeholder: "Ej: Hermano(a)" },
+  { key: "dependencias", label: "Dependencias", kind: "simple", endpoint: "/api/dependencias", singular: "dependencia", placeholder: "Ej: Secretaría de Gobierno" },
+  { key: "tipos_ayuda", label: "Tipos de ayuda", kind: "simple", endpoint: "/api/tipos-ayuda", singular: "tipo de ayuda", placeholder: "Ej: Mercado" },
+  { key: "gestores", label: "Gestores", kind: "gestores" },
 ] as const;
 
 export default function ConfiguracionPage() {
@@ -18,11 +21,11 @@ export default function ConfiguracionPage() {
     <div className="space-y-5">
       <div>
         <h2 className="text-xl font-semibold text-slate-900">Configuración</h2>
-        <p className="text-sm text-slate-500">Tablas accesorias usadas en los formularios de líderes y referidos.</p>
+        <p className="text-sm text-slate-500">Tablas accesorias usadas en los formularios de líderes, referidos y gestiones.</p>
       </div>
 
       <div className="card p-2">
-        <div className="flex gap-1">
+        <div className="flex flex-wrap gap-1">
           {TABS.map((t) => (
             <button
               key={t.key}
@@ -38,7 +41,11 @@ export default function ConfiguracionPage() {
       </div>
 
       <div className="card p-5">
-        <SimpleCatalogManager endpoint={active.endpoint} singular={active.singular} placeholder={active.placeholder} />
+        {active.kind === "gestores" ? (
+          <GestoresManager />
+        ) : (
+          <SimpleCatalogManager endpoint={active.endpoint} singular={active.singular} placeholder={active.placeholder} />
+        )}
       </div>
     </div>
   );

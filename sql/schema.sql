@@ -153,6 +153,40 @@ CREATE INDEX idx_referidos_lider ON referidos(lider_id);
 CREATE INDEX idx_lideres_comuna ON lideres(comuna_id);
 CREATE INDEX idx_lideres_zona ON lideres(zona_id);
 
+-- ---------------------------------------------------------------------
+-- Gestiones: seguimiento de ayudas/favores solicitados por los referidos
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS tipos_ayuda (
+  id          INT AUTO_INCREMENT PRIMARY KEY,
+  descripcion VARCHAR(150) NOT NULL UNIQUE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS gestores (
+  id     INT AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(150) NOT NULL,
+  email  VARCHAR(150) NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS gestiones (
+  id                INT AUTO_INCREMENT PRIMARY KEY,
+  referido_id       INT           NOT NULL,
+  tipo_ayuda_id     INT           NOT NULL,
+  gestor_id         INT           NOT NULL,
+  fecha_limite      DATE          NOT NULL,
+  observaciones     TEXT          NULL,
+  estado            ENUM('PENDIENTE','NO_VIABLE','RESUELTO') NOT NULL DEFAULT 'PENDIENTE',
+  costo             DECIMAL(12,2) NULL,
+  fotos             JSON          NULL,
+  created_at        TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at        TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_gestiones_referido FOREIGN KEY (referido_id)   REFERENCES referidos(id) ON DELETE CASCADE,
+  CONSTRAINT fk_gestiones_tipo     FOREIGN KEY (tipo_ayuda_id) REFERENCES tipos_ayuda(id),
+  CONSTRAINT fk_gestiones_gestor   FOREIGN KEY (gestor_id)     REFERENCES gestores(id)
+) ENGINE=InnoDB;
+
+CREATE INDEX idx_gestiones_referido ON gestiones(referido_id);
+CREATE INDEX idx_gestiones_estado_fecha ON gestiones(estado, fecha_limite);
+
 -- =====================================================================
 -- Datos semilla (catálogos básicos para empezar a probar de inmediato)
 -- =====================================================================
@@ -408,3 +442,12 @@ INSERT INTO dependencias (descripcion) VALUES
   ('Secretaría de Gobierno'), ('Secretaría de Salud'), ('Secretaría de Educación'),
   ('Secretaría de Infraestructura'), ('Secretaría de Desarrollo Social'), ('Otra')
 ON DUPLICATE KEY UPDATE descripcion = VALUES(descripcion);
+
+INSERT INTO tipos_ayuda (descripcion) VALUES
+  ('Ayuda económica'), ('Mercado'), ('Medicamentos'), ('Subsidio de vivienda'),
+  ('Trámite ante entidad pública'), ('Auxilio funerario'), ('Otro')
+ON DUPLICATE KEY UPDATE descripcion = VALUES(descripcion);
+
+INSERT INTO gestores (nombre, email) VALUES
+  ('Ana María Restrepo', 'ana.restrepo@campana.org'),
+  ('Julián Herrera', 'julian.herrera@campana.org');

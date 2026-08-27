@@ -7,6 +7,7 @@ const TITLES: Record<string, string> = {
   "/": "Dashboard",
   "/lideres": "Líderes",
   "/referidos": "Referidos",
+  "/gestiones": "Gestiones",
   "/zonas": "Zonas y puestos de votación",
   "/comunas": "Comunas y barrios",
   "/configuracion": "Configuración",
@@ -15,7 +16,7 @@ const TITLES: Record<string, string> = {
 export function Topbar({ onToggleMenu }: { onToggleMenu: () => void }) {
   const pathname = usePathname();
   const router = useRouter();
-  const title = TITLES[pathname] || "Campaña Política";
+  const title = TITLES[pathname] || (pathname.startsWith("/gestiones/") ? "Gestiones del referido" : "Campaña Política");
   const [usuario, setUsuario] = useState<string | null>(null);
 
   useEffect(() => {

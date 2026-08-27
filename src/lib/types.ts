@@ -46,6 +46,48 @@ export interface Dependencia {
   descripcion: string;
 }
 
+export interface TipoAyuda {
+  id: number;
+  descripcion: string;
+}
+
+export interface Gestor {
+  id: number;
+  nombre: string;
+  email: string | null;
+}
+
+export type EstadoGestion = "PENDIENTE" | "NO_VIABLE" | "RESUELTO";
+
+export interface Gestion {
+  id: number;
+  referido_id: number;
+  tipo_ayuda_id: number;
+  gestor_id: number;
+  fecha_limite: string;
+  observaciones: string | null;
+  estado: EstadoGestion;
+  costo: number | null;
+  fotos: string[] | null;
+  tipo_ayuda_descripcion?: string;
+  gestor_nombre?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+/** Fila del listado principal de /gestiones: un referido con al menos una gestión. */
+export interface ReferidoConGestiones {
+  id: number;
+  nombre: string;
+  apellidos: string;
+  barrio_nombre: string | null;
+  total: number;
+  pendientes: number;
+  no_viables: number;
+  vencidas: number;
+  proxima_fecha: string | null;
+}
+
 export interface Atributos {
   vehiculo: boolean;
   redes_sociales: boolean;
