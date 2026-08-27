@@ -7,7 +7,6 @@ import type { Atributos, Lider } from "@/lib/types";
 import { LiderTable } from "@/components/lideres/LiderTable";
 import { LiderForm } from "@/components/lideres/LiderForm";
 import { Modal, ConfirmDialog } from "@/components/ui/Modal";
-import { Checkbox } from "@/components/ui/FormControls";
 import { AtributosCheckboxes, DEFAULT_ATRIBUTOS } from "@/components/shared/AtributosCheckboxes";
 import { useToast } from "@/components/ui/Toast";
 
@@ -21,7 +20,7 @@ export default function LideresPage() {
   const [comunaFilter, setComunaFilter] = useState("");
   const [barrioFilter, setBarrioFilter] = useState("");
   const [puestoFilter, setPuestoFilter] = useState("");
-  const [contratistaFilter, setContratistaFilter] = useState(false);
+  const [contratistaFilter, setContratistaFilter] = useState(""); // "" | "true" | "false"
   const [atributosFilter, setAtributosFilter] = useState<Atributos>(DEFAULT_ATRIBUTOS);
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -36,7 +35,7 @@ export default function LideresPage() {
       if (comunaFilter) params.set("comuna_id", comunaFilter);
       if (barrioFilter) params.set("barrio_id", barrioFilter);
       if (puestoFilter) params.set("puesto_id", puestoFilter);
-      if (contratistaFilter) params.set("contratista", "true");
+      if (contratistaFilter) params.set("contratista", contratistaFilter);
       (Object.keys(atributosFilter) as (keyof Atributos)[]).forEach((k) => {
         if (atributosFilter[k]) params.set(k, "true");
       });
@@ -88,7 +87,7 @@ export default function LideresPage() {
     setComunaFilter("");
     setBarrioFilter("");
     setPuestoFilter("");
-    setContratistaFilter(false);
+    setContratistaFilter("");
     setAtributosFilter(DEFAULT_ATRIBUTOS);
   }
 
@@ -99,7 +98,7 @@ export default function LideresPage() {
   });
 
   const hayFiltrosActivos =
-    !!search || !!comunaFilter || !!barrioFilter || !!puestoFilter || contratistaFilter ||
+    !!search || !!comunaFilter || !!barrioFilter || !!puestoFilter || !!contratistaFilter ||
     Object.values(atributosFilter).some(Boolean);
 
   return (
@@ -147,14 +146,18 @@ export default function LideresPage() {
               <option key={p.id} value={p.id}>{p.label}</option>
             ))}
           </select>
+          <select value={contratistaFilter} onChange={(e) => setContratistaFilter(e.target.value)} className="field-input max-w-xs">
+            <option value="">Contratista: todos</option>
+            <option value="true">Solo contratistas</option>
+            <option value="false">Solo no contratistas</option>
+          </select>
           {hayFiltrosActivos && (
             <button className="btn-ghost" onClick={limpiarFiltros}>Limpiar filtros</button>
           )}
         </div>
 
-        <div className="flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="border-t border-slate-100 pt-4">
           <AtributosCheckboxes value={atributosFilter} onChange={setAtributosFilter} />
-          <Checkbox label="Solo contratistas" checked={contratistaFilter} onChange={setContratistaFilter} />
         </div>
       </div>
 
