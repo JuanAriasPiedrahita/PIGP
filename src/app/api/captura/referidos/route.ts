@@ -3,6 +3,7 @@ import pool, { friendlyDbError } from "@/lib/db";
 import type { RowDataPacket, ResultSetHeader } from "mysql2";
 import { isValidCedula, isValidCelular, isValidEmail } from "@/lib/validations";
 import { requireLider } from "@/lib/requireLider";
+import { calcularEdad, sentinelBirthYear } from "@/lib/edad";
 
 const LIST_SQL = `
   SELECT
@@ -41,7 +42,9 @@ export async function GET(req: NextRequest) {
     }
     sql += " ORDER BY r.created_at DESC";
     const [rows] = await pool.query<RowDataPacket[]>(sql, args);
-    return NextResponse.json(rows);
+    const sentinel = sentinelBirthYear();
+    const rowsConEdad = rows.map((r) => ({ ...r, edad: calcularEdad(r.fecha_nacimiento as string, sentinel) }));
+    return NextResponse.json(rowsConEdad);
   } catch (err) {
     const { message, status } = friendlyDbError(err);
     return NextResponse.json({ error: message }, { status });

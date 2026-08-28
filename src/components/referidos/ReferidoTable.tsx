@@ -25,7 +25,7 @@ export function ReferidoTable({ referidos, onEdit, onDelete }: Props) {
             <th className="px-3 py-3 font-medium">Parentesco</th>
             <th className="px-3 py-3 font-medium">Ubicación</th>
             <th className="px-3 py-3 font-medium">Votación</th>
-            <th className="px-3 py-3 font-medium">Estado</th>
+            <th className="px-3 py-3 font-medium">Edad</th>
             <th className="py-3 pl-3 pr-2 text-right font-medium">Acciones</th>
           </tr>
         </thead>
@@ -48,13 +48,7 @@ export function ReferidoTable({ referidos, onEdit, onDelete }: Props) {
                   {r.voto_anterior ? "Votó" : "No votó"}
                 </span>
               </td>
-              <td className="px-3 py-3">
-                {r.damnificado_terremoto ? (
-                  <span className="badge bg-amber-50 text-amber-700">Damnificado</span>
-                ) : (
-                  <span className="text-xs text-slate-300">—</span>
-                )}
-              </td>
+              <td className="px-3 py-3 text-slate-600">{r.edad ?? "—"}</td>
               <td className="py-3 pl-3 pr-2">
                 <div className="flex justify-end">
                   <button onClick={(e) => { e.stopPropagation(); onDelete(r.id); }} className="btn-ghost !px-2 !py-1 text-red-500 hover:bg-red-50" aria-label="Eliminar">

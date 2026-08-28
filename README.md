@@ -113,7 +113,7 @@ npm start
    - Clic en cualquier parte de la fila abre la edición; eliminar un líder borra también sus referidos.
 7. **Referidos** (menú → Referidos):
    - Requiere al menos un líder creado. El formulario pide el líder al que pertenece, datos personales, ubicación (comuna/barrio, zona/puesto), parentesco, checkboxes "votó la vez pasada" y "damnificado en terremoto", y los mismos 5 atributos.
-   - La lista se puede **filtrar por líder** con el combo superior, y buscar por nombre/cédula.
+   - La lista se puede **filtrar por líder** con el combo superior, y buscar por nombre/cédula. La columna "Edad" se calcula igual que en Líderes (respetando `SENTINEL_BIRTH_YEAR`).
 8. **Validaciones**: cédula (solo números), celular, email, y todos los campos obligatorios muestran mensajes de error en rojo antes de permitir guardar; los errores de base de datos (duplicados, conexión caída, etc.) se muestran como notificación (toast).
 9. **Responsive**: reduce el ancho del navegador o pruébalo en un celular; las tablas hacen scroll horizontal y los formularios se apilan en una sola columna.
 10. **Captura para líderes** (`/captura`): portal aparte para que cada líder gestione sus propios referidos, sin entrar al panel de administración.

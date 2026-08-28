@@ -154,6 +154,7 @@ export interface Referido extends Atributos {
   parentesco_id: number;
   voto_anterior: boolean;
   damnificado_terremoto: boolean;
+  edad?: number;
   lider_nombre?: string;
   comuna_descripcion?: string;
   barrio_nombre?: string;
