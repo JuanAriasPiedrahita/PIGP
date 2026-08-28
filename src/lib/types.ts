@@ -69,6 +69,7 @@ export interface Gestion {
   observaciones: string | null;
   estado: EstadoGestion;
   costo: number | null;
+  fecha_resolucion: string | null;
   fotos: string[] | null;
   tipo_ayuda_descripcion?: string;
   gestor_nombre?: string;

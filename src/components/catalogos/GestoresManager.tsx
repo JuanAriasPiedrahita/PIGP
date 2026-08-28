@@ -123,7 +123,11 @@ export function GestoresManager() {
       ) : (
         <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200">
           {gestores.map((g) => (
-            <li key={g.id} className="flex items-center justify-between gap-3 px-4 py-2.5">
+            <li
+              key={g.id}
+              onClick={() => startEdit(g)}
+              className="flex cursor-pointer items-center justify-between gap-3 px-4 py-2.5 hover:bg-slate-50"
+            >
               <div className="min-w-0">
                 <p className="truncate text-sm text-slate-700">{g.nombre}</p>
                 {(g.email || g.telefono) && (
@@ -133,8 +137,12 @@ export function GestoresManager() {
                 )}
               </div>
               <div className="flex shrink-0 gap-1">
-                <button className="btn-ghost !px-2 !py-1" onClick={() => startEdit(g)}>Editar</button>
-                <button className="btn-ghost !px-2 !py-1 text-red-500 hover:bg-red-50" onClick={() => setDeleteId(g.id)}>Eliminar</button>
+                <button
+                  className="btn-ghost !px-2 !py-1 text-red-500 hover:bg-red-50"
+                  onClick={(e) => { e.stopPropagation(); setDeleteId(g.id); }}
+                >
+                  Eliminar
+                </button>
               </div>
             </li>
           ))}

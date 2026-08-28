@@ -29,6 +29,7 @@ export function GestionForm({ referidoId, gestionId, tiposAyuda, gestores, onSav
   const [observaciones, setObservaciones] = useState("");
   const [estado, setEstado] = useState<EstadoGestion>("PENDIENTE");
   const [costo, setCosto] = useState("");
+  const [fechaResolucion, setFechaResolucion] = useState<string | null>(null);
   const [fotosExistentes, setFotosExistentes] = useState<string[]>([]);
   const [fotosNuevas, setFotosNuevas] = useState<File[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -46,6 +47,7 @@ export function GestionForm({ referidoId, gestionId, tiposAyuda, gestores, onSav
         setObservaciones(g.observaciones || "");
         setEstado(g.estado);
         setCosto(g.costo != null ? String(g.costo) : "");
+        setFechaResolucion(g.fecha_resolucion);
         setFotosExistentes(g.fotos || []);
       })
       .catch((err) => toast.show(err.message, "error"))
@@ -181,6 +183,11 @@ export function GestionForm({ referidoId, gestionId, tiposAyuda, gestores, onSav
             <p className="text-xs text-slate-400">Disponible al marcar Resuelto</p>
           )}
         </div>
+        {resuelto && fechaResolucion && (
+          <p className="text-xs text-slate-500 sm:col-span-2">
+            Resuelta el {fechaResolucion.slice(0, 16).replace("T", " ")}
+          </p>
+        )}
       </div>
 
       <div className="flex justify-end gap-2 border-t border-slate-100 pt-4">

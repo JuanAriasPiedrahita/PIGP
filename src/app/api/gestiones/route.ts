@@ -6,7 +6,7 @@ import { saveImage } from "@/lib/upload";
 const LIST_SQL = `
   SELECT
     g.id, g.referido_id, g.tipo_ayuda_id, g.gestor_id, g.fecha_limite, g.observaciones,
-    g.estado, g.costo, g.fotos, g.created_at, g.updated_at,
+    g.estado, g.costo, g.fecha_resolucion, g.fotos, g.created_at, g.updated_at,
     ta.descripcion AS tipo_ayuda_descripcion,
     ge.nombre AS gestor_nombre
   FROM gestiones g
@@ -64,10 +64,12 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    const fechaResolucion = resuelto ? new Date() : null;
+
     const [result] = await pool.query<ResultSetHeader>(
-      `INSERT INTO gestiones (referido_id, tipo_ayuda_id, gestor_id, fecha_limite, observaciones, estado, costo, fotos)
-       VALUES (?,?,?,?,?,?,?,?)`,
-      [referido_id, tipo_ayuda_id, gestor_id, fecha_limite, observaciones || null, estado, costo, fotos ? JSON.stringify(fotos) : null]
+      `INSERT INTO gestiones (referido_id, tipo_ayuda_id, gestor_id, fecha_limite, observaciones, estado, costo, fecha_resolucion, fotos)
+       VALUES (?,?,?,?,?,?,?,?,?)`,
+      [referido_id, tipo_ayuda_id, gestor_id, fecha_limite, observaciones || null, estado, costo, fechaResolucion, fotos ? JSON.stringify(fotos) : null]
     );
 
     return NextResponse.json({ id: result.insertId }, { status: 201 });

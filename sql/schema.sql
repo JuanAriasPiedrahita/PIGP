@@ -177,6 +177,7 @@ CREATE TABLE IF NOT EXISTS gestiones (
   observaciones     TEXT          NULL,
   estado            ENUM('PENDIENTE','NO_VIABLE','RESUELTO') NOT NULL DEFAULT 'PENDIENTE',
   costo             DECIMAL(12,2) NULL,
+  fecha_resolucion  DATETIME      NULL,
   fotos             JSON          NULL,
   created_at        TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at        TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

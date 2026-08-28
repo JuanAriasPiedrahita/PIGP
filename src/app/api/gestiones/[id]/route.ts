@@ -36,9 +36,10 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       return NextResponse.json({ error: "Datos inválidos", fields: errors }, { status: 400 });
     }
 
-    const [existingRows] = await pool.query<RowDataPacket[]>("SELECT fotos FROM gestiones WHERE id = ?", [params.id]);
+    const [existingRows] = await pool.query<RowDataPacket[]>("SELECT fotos, estado, fecha_resolucion FROM gestiones WHERE id = ?", [params.id]);
     if (existingRows.length === 0) return NextResponse.json({ error: "Gestión no encontrada" }, { status: 404 });
     const fotosExistentesEnBD: string[] = existingRows[0].fotos || [];
+    const estadoAnterior: string = existingRows[0].estado;
 
     const resuelto = estado === "RESUELTO";
     const costo = resuelto && costoRaw ? Number(costoRaw) : null;
@@ -66,10 +67,22 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       await Promise.all(fotosExistentesEnBD.map((f) => deleteImage(f)));
     }
 
+    // Se marca la fecha/hora de resolución justo cuando pasa a "Resuelto" (no se
+    // pisa si ya estaba resuelta y se guardan otros cambios); si deja de estar
+    // resuelta, se limpia.
+    let fechaResolucion: Date | null;
+    if (!resuelto) {
+      fechaResolucion = null;
+    } else if (estadoAnterior === "RESUELTO") {
+      fechaResolucion = existingRows[0].fecha_resolucion;
+    } else {
+      fechaResolucion = new Date();
+    }
+
     await pool.query(
-      `UPDATE gestiones SET tipo_ayuda_id=?, gestor_id=?, fecha_limite=?, observaciones=?, estado=?, costo=?, fotos=?
+      `UPDATE gestiones SET tipo_ayuda_id=?, gestor_id=?, fecha_limite=?, observaciones=?, estado=?, costo=?, fecha_resolucion=?, fotos=?
        WHERE id=?`,
-      [tipo_ayuda_id, gestor_id, fecha_limite, observaciones || null, estado, costo, fotos && fotos.length ? JSON.stringify(fotos) : null, params.id]
+      [tipo_ayuda_id, gestor_id, fecha_limite, observaciones || null, estado, costo, fechaResolucion, fotos && fotos.length ? JSON.stringify(fotos) : null, params.id]
     );
 
     return NextResponse.json({ id: Number(params.id) });
