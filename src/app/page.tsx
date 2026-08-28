@@ -14,8 +14,17 @@ interface DashboardData {
   totalReferidos: number;
   referidosQueVotaron: number;
   referidosDamnificados: number;
+  totalGestiones: number;
+  gestionesResueltas: number;
+  gestionesPendientes: number;
+  gestionesNoViables: number;
+  gestionesVencidas: number;
+  tasaResolucion: number;
+  costoTotalInvertido: number;
   porComuna: { comuna: string; total: number }[];
   topLideres: { id: number; nombre: string; total_referidos: number }[];
+  gestionesPorTipo: { tipo: string; total: number }[];
+  proximasAVencer: { id: number; referido_id: number; referido_nombre: string; tipo_ayuda: string; fecha_limite: string }[];
 }
 
 export default function DashboardPage() {
@@ -32,6 +41,15 @@ export default function DashboardPage() {
   }, []);
 
   const maxComuna = data ? Math.max(1, ...data.porComuna.map((c) => c.total)) : 1;
+  const maxTipoAyuda = data ? Math.max(1, ...data.gestionesPorTipo.map((t) => t.total)) : 1;
+
+  function formatFecha(fecha: string): string {
+    return fecha.slice(0, 10);
+  }
+
+  function estaVencida(fecha: string): boolean {
+    return new Date(fecha) < new Date(new Date().toDateString());
+  }
 
   return (
     <div className="space-y-6">
@@ -146,12 +164,123 @@ export default function DashboardPage() {
             </div>
           </div>
 
+          <div>
+            <h3 className="text-base font-semibold text-slate-900">Gestiones</h3>
+            <p className="text-sm text-slate-500">Indicadores de gestión de ayudas: efectividad, urgencia e inversión.</p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <StatCard
+              label="Total de gestiones"
+              value={data?.totalGestiones ?? 0}
+              sublabel={`${data?.gestionesPendientes ?? 0} pendientes · ${data?.gestionesNoViables ?? 0} no viables`}
+              accent="brand"
+              icon={
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="24" height="24">
+                  <path d="M9 5H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2v-1" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M9 4.5a1.5 1.5 0 011.5-1.5h3A1.5 1.5 0 0115 4.5V6H9V4.5z" strokeLinejoin="round" />
+                  <path d="M9 12h4M9 16h6" strokeLinecap="round" />
+                </svg>
+              }
+            />
+            <StatCard
+              label="Tasa de resolución"
+              value={`${data?.tasaResolucion ?? 0}%`}
+              sublabel={`${data?.gestionesResueltas ?? 0} resueltas de ${data?.totalGestiones ?? 0}`}
+              accent="emerald"
+              icon={
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="24" height="24">
+                  <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              }
+            />
+            <StatCard
+              label="Vencidas"
+              value={data?.gestionesVencidas ?? 0}
+              sublabel="Requieren atención inmediata"
+              accent="slate"
+              icon={
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="24" height="24">
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M12 7v5l3 3" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              }
+            />
+            <StatCard
+              label="Costo invertido"
+              value={`$${(data?.costoTotalInvertido ?? 0).toLocaleString("es-CO")}`}
+              sublabel="En gestiones resueltas"
+              accent="amber"
+              icon={
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="24" height="24">
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M12 7v10M9.5 9.5c0-1.1 1.1-2 2.5-2s2.5.9 2.5 2-1.1 2-2.5 2-2.5.9-2.5 2 1.1 2 2.5 2 2.5-.9 2.5-2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              }
+            />
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            <div className="card p-5">
+              <h3 className="mb-4 text-sm font-semibold text-slate-700">Gestiones por tipo de ayuda</h3>
+              <div className="space-y-3">
+                {data?.gestionesPorTipo.length ? (
+                  data.gestionesPorTipo.map((t) => (
+                    <div key={t.tipo}>
+                      <div className="mb-1 flex justify-between text-xs text-slate-500">
+                        <span>{t.tipo}</span>
+                        <span>{t.total}</span>
+                      </div>
+                      <div className="h-2 w-full rounded-full bg-slate-100">
+                        <div
+                          className="h-2 rounded-full bg-amber-500"
+                          style={{ width: `${(t.total / maxTipoAyuda) * 100}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-slate-400">Aún no hay gestiones registradas.</p>
+                )}
+              </div>
+            </div>
+
+            <div className="card p-5">
+              <h3 className="mb-4 text-sm font-semibold text-slate-700">Próximas a vencer</h3>
+              <ul className="divide-y divide-slate-100">
+                {data?.proximasAVencer.length ? (
+                  data.proximasAVencer.map((g) => (
+                    <li key={g.id}>
+                      <Link
+                        href={`/gestiones/${g.referido_id}`}
+                        className="flex items-center justify-between gap-3 py-2.5 hover:opacity-80"
+                      >
+                        <div className="min-w-0">
+                          <p className="truncate text-sm text-slate-700">{g.referido_nombre}</p>
+                          <p className="truncate text-xs text-slate-400">{g.tipo_ayuda}</p>
+                        </div>
+                        <span className={`badge shrink-0 ${estaVencida(g.fecha_limite) ? "bg-red-50 text-red-600" : "bg-amber-50 text-amber-700"}`}>
+                          {formatFecha(g.fecha_limite)}
+                        </span>
+                      </Link>
+                    </li>
+                  ))
+                ) : (
+                  <p className="py-2 text-sm text-slate-400">No hay gestiones pendientes.</p>
+                )}
+              </ul>
+            </div>
+          </div>
+
           <div className="flex flex-col gap-3 sm:flex-row">
             <Link href="/lideres" className="btn-primary">
               Gestionar líderes
             </Link>
             <Link href="/referidos" className="btn-secondary">
               Gestionar referidos
+            </Link>
+            <Link href="/gestiones" className="btn-secondary">
+              Ver gestiones
             </Link>
           </div>
         </>

@@ -102,7 +102,7 @@ npm start
 
 0. **Login unificado** (`/login`): al abrir la app se pide usuario y clave (ver sección 4.1). Primero se valida contra `users.txt`: si el usuario existe ahí, entra al panel de administración completo. Si no, se busca ese mismo usuario/clave en la tabla `lideres` y, de coincidir, entra directo a `/captura` (su propio portal de referidos) en vez del panel. Con credenciales incorrectas muestra un error; con las correctas queda una sesión de 8 horas. El botón de la esquina superior derecha (junto al nombre de usuario) cierra sesión y vuelve a `/login`.
 1. **Menú hamburguesa**: al entrar, el panel lateral está oculto y solo se ve el Dashboard. Haz clic en el ícono ☰ (arriba a la izquierda) para mostrar/ocultar el menú.
-2. **Dashboard**: muestra total de líderes, total de referidos, promedio de referidos por líder, damnificados por terremoto, líderes por comuna y el top 5 de líderes con más referidos.
+2. **Dashboard**: total de líderes, total de referidos, contratistas, damnificados por terremoto, líderes por comuna y el top 5 de líderes con más referidos. Además un bloque ejecutivo de **Gestiones**: total, tasa de resolución, vencidas y costo total invertido, con desgloses de "Gestiones por tipo de ayuda" y "Próximas a vencer" (clic lleva directo a la gestión del referido).
 3. **Zonas** (menú → Zonas): crea zonas (código de 2 dígitos, ej. `01`) y, al seleccionar una zona, agrega sus puestos de votación (número de 2 dígitos, nombre y número de mesas).
 4. **Comunas** (menú → Comunas): crea comunas (código + descripción) y, al seleccionar una, agrega sus barrios.
 5. **Configuración** (menú → Configuración): tres pestañas para gestionar Profesiones, Ocupaciones y Parentescos (catálogos usados luego en los formularios).

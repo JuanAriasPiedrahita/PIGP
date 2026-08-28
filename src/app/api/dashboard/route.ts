@@ -10,6 +10,16 @@ export async function GET() {
     const [[referidosRow]] = await pool.query<RowDataPacket[]>(
       "SELECT COUNT(*) AS total, SUM(voto_anterior=1) AS votaron, SUM(damnificado_terremoto=1) AS damnificados FROM referidos"
     ) as unknown as [RowDataPacket[]];
+    const [[gestionesRow]] = await pool.query<RowDataPacket[]>(
+      `SELECT
+         COUNT(*) AS total,
+         SUM(estado='RESUELTO') AS resueltas,
+         SUM(estado='PENDIENTE') AS pendientes,
+         SUM(estado='NO_VIABLE') AS no_viables,
+         SUM(estado='PENDIENTE' AND fecha_limite < CURDATE()) AS vencidas,
+         SUM(CASE WHEN estado='RESUELTO' THEN costo ELSE 0 END) AS costo_total
+       FROM gestiones`
+    ) as unknown as [RowDataPacket[]];
     const [porComuna] = await pool.query<RowDataPacket[]>(
       `SELECT co.descripcion AS comuna, COUNT(l.id) AS total
        FROM comunas co LEFT JOIN lideres l ON l.comuna_id = co.id
@@ -21,6 +31,24 @@ export async function GET() {
        GROUP BY l.id, l.nombre, l.apellidos
        ORDER BY total_referidos DESC LIMIT 5`
     );
+    const [gestionesPorTipo] = await pool.query<RowDataPacket[]>(
+      `SELECT ta.descripcion AS tipo, COUNT(g.id) AS total
+       FROM tipos_ayuda ta JOIN gestiones g ON g.tipo_ayuda_id = ta.id
+       GROUP BY ta.id, ta.descripcion
+       ORDER BY total DESC LIMIT 5`
+    );
+    const [proximasAVencer] = await pool.query<RowDataPacket[]>(
+      `SELECT g.id, g.referido_id, CONCAT(r.nombre, ' ', r.apellidos) AS referido_nombre,
+              ta.descripcion AS tipo_ayuda, g.fecha_limite
+       FROM gestiones g
+       JOIN referidos r ON r.id = g.referido_id
+       LEFT JOIN tipos_ayuda ta ON ta.id = g.tipo_ayuda_id
+       WHERE g.estado = 'PENDIENTE'
+       ORDER BY g.fecha_limite ASC LIMIT 5`
+    );
+
+    const totalGestiones = Number(gestionesRow?.total || 0);
+    const gestionesResueltas = Number(gestionesRow?.resueltas || 0);
 
     return NextResponse.json({
       totalLideres: Number(lideresRow?.total || 0),
@@ -30,8 +58,17 @@ export async function GET() {
       totalReferidos: Number(referidosRow?.total || 0),
       referidosQueVotaron: Number(referidosRow?.votaron || 0),
       referidosDamnificados: Number(referidosRow?.damnificados || 0),
+      totalGestiones,
+      gestionesResueltas,
+      gestionesPendientes: Number(gestionesRow?.pendientes || 0),
+      gestionesNoViables: Number(gestionesRow?.no_viables || 0),
+      gestionesVencidas: Number(gestionesRow?.vencidas || 0),
+      tasaResolucion: totalGestiones > 0 ? Math.round((gestionesResueltas / totalGestiones) * 100) : 0,
+      costoTotalInvertido: Number(gestionesRow?.costo_total || 0),
       porComuna,
       topLideres,
+      gestionesPorTipo,
+      proximasAVencer,
     });
   } catch (err) {
     const { message, status } = friendlyDbError(err);
