@@ -125,7 +125,8 @@ npm start
     - La pantalla principal lista solo los referidos que **ya tienen alguna gestión**, ordenados por la fecha límite pendiente más próxima a vencer (las vencidas quedan primero, resaltadas), con columnas Nombre, Próxima fecha, Total, Pendientes, No viables, Vencidas y Barrio.
     - Arriba hay un **buscador por nombre/cédula** que encuentra cualquier referido (tenga o no gestiones) para abrirle su pantalla y registrarle la primera.
     - Clic en un referido (de la lista o del buscador) abre su pantalla de gestiones: tabla de sus gestiones + botón "Nueva gestión".
-    - Cada gestión captura: tipo de ayuda (catálogo), responsable (catálogo de gestores, nombre + email), fecha límite, observaciones, y estado (Pendiente / No viable / Resuelto). **Costo** y **fotografías** están deshabilitados y solo se pueden diligenciar cuando el estado pasa a "Resuelto".
+    - Cada gestión captura: tipo de ayuda (catálogo), responsable (catálogo de gestores, nombre + email + teléfono), fecha límite, observaciones, y estado (Pendiente / No viable / Resuelto). **Costo** y **fotografías** están deshabilitados y solo se pueden diligenciar cuando el estado pasa a "Resuelto" (al pasar a Resuelto queda registrada la fecha/hora exacta de resolución).
+    - Las fotos de la gestión se pueden **ampliar y descargar**: pasa el mouse sobre una miniatura y haz clic en el ícono de lupa para verla en grande, con un botón de descarga.
     - Catálogos "Tipos de ayuda" y "Gestores" se administran desde **Configuración**.
 
 ## Notas de seguridad
