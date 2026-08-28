@@ -55,6 +55,7 @@ export interface Gestor {
   id: number;
   nombre: string;
   email: string | null;
+  telefono: string | null;
 }
 
 export type EstadoGestion = "PENDIENTE" | "NO_VIABLE" | "RESUELTO";

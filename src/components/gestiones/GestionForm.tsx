@@ -120,7 +120,10 @@ export function GestionForm({ referidoId, gestionId, tiposAyuda, gestores, onSav
           value={gestorId}
           error={errors.gestor_id}
           onChange={(e) => setGestorId(e.target.value)}
-          options={gestores.map((g) => ({ value: g.id, label: g.email ? `${g.nombre} (${g.email})` : g.nombre }))}
+          options={gestores.map((g) => {
+            const contacto = [g.email, g.telefono].filter(Boolean).join(" · ");
+            return { value: g.id, label: contacto ? `${g.nombre} (${contacto})` : g.nombre };
+          })}
         />
         <div>
           <label className="field-label">Fecha límite *</label>

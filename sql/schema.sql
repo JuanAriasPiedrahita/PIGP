@@ -162,9 +162,10 @@ CREATE TABLE IF NOT EXISTS tipos_ayuda (
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS gestores (
-  id     INT AUTO_INCREMENT PRIMARY KEY,
-  nombre VARCHAR(150) NOT NULL,
-  email  VARCHAR(150) NULL
+  id       INT AUTO_INCREMENT PRIMARY KEY,
+  nombre   VARCHAR(150) NOT NULL,
+  email    VARCHAR(150) NULL,
+  telefono VARCHAR(20)  NULL
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS gestiones (
@@ -448,6 +449,6 @@ INSERT INTO tipos_ayuda (descripcion) VALUES
   ('Trámite ante entidad pública'), ('Auxilio funerario'), ('Otro')
 ON DUPLICATE KEY UPDATE descripcion = VALUES(descripcion);
 
-INSERT INTO gestores (nombre, email) VALUES
-  ('Ana María Restrepo', 'ana.restrepo@campana.org'),
-  ('Julián Herrera', 'julian.herrera@campana.org');
+INSERT INTO gestores (nombre, email, telefono) VALUES
+  ('Ana María Restrepo', 'ana.restrepo@campana.org', '3001234567'),
+  ('Julián Herrera', 'julian.herrera@campana.org', '3007654321');

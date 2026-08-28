@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { apiGet, apiPostJson, apiPutJson, apiDelete } from "@/lib/api";
-import { isValidEmail } from "@/lib/validations";
+import { isValidEmail, isValidCelular } from "@/lib/validations";
 import { useToast } from "@/components/ui/Toast";
 import { ConfirmDialog } from "@/components/ui/Modal";
 import type { Gestor } from "@/lib/types";
@@ -11,7 +11,7 @@ import type { Gestor } from "@/lib/types";
 export function GestoresManager() {
   const [gestores, setGestores] = useState<Gestor[]>([]);
   const [loading, setLoading] = useState(true);
-  const [form, setForm] = useState({ id: 0, nombre: "", email: "" });
+  const [form, setForm] = useState({ id: 0, nombre: "", email: "", telefono: "" });
   const [editing, setEditing] = useState(false);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
@@ -34,7 +34,7 @@ export function GestoresManager() {
   }, []);
 
   function resetForm() {
-    setForm({ id: 0, nombre: "", email: "" });
+    setForm({ id: 0, nombre: "", email: "", telefono: "" });
     setEditing(false);
   }
 
@@ -48,9 +48,13 @@ export function GestoresManager() {
       toast.show("Email inválido", "error");
       return;
     }
+    if (form.telefono.trim() && !isValidCelular(form.telefono)) {
+      toast.show("Teléfono inválido", "error");
+      return;
+    }
     setSaving(true);
     try {
-      const payload = { nombre: form.nombre.trim(), email: form.email.trim() };
+      const payload = { nombre: form.nombre.trim(), email: form.email.trim(), telefono: form.telefono.trim() };
       if (form.id) {
         await apiPutJson(`/api/gestores/${form.id}`, payload);
         toast.show("Gestor actualizado", "success");
@@ -68,7 +72,7 @@ export function GestoresManager() {
   }
 
   function startEdit(g: Gestor) {
-    setForm({ id: g.id, nombre: g.nombre, email: g.email || "" });
+    setForm({ id: g.id, nombre: g.nombre, email: g.email || "", telefono: g.telefono || "" });
     setEditing(true);
   }
 
@@ -100,6 +104,12 @@ export function GestoresManager() {
           type="email"
           className="field-input"
         />
+        <input
+          value={form.telefono}
+          onChange={(e) => setForm((f) => ({ ...f, telefono: e.target.value }))}
+          placeholder="Teléfono (opcional)"
+          className="field-input"
+        />
         <div className="flex gap-2">
           <button className="btn-primary shrink-0" disabled={saving}>{editing ? "Guardar" : "Agregar"}</button>
           {editing && <button type="button" className="btn-secondary shrink-0" onClick={resetForm}>Cancelar</button>}
@@ -116,7 +126,11 @@ export function GestoresManager() {
             <li key={g.id} className="flex items-center justify-between gap-3 px-4 py-2.5">
               <div className="min-w-0">
                 <p className="truncate text-sm text-slate-700">{g.nombre}</p>
-                {g.email && <p className="truncate text-xs text-slate-400">{g.email}</p>}
+                {(g.email || g.telefono) && (
+                  <p className="truncate text-xs text-slate-400">
+                    {[g.email, g.telefono].filter(Boolean).join(" · ")}
+                  </p>
+                )}
               </div>
               <div className="flex shrink-0 gap-1">
                 <button className="btn-ghost !px-2 !py-1" onClick={() => startEdit(g)}>Editar</button>
