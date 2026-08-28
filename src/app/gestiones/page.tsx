@@ -114,8 +114,8 @@ export default function GestionesPage() {
                   <th className="px-3 py-3 font-medium">Total</th>
                   <th className="px-3 py-3 font-medium">Pendientes</th>
                   <th className="px-3 py-3 font-medium">No viables</th>
+                  <th className="px-3 py-3 font-medium">Resueltas</th>
                   <th className="px-3 py-3 font-medium">Vencidas</th>
-                  <th className="px-3 py-3 font-medium">Barrio</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -139,9 +139,11 @@ export default function GestionesPage() {
                       {f.no_viables > 0 ? <span className="badge bg-slate-100 text-slate-500">{f.no_viables}</span> : "—"}
                     </td>
                     <td className="px-3 py-3">
+                      {f.resueltas > 0 ? <span className="badge bg-emerald-50 text-emerald-700">{f.resueltas}</span> : "—"}
+                    </td>
+                    <td className="px-3 py-3">
                       {f.vencidas > 0 ? <span className="badge bg-red-50 text-red-600">{f.vencidas}</span> : "—"}
                     </td>
-                    <td className="px-3 py-3 text-slate-600">{f.barrio_nombre || "—"}</td>
                   </tr>
                 ))}
               </tbody>

@@ -22,15 +22,14 @@ export async function GET(req: NextRequest) {
       SELECT * FROM (
         SELECT
           r.id, r.nombre, r.apellidos,
-          b.nombre AS barrio_nombre,
           COUNT(g.id) AS total,
           SUM(g.estado = 'PENDIENTE') AS pendientes,
           SUM(g.estado = 'NO_VIABLE') AS no_viables,
+          SUM(g.estado = 'RESUELTO') AS resueltas,
           SUM(g.estado = 'PENDIENTE' AND g.fecha_limite < CURDATE()) AS vencidas,
           MIN(CASE WHEN g.estado = 'PENDIENTE' THEN g.fecha_limite END) AS proxima_fecha
         FROM referidos r
         JOIN gestiones g ON g.referido_id = r.id
-        LEFT JOIN barrios b ON b.id = r.barrio_id
     `;
     const args: string[] = [];
     if (q) {
@@ -39,7 +38,7 @@ export async function GET(req: NextRequest) {
       args.push(like, like);
     }
     sql += `
-        GROUP BY r.id, r.nombre, r.apellidos, b.nombre
+        GROUP BY r.id, r.nombre, r.apellidos
       ) t
       ORDER BY proxima_fecha IS NULL, proxima_fecha ASC
     `;

@@ -82,10 +82,10 @@ export interface ReferidoConGestiones {
   id: number;
   nombre: string;
   apellidos: string;
-  barrio_nombre: string | null;
   total: number;
   pendientes: number;
   no_viables: number;
+  resueltas: number;
   vencidas: number;
   proxima_fecha: string | null;
 }
