@@ -8,11 +8,12 @@ interface FieldWrapProps {
   required?: boolean;
   children: ReactNode;
   hint?: string;
+  className?: string;
 }
 
-export function FieldWrap({ label, error, required, children, hint }: FieldWrapProps) {
+export function FieldWrap({ label, error, required, children, hint, className }: FieldWrapProps) {
   return (
-    <div>
+    <div className={className}>
       <label className="field-label">
         {label}
         {required && <span className="text-red-500"> *</span>}
@@ -32,11 +33,11 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 
 export function Input({ label, error, required, hint, className, ...rest }: InputProps) {
   return (
-    <FieldWrap label={label} error={error} required={required} hint={hint}>
+    <FieldWrap label={label} error={error} required={required} hint={hint} className={className}>
       <input
         {...rest}
         required={undefined}
-        className={`field-input ${error ? "field-input-error" : ""} ${className || ""}`}
+        className={`field-input ${error ? "field-input-error" : ""}`}
       />
     </FieldWrap>
   );
