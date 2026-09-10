@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { apiGet } from "@/lib/api";
-import { Modal } from "@/components/ui/Modal";
+import { apiGet, apiDelete } from "@/lib/api";
+import { Modal, ConfirmDialog } from "@/components/ui/Modal";
 import { EventoForm } from "@/components/eventos/EventoForm";
 import { useToast } from "@/components/ui/Toast";
 import type { Evento } from "@/lib/types";
@@ -28,6 +28,7 @@ export default function EventosPage() {
   const [eventos, setEventos] = useState<Evento[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -49,6 +50,18 @@ export default function EventosPage() {
     setModalOpen(false);
     load();
     router.push(`/eventos/${id}`);
+  }
+
+  async function confirmDelete() {
+    if (deleteId == null) return;
+    try {
+      await apiDelete(`/api/eventos/${deleteId}`);
+      toast.show("Evento eliminado", "success");
+      setDeleteId(null);
+      load();
+    } catch (err) {
+      toast.show(err instanceof Error ? err.message : "Error al eliminar", "error");
+    }
   }
 
   return (
@@ -75,7 +88,7 @@ export default function EventosPage() {
           <p className="py-10 text-center text-sm text-slate-400">Aún no hay eventos registrados. Usa "Nuevo evento" para crear el primero.</p>
         ) : (
           <div className="thin-scroll overflow-x-auto">
-            <table className="w-full min-w-[680px] text-left text-sm">
+            <table className="w-full min-w-[760px] text-left text-sm">
               <thead>
                 <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-400">
                   <th className="py-3 pl-2 pr-3 font-medium">Evento</th>
@@ -84,6 +97,7 @@ export default function EventosPage() {
                   <th className="px-3 py-3 font-medium">Hora</th>
                   <th className="px-3 py-3 font-medium">Asistentes</th>
                   <th className="px-3 py-3 font-medium">Estado</th>
+                  <th className="py-3 pl-3 pr-2 text-right font-medium">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -97,7 +111,7 @@ export default function EventosPage() {
                     >
                       <td
                         className={`border-l-4 py-3 pl-2 pr-3 font-medium text-slate-800 ${
-                          proximo ? "border-l-emerald-500" : "border-l-brand-800"
+                          proximo ? "border-l-amber-500" : "border-l-emerald-500"
                         }`}
                       >
                         {e.nombre}
@@ -107,9 +121,22 @@ export default function EventosPage() {
                       <td className="px-3 py-3 text-slate-600">{formatHora(e.hora)}</td>
                       <td className="px-3 py-3 text-slate-600">{e.total_asistentes ?? 0}</td>
                       <td className="px-3 py-3">
-                        <span className={`badge ${proximo ? "bg-emerald-50 text-emerald-700" : "bg-brand-50 text-brand-800"}`}>
+                        <span className={`badge ${proximo ? "bg-amber-50 text-amber-700" : "bg-emerald-50 text-emerald-700"}`}>
                           {proximo ? "Próximo" : "Realizado"}
                         </span>
+                      </td>
+                      <td className="py-3 pl-3 pr-2">
+                        <div className="flex justify-end">
+                          <button
+                            onClick={(ev) => { ev.stopPropagation(); setDeleteId(e.id); }}
+                            className="btn-ghost !px-2 !py-1 text-red-500 hover:bg-red-50"
+                            aria-label="Eliminar evento"
+                          >
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="17" height="17">
+                              <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -123,6 +150,16 @@ export default function EventosPage() {
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Nuevo evento" widthClass="max-w-lg">
         <EventoForm onSaved={handleSaved} onCancel={() => setModalOpen(false)} />
       </Modal>
+
+      <ConfirmDialog
+        open={deleteId != null}
+        title="Eliminar evento"
+        message="¿Está seguro de eliminar este evento? También se eliminará el registro de todos sus asistentes. Esta acción no se puede deshacer."
+        confirmLabel="Eliminar"
+        danger
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteId(null)}
+      />
     </div>
   );
 }
