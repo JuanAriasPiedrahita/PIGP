@@ -7,9 +7,10 @@ interface Props {
   referidos: Referido[];
   onEdit: (id: number) => void;
   onDelete: (id: number) => void;
+  onHistorial?: (referido: Referido) => void;
 }
 
-export function ReferidoTable({ referidos, onEdit, onDelete }: Props) {
+export function ReferidoTable({ referidos, onEdit, onDelete, onHistorial }: Props) {
   if (referidos.length === 0) {
     return <p className="py-10 text-center text-sm text-slate-400">No hay referidos registrados con los filtros actuales.</p>;
   }
@@ -50,7 +51,15 @@ export function ReferidoTable({ referidos, onEdit, onDelete }: Props) {
               </td>
               <td className="px-3 py-3 text-slate-600">{r.edad ?? "—"}</td>
               <td className="py-3 pl-3 pr-2">
-                <div className="flex justify-end">
+                <div className="flex justify-end gap-1">
+                  {onHistorial && (
+                    <button onClick={(e) => { e.stopPropagation(); onHistorial(r); }} className="btn-ghost !px-2 !py-1 text-slate-500 hover:bg-slate-100" aria-label="Historial político">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="17" height="17">
+                        <circle cx="12" cy="12" r="9" />
+                        <path d="M12 7v5l3.5 2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </button>
+                  )}
                   <button onClick={(e) => { e.stopPropagation(); onDelete(r.id); }} className="btn-ghost !px-2 !py-1 text-red-500 hover:bg-red-50" aria-label="Eliminar">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="17" height="17">
                       <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" strokeLinecap="round" strokeLinejoin="round" />

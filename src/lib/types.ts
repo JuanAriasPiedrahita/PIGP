@@ -90,6 +90,33 @@ export interface ReferidoConGestiones {
   proxima_fecha: string | null;
 }
 
+export interface Evento {
+  id: number;
+  nombre: string;
+  ubicacion: string;
+  fecha: string;
+  hora: string;
+  total_asistentes?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface HistorialReferido {
+  gestiones: Gestion[];
+  eventos: (Evento & { asistio_desde?: string })[];
+}
+
+export interface EventoAsistente {
+  id: number;
+  evento_id: number;
+  referido_id: number;
+  referido_nombre?: string;
+  referido_apellidos?: string;
+  referido_cedula?: string;
+  referido_celular?: string;
+  created_at?: string;
+}
+
 export interface Atributos {
   vehiculo: boolean;
   redes_sociales: boolean;

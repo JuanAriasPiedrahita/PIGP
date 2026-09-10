@@ -6,6 +6,7 @@ import { apiGet, apiDelete } from "@/lib/api";
 import type { Atributos, Lider, Referido } from "@/lib/types";
 import { ReferidoTable } from "@/components/referidos/ReferidoTable";
 import { ReferidoForm } from "@/components/referidos/ReferidoForm";
+import { HistorialReferidoModal } from "@/components/referidos/HistorialReferidoModal";
 import { Modal, ConfirmDialog } from "@/components/ui/Modal";
 import { Checkbox } from "@/components/ui/FormControls";
 import { AtributosCheckboxes, DEFAULT_ATRIBUTOS } from "@/components/shared/AtributosCheckboxes";
@@ -29,6 +30,7 @@ export default function ReferidosPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | undefined>(undefined);
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [historialReferido, setHistorialReferido] = useState<Referido | null>(null);
 
   useEffect(() => {
     apiGet<Lider[]>("/api/lideres").then(setLideres).catch(() => {});
@@ -185,7 +187,7 @@ export default function ReferidosPage() {
             {[1, 2, 3].map((i) => <div key={i} className="h-12 animate-pulse rounded-lg bg-slate-100" />)}
           </div>
         ) : (
-          <ReferidoTable referidos={referidos} onEdit={openEdit} onDelete={setDeleteId} />
+          <ReferidoTable referidos={referidos} onEdit={openEdit} onDelete={setDeleteId} onHistorial={setHistorialReferido} />
         )}
       </div>
 
@@ -203,6 +205,8 @@ export default function ReferidosPage() {
           />
         )}
       </Modal>
+
+      <HistorialReferidoModal referido={historialReferido} onClose={() => setHistorialReferido(null)} />
 
       <ConfirmDialog
         open={deleteId != null}
