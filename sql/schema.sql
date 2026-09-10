@@ -189,6 +189,31 @@ CREATE TABLE IF NOT EXISTS gestiones (
 CREATE INDEX idx_gestiones_referido ON gestiones(referido_id);
 CREATE INDEX idx_gestiones_estado_fecha ON gestiones(estado, fecha_limite);
 
+-- ---------------------------------------------------------------------
+-- Eventos: actividades de la campaña y control de asistencia de referidos
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS eventos (
+  id          INT AUTO_INCREMENT PRIMARY KEY,
+  nombre      VARCHAR(200) NOT NULL,
+  ubicacion   VARCHAR(255) NOT NULL,
+  fecha       DATE         NOT NULL,
+  hora        TIME         NOT NULL,
+  created_at  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS evento_asistentes (
+  id          INT AUTO_INCREMENT PRIMARY KEY,
+  evento_id   INT       NOT NULL,
+  referido_id INT       NOT NULL,
+  created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_evento_referido (evento_id, referido_id),
+  CONSTRAINT fk_asistentes_evento   FOREIGN KEY (evento_id)   REFERENCES eventos(id)   ON DELETE CASCADE,
+  CONSTRAINT fk_asistentes_referido FOREIGN KEY (referido_id) REFERENCES referidos(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE INDEX idx_asistentes_evento ON evento_asistentes(evento_id);
+
 -- =====================================================================
 -- Datos semilla (catálogos básicos para empezar a probar de inmediato)
 -- =====================================================================
