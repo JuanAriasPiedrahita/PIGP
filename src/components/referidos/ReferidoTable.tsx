@@ -42,7 +42,7 @@ export function ReferidoTable({ referidos, onEdit, onDelete, onHistorial }: Prop
               <td className="px-3 py-3 text-slate-600">{r.parentesco_descripcion}</td>
               <td className="px-3 py-3 text-slate-600">
                 <p>{r.barrio_nombre}</p>
-                <p className="text-xs text-slate-400">Zona {r.zona_codigo} · {r.puesto_nombre}</p>
+                <p className="text-xs text-slate-400">{r.comuna_descripcion}</p>
               </td>
               <td className="px-3 py-3">
                 <span className={`badge ${r.voto_anterior ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-500"}`}>
