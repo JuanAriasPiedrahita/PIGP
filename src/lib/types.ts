@@ -101,6 +101,25 @@ export interface Evento {
   updated_at?: string;
 }
 
+export interface TerritorioResumenGestion {
+  tipo_ayuda_id: number;
+  tipo_ayuda_descripcion: string;
+  resueltas: number;
+  pendientes: number;
+  vencidas: number;
+  no_viables: number;
+}
+
+export interface TerritorioDetalleGestion {
+  id: number;
+  estado: EstadoGestion;
+  fecha_limite: string;
+  fecha_resolucion: string | null;
+  costo: number | null;
+  colaborador: string;
+  responsable: string;
+}
+
 export interface HistorialReferido {
   gestiones: Gestion[];
   eventos: (Evento & { asistio_desde?: string })[];

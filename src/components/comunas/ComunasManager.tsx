@@ -4,7 +4,17 @@ import { useEffect, useState } from "react";
 import { apiGet, apiPostJson, apiPutJson, apiDelete } from "@/lib/api";
 import { useToast } from "@/components/ui/Toast";
 import { ConfirmDialog } from "@/components/ui/Modal";
+import { GestionesTerritorioModal, type TerritorioSeleccionado } from "@/components/comunas/GestionesTerritorioModal";
 import type { Comuna, Barrio } from "@/lib/types";
+
+function IconoReloj() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="15" height="15">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3.5 2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
 
 export function ComunasManager() {
   const [comunas, setComunas] = useState<Comuna[]>([]);
@@ -19,6 +29,8 @@ export function ComunasManager() {
   const [barrioForm, setBarrioForm] = useState({ id: 0, nombre: "" });
   const [barrioEditing, setBarrioEditing] = useState(false);
   const [deleteBarrioId, setDeleteBarrioId] = useState<number | null>(null);
+
+  const [territorio, setTerritorio] = useState<TerritorioSeleccionado | null>(null);
 
   const toast = useToast();
 
@@ -163,6 +175,13 @@ export function ComunasManager() {
             >
               <span className="text-slate-700">{c.descripcion}</span>
               <span className="flex gap-1">
+                <button
+                  onClick={(e) => { e.stopPropagation(); setTerritorio({ tipo: "comuna", id: c.id, nombre: c.descripcion }); }}
+                  className="btn-ghost !px-2 !py-1 text-slate-500 hover:bg-slate-100"
+                  aria-label="Gestiones de la comuna"
+                >
+                  <IconoReloj />
+                </button>
                 <button onClick={(e) => { e.stopPropagation(); editComuna(c); }} className="btn-ghost !px-2 !py-1">Editar</button>
                 <button onClick={(e) => { e.stopPropagation(); setDeleteComunaId(c.id); }} className="btn-ghost !px-2 !py-1 text-red-500 hover:bg-red-50">Eliminar</button>
               </span>
@@ -197,6 +216,13 @@ export function ComunasManager() {
                 <li key={b.id} className="flex items-center justify-between px-4 py-2.5 text-sm">
                   <span className="text-slate-700">{b.nombre}</span>
                   <span className="flex gap-1">
+                    <button
+                      onClick={() => setTerritorio({ tipo: "barrio", id: b.id, nombre: b.nombre })}
+                      className="btn-ghost !px-2 !py-1 text-slate-500 hover:bg-slate-100"
+                      aria-label="Gestiones del barrio"
+                    >
+                      <IconoReloj />
+                    </button>
                     <button onClick={() => editBarrio(b)} className="btn-ghost !px-2 !py-1">Editar</button>
                     <button onClick={() => setDeleteBarrioId(b.id)} className="btn-ghost !px-2 !py-1 text-red-500 hover:bg-red-50">Eliminar</button>
                   </span>
@@ -226,6 +252,8 @@ export function ComunasManager() {
         onConfirm={confirmDeleteBarrio}
         onCancel={() => setDeleteBarrioId(null)}
       />
+
+      <GestionesTerritorioModal seleccion={territorio} onClose={() => setTerritorio(null)} />
     </div>
   );
 }
