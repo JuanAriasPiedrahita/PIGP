@@ -7,7 +7,7 @@ import { useToast } from "@/components/ui/Toast";
 import type { TerritorioResumenGestion, TerritorioDetalleGestion } from "@/lib/types";
 
 export interface TerritorioSeleccionado {
-  tipo: "comuna" | "barrio";
+  tipo: "comuna" | "barrio" | "gestor" | "tipo_ayuda";
   id: number;
   nombre: string;
 }
@@ -40,7 +40,10 @@ interface Detalle {
 }
 
 function queryParam(seleccion: TerritorioSeleccionado): string {
-  return seleccion.tipo === "barrio" ? `barrio_id=${seleccion.id}` : `comuna_id=${seleccion.id}`;
+  if (seleccion.tipo === "barrio") return `barrio_id=${seleccion.id}`;
+  if (seleccion.tipo === "gestor") return `gestor_id=${seleccion.id}`;
+  if (seleccion.tipo === "tipo_ayuda") return `tipo_ayuda_id=${seleccion.id}`;
+  return `comuna_id=${seleccion.id}`;
 }
 
 export function GestionesTerritorioModal({ seleccion, onClose }: Props) {
@@ -79,8 +82,14 @@ export function GestionesTerritorioModal({ seleccion, onClose }: Props) {
 
   const titulo = seleccion
     ? detalle
-      ? `${detalle.tipoDescripcion} · ${COLUMNA_LABEL[detalle.columna]} — ${seleccion.nombre}`
-      : `Gestiones en ${seleccion.nombre}`
+      ? seleccion.tipo === "tipo_ayuda"
+        ? `${seleccion.nombre} · ${COLUMNA_LABEL[detalle.columna]}`
+        : `${detalle.tipoDescripcion} · ${COLUMNA_LABEL[detalle.columna]} — ${seleccion.nombre}`
+      : seleccion.tipo === "gestor"
+        ? `Gestiones asignadas a ${seleccion.nombre}`
+        : seleccion.tipo === "tipo_ayuda"
+          ? `Gestiones de tipo ${seleccion.nombre}`
+          : `Gestiones en ${seleccion.nombre}`
     : "Gestiones";
 
   return (
@@ -101,7 +110,7 @@ export function GestionesTerritorioModal({ seleccion, onClose }: Props) {
               <table className="w-full min-w-[560px] text-left text-sm">
                 <thead>
                   <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-400">
-                    <th className="py-2 pr-3 font-medium">Colaborador</th>
+                    <th className="py-2 pr-3 font-medium">Referido</th>
                     <th className="px-3 py-2 font-medium">Fecha</th>
                     <th className="px-3 py-2 font-medium">Responsable</th>
                     <th className="px-3 py-2 text-right font-medium">Costo</th>
@@ -121,6 +130,14 @@ export function GestionesTerritorioModal({ seleccion, onClose }: Props) {
                     </tr>
                   ))}
                 </tbody>
+                <tfoot>
+                  <tr className="border-t border-slate-200 font-semibold text-slate-800">
+                    <td className="py-2 pr-3" colSpan={3}>Total</td>
+                    <td className="px-3 py-2 text-right">
+                      ${filas.reduce((sum, g) => sum + (g.costo != null ? Number(g.costo) : 0), 0).toLocaleString("es-CO")}
+                    </td>
+                  </tr>
+                </tfoot>
               </table>
             </div>
           )}
@@ -133,7 +150,7 @@ export function GestionesTerritorioModal({ seleccion, onClose }: Props) {
         <p className="py-10 text-center text-sm text-slate-400">No hay gestiones registradas aquí todavía.</p>
       ) : (
         <div className="thin-scroll overflow-x-auto">
-          <table className="w-full min-w-[520px] text-left text-sm">
+          <table className="w-full min-w-[620px] text-left text-sm">
             <thead>
               <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-400">
                 <th className="py-2 pr-3 font-medium">Tipo de ayuda</th>
@@ -141,6 +158,7 @@ export function GestionesTerritorioModal({ seleccion, onClose }: Props) {
                 <th className="px-3 py-2 text-center font-medium">Pendientes</th>
                 <th className="px-3 py-2 text-center font-medium">Vencidas</th>
                 <th className="px-3 py-2 text-center font-medium">No viables</th>
+                <th className="px-3 py-2 text-right font-medium">Costo</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -164,9 +182,25 @@ export function GestionesTerritorioModal({ seleccion, onClose }: Props) {
                       </td>
                     );
                   })}
+                  <td className="px-3 py-2 text-right text-slate-600">
+                    {t.costo_total != null ? `$${Number(t.costo_total).toLocaleString("es-CO")}` : "—"}
+                  </td>
                 </tr>
               ))}
             </tbody>
+            <tfoot>
+              <tr className="border-t border-slate-200 font-semibold text-slate-800">
+                <td className="py-2 pr-3">Total</td>
+                {(["resueltas", "pendientes", "vencidas", "no_viables"] as Columna[]).map((col) => (
+                  <td key={col} className="px-3 py-2 text-center">
+                    {resumen.reduce((sum, t) => sum + Number(t[col]), 0)}
+                  </td>
+                ))}
+                <td className="px-3 py-2 text-right">
+                  ${resumen.reduce((sum, t) => sum + (t.costo_total != null ? Number(t.costo_total) : 0), 0).toLocaleString("es-CO")}
+                </td>
+              </tr>
+            </tfoot>
           </table>
         </div>
       )}

@@ -9,7 +9,7 @@ const TABS = [
   { key: "ocupaciones", label: "Ocupaciones", kind: "simple", endpoint: "/api/ocupaciones", singular: "ocupación", placeholder: "Ej: Independiente" },
   { key: "parentescos", label: "Parentescos", kind: "simple", endpoint: "/api/parentescos", singular: "parentesco", placeholder: "Ej: Hermano(a)" },
   { key: "dependencias", label: "Dependencias", kind: "simple", endpoint: "/api/dependencias", singular: "dependencia", placeholder: "Ej: Secretaría de Gobierno" },
-  { key: "tipos_ayuda", label: "Tipos de ayuda", kind: "simple", endpoint: "/api/tipos-ayuda", singular: "tipo de ayuda", placeholder: "Ej: Mercado" },
+  { key: "tipos_ayuda", label: "Tipos de ayuda", kind: "simple", endpoint: "/api/tipos-ayuda", singular: "tipo de ayuda", placeholder: "Ej: Mercado", conGestiones: true },
   { key: "gestores", label: "Gestores", kind: "gestores" },
 ] as const;
 
@@ -44,7 +44,12 @@ export default function ConfiguracionPage() {
         {active.kind === "gestores" ? (
           <GestoresManager />
         ) : (
-          <SimpleCatalogManager endpoint={active.endpoint} singular={active.singular} placeholder={active.placeholder} />
+          <SimpleCatalogManager
+            endpoint={active.endpoint}
+            singular={active.singular}
+            placeholder={active.placeholder}
+            conGestiones={"conGestiones" in active && active.conGestiones}
+          />
         )}
       </div>
     </div>

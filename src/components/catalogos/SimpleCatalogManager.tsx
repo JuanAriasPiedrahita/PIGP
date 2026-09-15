@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { apiGet, apiPostJson, apiPutJson, apiDelete } from "@/lib/api";
 import { useToast } from "@/components/ui/Toast";
 import { ConfirmDialog } from "@/components/ui/Modal";
+import { GestionesTerritorioModal, type TerritorioSeleccionado } from "@/components/comunas/GestionesTerritorioModal";
 
 interface Item {
   id: number;
@@ -14,10 +15,21 @@ interface Props {
   endpoint: string; // ej: /api/profesiones
   singular: string; // ej: "profesión"
   placeholder: string;
+  /** Si es true (solo para Tipos de ayuda), agrega el ícono de reloj que abre el reporte de gestiones de ese tipo. */
+  conGestiones?: boolean;
+}
+
+function IconoReloj() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="15" height="15">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3.5 2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
 }
 
 /** CRUD genérico para catálogos de una sola columna (profesiones, ocupaciones, parentescos). */
-export function SimpleCatalogManager({ endpoint, singular, placeholder }: Props) {
+export function SimpleCatalogManager({ endpoint, singular, placeholder, conGestiones }: Props) {
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [newValue, setNewValue] = useState("");
@@ -25,6 +37,7 @@ export function SimpleCatalogManager({ endpoint, singular, placeholder }: Props)
   const [editingValue, setEditingValue] = useState("");
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
+  const [territorio, setTerritorio] = useState<TerritorioSeleccionado | null>(null);
   const toast = useToast();
 
   async function load() {
@@ -130,6 +143,15 @@ export function SimpleCatalogManager({ endpoint, singular, placeholder }: Props)
                   </>
                 ) : (
                   <>
+                    {conGestiones && (
+                      <button
+                        className="btn-ghost !px-2 !py-1 text-slate-500 hover:bg-slate-100"
+                        onClick={() => setTerritorio({ tipo: "tipo_ayuda", id: item.id, nombre: item.descripcion })}
+                        aria-label="Gestiones de este tipo de ayuda"
+                      >
+                        <IconoReloj />
+                      </button>
+                    )}
                     <button className="btn-ghost !px-2 !py-1" onClick={() => startEdit(item)}>Editar</button>
                     <button className="btn-ghost !px-2 !py-1 text-red-500 hover:bg-red-50" onClick={() => setDeleteId(item.id)}>Eliminar</button>
                   </>
@@ -139,6 +161,8 @@ export function SimpleCatalogManager({ endpoint, singular, placeholder }: Props)
           ))}
         </ul>
       )}
+
+      {conGestiones && <GestionesTerritorioModal seleccion={territorio} onClose={() => setTerritorio(null)} />}
 
       <ConfirmDialog
         open={deleteId != null}

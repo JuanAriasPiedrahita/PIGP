@@ -87,6 +87,7 @@ export interface ReferidoConGestiones {
   no_viables: number;
   resueltas: number;
   vencidas: number;
+  inversion: number;
   proxima_fecha: string | null;
 }
 
@@ -101,6 +102,14 @@ export interface Evento {
   updated_at?: string;
 }
 
+export interface Contrato {
+  lider_nombre: string;
+  objeto_contrato: string | null;
+  dependencia_descripcion: string | null;
+  vencimiento_contrato: string | null;
+  estado: "vencido" | "proximo" | "vigente";
+}
+
 export interface TerritorioResumenGestion {
   tipo_ayuda_id: number;
   tipo_ayuda_descripcion: string;
@@ -108,6 +117,7 @@ export interface TerritorioResumenGestion {
   pendientes: number;
   vencidas: number;
   no_viables: number;
+  costo_total: number | null;
 }
 
 export interface TerritorioDetalleGestion {
