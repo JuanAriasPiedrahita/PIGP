@@ -32,7 +32,7 @@ export async function GET() {
        ORDER BY total_referidos DESC LIMIT 5`
     );
     const [gestionesPorTipo] = await pool.query<RowDataPacket[]>(
-      `SELECT ta.descripcion AS tipo, COUNT(g.id) AS total
+      `SELECT ta.id, ta.descripcion AS tipo, COUNT(g.id) AS total
        FROM tipos_ayuda ta JOIN gestiones g ON g.tipo_ayuda_id = ta.id
        GROUP BY ta.id, ta.descripcion
        ORDER BY total DESC LIMIT 5`

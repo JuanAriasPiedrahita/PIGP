@@ -5,6 +5,7 @@ import Link from "next/link";
 import { apiGet } from "@/lib/api";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { ContratosModal } from "@/components/dashboard/ContratosModal";
+import { GestionesTerritorioModal, type TerritorioSeleccionado } from "@/components/comunas/GestionesTerritorioModal";
 import { useToast } from "@/components/ui/Toast";
 
 interface DashboardData {
@@ -24,7 +25,7 @@ interface DashboardData {
   costoTotalInvertido: number;
   porComuna: { id: number; comuna: string; total: number }[];
   topLideres: { id: number; nombre: string; total_referidos: number }[];
-  gestionesPorTipo: { tipo: string; total: number }[];
+  gestionesPorTipo: { id: number; tipo: string; total: number }[];
   proximasAVencer: { id: number; referido_id: number; referido_nombre: string; tipo_ayuda: string; fecha_limite: string }[];
 }
 
@@ -32,6 +33,7 @@ export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [contratosOpen, setContratosOpen] = useState(false);
+  const [territorioSeleccion, setTerritorioSeleccion] = useState<TerritorioSeleccionado | null>(null);
   const toast = useToast();
 
   useEffect(() => {
@@ -132,7 +134,12 @@ export default function DashboardPage() {
               <div className="space-y-3">
                 {data?.gestionesPorTipo.length ? (
                   data.gestionesPorTipo.map((t) => (
-                    <div key={t.tipo}>
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => setTerritorioSeleccion({ tipo: "tipo_ayuda", id: t.id, nombre: t.tipo })}
+                      className="block w-full text-left hover:opacity-80"
+                    >
                       <div className="mb-1 flex justify-between text-xs text-slate-500">
                         <span>{t.tipo}</span>
                         <span>{t.total}</span>
@@ -143,7 +150,7 @@ export default function DashboardPage() {
                           style={{ width: `${(t.total / maxTipoAyuda) * 100}%` }}
                         />
                       </div>
-                    </div>
+                    </button>
                   ))
                 ) : (
                   <p className="text-sm text-slate-400">Aún no hay gestiones registradas.</p>
@@ -319,6 +326,7 @@ export default function DashboardPage() {
       )}
 
       <ContratosModal open={contratosOpen} onClose={() => setContratosOpen(false)} />
+      <GestionesTerritorioModal seleccion={territorioSeleccion} onClose={() => setTerritorioSeleccion(null)} />
     </div>
   );
 }
