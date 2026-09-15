@@ -115,9 +115,43 @@ Edita `users.txt` (una línea `usuario:clave` por persona) y **cambia la clave d
 npm run build
 ```
 
-## 10. Carpeta de fotos subidas
+## 10. Carpeta de fotos subidas — ⚠️ no dejes que Next.js las sirva en producción
 
 Se crea sola en el primer upload (`public/uploads/lideres`, `public/uploads/gestiones`), pero confirma que el usuario que corre el proceso Node tenga permiso de escritura sobre `/var/www/pigp/public/uploads`.
+
+**Problema real encontrado en este despliegue**: `next start` (modo producción, sin `output: standalone`) arma la lista de archivos de `public/` **una sola vez al arrancar** el proceso. Cualquier foto que un usuario suba *después* de ese arranque queda guardada en disco correctamente, pero la app le responde 404 hasta el próximo reinicio — inaceptable para uso real, donde las fotos se suben en caliente todo el tiempo.
+
+**Solución aplicada**: que las fotos NUNCA pasen por el puerto de Next.js (3000). En su lugar, un servidor de archivos estático dedicado, en la misma máquina que corre la app, sirve `/uploads/` directo desde disco (sin ningún problema de caché, porque lee el archivo en cada petición):
+
+```nginx
+# /etc/nginx/sites-available/uploads — Nginx dedicado solo a esto, puerto 8081
+server {
+    listen 8081;
+    server_name _;
+
+    location /uploads/ {
+        alias /var/www/pigp/public/uploads/;
+        access_log off;
+        expires 7d;
+        add_header Cache-Control "public";
+    }
+
+    location / {
+        return 404;
+    }
+}
+```
+
+Y en el Nginx que hace de reverse proxy hacia la app (sea el mismo servidor u otro en la red, como en este despliegue de dos VMs), agrega **antes** del `location /` general:
+
+```nginx
+location /uploads/ {
+    proxy_pass http://IP_DEL_SERVIDOR_DE_LA_APP:8081/uploads/;
+    proxy_set_header Host $host;
+}
+```
+
+Si Nginx corre en la **misma máquina** que la app, puedes saltarte el `proxy_pass` extra y usar `alias` directamente en el server block principal — el punto clave es que la ruta nunca toque el puerto 3000 (Next.js), solo un servidor de archivos estático de verdad.
 
 ## 11. Levantar la app con PM2 (mantiene el proceso vivo y lo reinicia si cae o si el servidor reinicia)
 
