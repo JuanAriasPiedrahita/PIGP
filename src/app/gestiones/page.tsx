@@ -106,7 +106,7 @@ export default function GestionesPage() {
           <p className="py-10 text-center text-sm text-slate-400">Aún no hay gestiones registradas. Usa el buscador de arriba para agregar la primera.</p>
         ) : (
           <div className="thin-scroll overflow-x-auto">
-            <table className="w-full min-w-[760px] text-left text-sm">
+            <table className="w-full min-w-[860px] text-left text-sm">
               <thead>
                 <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-400">
                   <th className="py-3 pl-2 pr-3 font-medium">Nombre</th>
@@ -116,6 +116,7 @@ export default function GestionesPage() {
                   <th className="px-3 py-3 font-medium">No viables</th>
                   <th className="px-3 py-3 font-medium">Resueltas</th>
                   <th className="px-3 py-3 font-medium">Vencidas</th>
+                  <th className="px-3 py-3 text-right font-medium">Inversión</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -144,9 +145,25 @@ export default function GestionesPage() {
                     <td className="px-3 py-3">
                       {f.vencidas > 0 ? <span className="badge bg-red-50 text-red-600">{f.vencidas}</span> : "—"}
                     </td>
+                    <td className="px-3 py-3 text-right text-slate-600">
+                      {f.inversion > 0 ? `$${Number(f.inversion).toLocaleString("es-CO")}` : "—"}
+                    </td>
                   </tr>
                 ))}
               </tbody>
+              <tfoot>
+                <tr className="border-t border-slate-200 font-semibold text-slate-800">
+                  <td className="py-3 pl-2 pr-3" colSpan={2}>Total</td>
+                  <td className="px-3 py-3">{filas.reduce((sum, f) => sum + Number(f.total), 0)}</td>
+                  <td className="px-3 py-3">{filas.reduce((sum, f) => sum + Number(f.pendientes), 0)}</td>
+                  <td className="px-3 py-3">{filas.reduce((sum, f) => sum + Number(f.no_viables), 0)}</td>
+                  <td className="px-3 py-3">{filas.reduce((sum, f) => sum + Number(f.resueltas), 0)}</td>
+                  <td className="px-3 py-3">{filas.reduce((sum, f) => sum + Number(f.vencidas), 0)}</td>
+                  <td className="px-3 py-3 text-right">
+                    ${filas.reduce((sum, f) => sum + Number(f.inversion), 0).toLocaleString("es-CO")}
+                  </td>
+                </tr>
+              </tfoot>
             </table>
           </div>
         )}

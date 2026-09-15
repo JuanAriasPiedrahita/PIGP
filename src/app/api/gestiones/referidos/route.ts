@@ -27,6 +27,7 @@ export async function GET(req: NextRequest) {
           SUM(g.estado = 'NO_VIABLE') AS no_viables,
           SUM(g.estado = 'RESUELTO') AS resueltas,
           SUM(g.estado = 'PENDIENTE' AND g.fecha_limite < CURDATE()) AS vencidas,
+          SUM(CASE WHEN g.estado = 'RESUELTO' THEN g.costo ELSE 0 END) AS inversion,
           MIN(CASE WHEN g.estado = 'PENDIENTE' THEN g.fecha_limite END) AS proxima_fecha
         FROM referidos r
         JOIN gestiones g ON g.referido_id = r.id
