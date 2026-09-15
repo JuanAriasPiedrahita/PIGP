@@ -6,6 +6,7 @@ import pool, { friendlyDbError } from "@/lib/db";
 import type { RowDataPacket } from "mysql2";
 import { createSessionToken, COOKIE_NAME, SESSION_HOURS } from "@/lib/session";
 import { createLiderSessionToken, LIDER_COOKIE_NAME, LIDER_SESSION_HOURS } from "@/lib/liderSession";
+import { cookieSecure } from "@/lib/crypto";
 
 const USERS_FILE = path.join(process.cwd(), "users.txt");
 
@@ -56,7 +57,7 @@ export async function POST(req: NextRequest) {
       res.cookies.set(COOKIE_NAME, token, {
         httpOnly: true,
         sameSite: "lax",
-        secure: process.env.NODE_ENV === "production",
+        secure: cookieSecure(),
         path: "/",
         maxAge: SESSION_HOURS * 3600,
       });
@@ -81,7 +82,7 @@ export async function POST(req: NextRequest) {
     res.cookies.set(LIDER_COOKIE_NAME, token, {
       httpOnly: true,
       sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
+      secure: cookieSecure(),
       path: "/",
       maxAge: LIDER_SESSION_HOURS * 3600,
     });

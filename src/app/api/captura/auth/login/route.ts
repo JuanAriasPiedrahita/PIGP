@@ -3,6 +3,7 @@ import { decryptClave } from "@/lib/liderClave";
 import pool, { friendlyDbError } from "@/lib/db";
 import type { RowDataPacket } from "mysql2";
 import { createLiderSessionToken, LIDER_COOKIE_NAME, LIDER_SESSION_HOURS } from "@/lib/liderSession";
+import { cookieSecure } from "@/lib/crypto";
 
 export async function POST(req: NextRequest) {
   try {
@@ -33,7 +34,7 @@ export async function POST(req: NextRequest) {
     res.cookies.set(LIDER_COOKIE_NAME, token, {
       httpOnly: true,
       sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
+      secure: cookieSecure(),
       path: "/",
       maxAge: LIDER_SESSION_HOURS * 3600,
     });

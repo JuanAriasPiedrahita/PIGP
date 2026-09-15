@@ -6,6 +6,17 @@ function getSecret(): string {
   return process.env.AUTH_SECRET || "pigp-dev-secret-cambiar-en-produccion";
 }
 
+/**
+ * Si las cookies de sesión se marcan "Secure" (solo se guardan sobre HTTPS).
+ * Por defecto sigue a NODE_ENV=production, pero se puede forzar a false con
+ * COOKIE_SECURE=false — necesario en despliegues internos por HTTP plano
+ * (IP privada, sin dominio público para HTTPS) donde el navegador, si no,
+ * descarta la cookie en silencio y el login parece "no hacer nada".
+ */
+export function cookieSecure(): boolean {
+  return process.env.NODE_ENV === "production" && process.env.COOKIE_SECURE !== "false";
+}
+
 function toBase64Url(bytes: Uint8Array): string {
   let bin = "";
   bytes.forEach((b) => (bin += String.fromCharCode(b)));
