@@ -5,6 +5,7 @@ import Link from "next/link";
 import { apiGet } from "@/lib/api";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { ContratosModal } from "@/components/dashboard/ContratosModal";
+import { InversionesModal } from "@/components/dashboard/InversionesModal";
 import { GestionesTerritorioModal, type TerritorioSeleccionado } from "@/components/comunas/GestionesTerritorioModal";
 import { useToast } from "@/components/ui/Toast";
 
@@ -33,6 +34,7 @@ export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [contratosOpen, setContratosOpen] = useState(false);
+  const [inversionesOpen, setInversionesOpen] = useState(false);
   const [territorioSeleccion, setTerritorioSeleccion] = useState<TerritorioSeleccionado | null>(null);
   const toast = useToast();
 
@@ -119,6 +121,7 @@ export default function DashboardPage() {
               value={`$${(data?.costoTotalInvertido ?? 0).toLocaleString("es-CO")}`}
               sublabel="En gestiones resueltas"
               accent="amber"
+              onClick={() => setInversionesOpen(true)}
               icon={
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="24" height="24">
                   <circle cx="12" cy="12" r="9" />
@@ -326,6 +329,7 @@ export default function DashboardPage() {
       )}
 
       <ContratosModal open={contratosOpen} onClose={() => setContratosOpen(false)} />
+      <InversionesModal open={inversionesOpen} onClose={() => setInversionesOpen(false)} />
       <GestionesTerritorioModal seleccion={territorioSeleccion} onClose={() => setTerritorioSeleccion(null)} />
     </div>
   );

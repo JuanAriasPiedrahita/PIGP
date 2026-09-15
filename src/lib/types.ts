@@ -102,6 +102,15 @@ export interface Evento {
   updated_at?: string;
 }
 
+export interface InversionGestion {
+  id: number;
+  costo: number;
+  fecha_resolucion: string | null;
+  colaborador: string;
+  tipo_ayuda_descripcion: string | null;
+  responsable: string | null;
+}
+
 export interface Contrato {
   lider_nombre: string;
   objeto_contrato: string | null;
