@@ -21,7 +21,7 @@ export async function GET() {
        FROM gestiones`
     ) as unknown as [RowDataPacket[]];
     const [porComuna] = await pool.query<RowDataPacket[]>(
-      `SELECT co.descripcion AS comuna, COUNT(l.id) AS total
+      `SELECT co.id, co.descripcion AS comuna, COUNT(l.id) AS total
        FROM comunas co LEFT JOIN lideres l ON l.comuna_id = co.id
        GROUP BY co.id, co.descripcion ORDER BY co.descripcion`
     );

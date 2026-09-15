@@ -22,7 +22,7 @@ interface DashboardData {
   gestionesVencidas: number;
   tasaResolucion: number;
   costoTotalInvertido: number;
-  porComuna: { comuna: string; total: number }[];
+  porComuna: { id: number; comuna: string; total: number }[];
   topLideres: { id: number; nombre: string; total_referidos: number }[];
   gestionesPorTipo: { tipo: string; total: number }[];
   proximasAVencer: { id: number; referido_id: number; referido_nombre: string; tipo_ayuda: string; fecha_limite: string }[];
@@ -254,7 +254,7 @@ export default function DashboardPage() {
               <div className="space-y-3">
                 {data?.porComuna.length ? (
                   data.porComuna.map((c) => (
-                    <div key={c.comuna}>
+                    <Link key={c.id} href={`/lideres?comuna_id=${c.id}`} className="block hover:opacity-80">
                       <div className="mb-1 flex justify-between text-xs text-slate-500">
                         <span>{c.comuna}</span>
                         <span>{c.total}</span>
@@ -265,7 +265,7 @@ export default function DashboardPage() {
                           style={{ width: `${(c.total / maxComuna) * 100}%` }}
                         />
                       </div>
-                    </div>
+                    </Link>
                   ))
                 ) : (
                   <p className="text-sm text-slate-400">Aún no hay comunas registradas.</p>

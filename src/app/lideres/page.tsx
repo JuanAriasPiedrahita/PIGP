@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useCatalogos } from "@/hooks/useCatalogos";
 import { apiGet, apiDelete } from "@/lib/api";
 import type { Atributos, Lider } from "@/lib/types";
@@ -11,14 +12,15 @@ import { Checkbox } from "@/components/ui/FormControls";
 import { AtributosCheckboxes, DEFAULT_ATRIBUTOS } from "@/components/shared/AtributosCheckboxes";
 import { useToast } from "@/components/ui/Toast";
 
-export default function LideresPage() {
+function LideresContent() {
+  const searchParams = useSearchParams();
   const catalogos = useCatalogos();
   const toast = useToast();
   const [lideres, setLideres] = useState<Lider[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [search, setSearch] = useState("");
-  const [comunaFilter, setComunaFilter] = useState("");
+  const [comunaFilter, setComunaFilter] = useState(() => searchParams.get("comuna_id") || "");
   const [barrioFilter, setBarrioFilter] = useState("");
   const [puestoFilter, setPuestoFilter] = useState("");
   const [contratistaFilter, setContratistaFilter] = useState(false);
@@ -186,5 +188,13 @@ export default function LideresPage() {
         onCancel={() => setDeleteId(null)}
       />
     </div>
+  );
+}
+
+export default function LideresPage() {
+  return (
+    <Suspense fallback={null}>
+      <LideresContent />
+    </Suspense>
   );
 }
