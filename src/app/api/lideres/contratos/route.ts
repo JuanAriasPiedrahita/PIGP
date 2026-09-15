@@ -8,6 +8,7 @@ export async function GET() {
   try {
     const [rows] = await pool.query<RowDataPacket[]>(
       `SELECT
+         l.id AS lider_id,
          CONCAT(l.nombre, ' ', l.apellidos) AS lider_nombre,
          l.objeto_contrato,
          d.descripcion AS dependencia_descripcion,
@@ -19,6 +20,7 @@ export async function GET() {
     );
     const meses = mesesAlertaVencimiento();
     const contratos = rows.map((r) => ({
+      lider_id: r.lider_id,
       lider_nombre: r.lider_nombre,
       objeto_contrato: r.objeto_contrato,
       dependencia_descripcion: r.dependencia_descripcion,

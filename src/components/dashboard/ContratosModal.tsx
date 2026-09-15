@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Modal } from "@/components/ui/Modal";
 import { apiGet } from "@/lib/api";
 import { useToast } from "@/components/ui/Toast";
@@ -30,6 +31,7 @@ const ESTADO_LABEL: Record<Contrato["estado"], string> = {
 };
 
 export function ContratosModal({ open, onClose }: Props) {
+  const router = useRouter();
   const [contratos, setContratos] = useState<Contrato[]>([]);
   const [loading, setLoading] = useState(false);
   const toast = useToast();
@@ -65,7 +67,11 @@ export function ContratosModal({ open, onClose }: Props) {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {contratos.map((c, i) => (
-                <tr key={i} className={ESTADO_ROW_CLASS[c.estado]}>
+                <tr
+                  key={i}
+                  onClick={() => router.push(`/lideres?lider_id=${c.lider_id}`)}
+                  className={`cursor-pointer hover:brightness-95 ${ESTADO_ROW_CLASS[c.estado]}`}
+                >
                   <td className="py-2 pr-3 font-medium text-slate-800">{c.lider_nombre}</td>
                   <td className="px-3 py-2 text-slate-600">{c.objeto_contrato}</td>
                   <td className="px-3 py-2 text-slate-600">{c.dependencia_descripcion || "—"}</td>

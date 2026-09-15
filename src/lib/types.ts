@@ -113,6 +113,7 @@ export interface InversionGestion {
 }
 
 export interface Contrato {
+  lider_id: number;
   lider_nombre: string;
   objeto_contrato: string | null;
   dependencia_descripcion: string | null;

@@ -30,6 +30,15 @@ function LideresContent() {
   const [editingId, setEditingId] = useState<number | undefined>(undefined);
   const [deleteId, setDeleteId] = useState<number | null>(null);
 
+  useEffect(() => {
+    const liderId = searchParams.get("lider_id");
+    if (liderId) {
+      setEditingId(Number(liderId));
+      setModalOpen(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const load = useCallback(async () => {
     setLoading(true);
     try {
