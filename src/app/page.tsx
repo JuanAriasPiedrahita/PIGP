@@ -278,14 +278,19 @@ export default function DashboardPage() {
               <ul className="divide-y divide-slate-100">
                 {data?.topLideres.length ? (
                   data.topLideres.map((l, idx) => (
-                    <li key={l.id} className="flex items-center justify-between py-2.5">
-                      <div className="flex items-center gap-3">
-                        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-slate-600">
-                          {idx + 1}
-                        </span>
-                        <span className="text-sm text-slate-700">{l.nombre}</span>
-                      </div>
-                      <span className="badge bg-brand-50 text-brand-700">{l.total_referidos} referidos</span>
+                    <li key={l.id}>
+                      <Link
+                        href={`/referidos?lider_id=${l.id}`}
+                        className="flex items-center justify-between py-2.5 hover:opacity-80"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-slate-600">
+                            {idx + 1}
+                          </span>
+                          <span className="text-sm text-slate-700">{l.nombre}</span>
+                        </div>
+                        <span className="badge bg-brand-50 text-brand-700">{l.total_referidos} referidos</span>
+                      </Link>
                     </li>
                   ))
                 ) : (

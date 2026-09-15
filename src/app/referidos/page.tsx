@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useCatalogos } from "@/hooks/useCatalogos";
 import { apiGet, apiDelete } from "@/lib/api";
 import type { Atributos, Lider, Referido } from "@/lib/types";
@@ -12,7 +13,8 @@ import { Checkbox } from "@/components/ui/FormControls";
 import { AtributosCheckboxes, DEFAULT_ATRIBUTOS } from "@/components/shared/AtributosCheckboxes";
 import { useToast } from "@/components/ui/Toast";
 
-export default function ReferidosPage() {
+function ReferidosContent() {
+  const searchParams = useSearchParams();
   const catalogos = useCatalogos();
   const toast = useToast();
   const [referidos, setReferidos] = useState<Referido[]>([]);
@@ -20,7 +22,7 @@ export default function ReferidosPage() {
   const [loading, setLoading] = useState(true);
 
   const [search, setSearch] = useState("");
-  const [liderFilter, setLiderFilter] = useState("");
+  const [liderFilter, setLiderFilter] = useState(() => searchParams.get("lider_id") || "");
   const [comunaFilter, setComunaFilter] = useState("");
   const [barrioFilter, setBarrioFilter] = useState("");
   const [puestoFilter, setPuestoFilter] = useState("");
@@ -218,5 +220,13 @@ export default function ReferidosPage() {
         onCancel={() => setDeleteId(null)}
       />
     </div>
+  );
+}
+
+export default function ReferidosPage() {
+  return (
+    <Suspense fallback={null}>
+      <ReferidosContent />
+    </Suspense>
   );
 }
