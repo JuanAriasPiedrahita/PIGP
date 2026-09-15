@@ -3,6 +3,9 @@ import pool, { friendlyDbError } from "@/lib/db";
 import type { RowDataPacket } from "mysql2";
 import { estadoContrato, mesesAlertaVencimiento } from "@/lib/contrato";
 
+// Evita que Next.js cachee esto estáticamente desde el build (ver dashboard/route.ts).
+export const dynamic = "force-dynamic";
+
 /** Contratos de los líderes marcados como contratista, para el dashboard. */
 export async function GET() {
   try {

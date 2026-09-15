@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import pool, { friendlyDbError } from "@/lib/db";
 import type { RowDataPacket } from "mysql2";
 
+// Evita que Next.js cachee esto estáticamente desde el build (ver dashboard/route.ts).
+export const dynamic = "force-dynamic";
+
 /** Gestiones con costo asignado (dinero invertido), para el detalle del dashboard. Ordenadas de mayor a menor costo. */
 export async function GET() {
   try {

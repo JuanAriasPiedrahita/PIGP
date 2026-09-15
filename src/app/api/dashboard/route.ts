@@ -2,6 +2,11 @@ import { NextResponse } from "next/server";
 import pool, { friendlyDbError } from "@/lib/db";
 import type { RowDataPacket } from "mysql2";
 
+// Sin esto, Next.js trata este GET (no lee nada del request) como estático y
+// lo cachea para siempre desde el build — el dashboard quedaría congelado
+// con los datos de cuando se compiló, sin reflejar cambios reales en la BD.
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     const [[lideresRow]] = await pool.query<RowDataPacket[]>(
