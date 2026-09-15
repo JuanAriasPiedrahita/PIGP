@@ -1,9 +1,15 @@
+import Link from "next/link";
+
 interface StatCardProps {
   label: string;
   value: number | string;
   sublabel?: string;
   icon: JSX.Element;
   accent?: "brand" | "emerald" | "amber" | "slate";
+  /** Si se pasa, la tarjeta navega a esta ruta al hacer clic. */
+  href?: string;
+  /** Si se pasa (y no hay href), la tarjeta ejecuta esto al hacer clic. */
+  onClick?: () => void;
 }
 
 const ACCENTS: Record<string, string> = {
@@ -13,15 +19,33 @@ const ACCENTS: Record<string, string> = {
   slate: "bg-slate-100 text-slate-700",
 };
 
-export function StatCard({ label, value, sublabel, icon, accent = "brand" }: StatCardProps) {
-  return (
-    <div className="card flex items-center gap-4 p-5">
+export function StatCard({ label, value, sublabel, icon, accent = "brand", href, onClick }: StatCardProps) {
+  const clickable = !!href || !!onClick;
+  const content = (
+    <>
       <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${ACCENTS[accent]}`}>{icon}</div>
       <div className="min-w-0">
         <p className="text-sm text-slate-500">{label}</p>
         <p className="text-2xl font-semibold text-slate-900">{value}</p>
         {sublabel && <p className="truncate text-xs text-slate-400">{sublabel}</p>}
       </div>
-    </div>
+    </>
   );
+  const className = `card flex items-center gap-4 p-5 text-left ${clickable ? "cursor-pointer transition-shadow hover:shadow-md" : ""}`;
+
+  if (href) {
+    return (
+      <Link href={href} className={className}>
+        {content}
+      </Link>
+    );
+  }
+  if (onClick) {
+    return (
+      <button type="button" onClick={onClick} className={`w-full ${className}`}>
+        {content}
+      </button>
+    );
+  }
+  return <div className={className}>{content}</div>;
 }

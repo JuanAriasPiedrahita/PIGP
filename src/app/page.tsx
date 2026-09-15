@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { apiGet } from "@/lib/api";
 import { StatCard } from "@/components/dashboard/StatCard";
+import { ContratosModal } from "@/components/dashboard/ContratosModal";
 import { useToast } from "@/components/ui/Toast";
 
 interface DashboardData {
@@ -30,6 +31,7 @@ interface DashboardData {
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [contratosOpen, setContratosOpen] = useState(false);
   const toast = useToast();
 
   useEffect(() => {
@@ -77,6 +79,7 @@ export default function DashboardPage() {
               value={data?.totalGestiones ?? 0}
               sublabel={`${data?.gestionesPendientes ?? 0} pendientes · ${data?.gestionesNoViables ?? 0} no viables`}
               accent="brand"
+              href="/gestiones"
               icon={
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="24" height="24">
                   <path d="M9 5H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2v-1" strokeLinecap="round" strokeLinejoin="round" />
@@ -101,6 +104,7 @@ export default function DashboardPage() {
               value={data?.gestionesVencidas ?? 0}
               sublabel="Requieren atención inmediata"
               accent="slate"
+              href="/gestiones"
               icon={
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="24" height="24">
                   <circle cx="12" cy="12" r="9" />
@@ -206,9 +210,23 @@ export default function DashboardPage() {
               }
             />
             <StatCard
+              label="Referidos que votaron"
+              value={data?.referidosQueVotaron ?? 0}
+              sublabel="Referidos que votaron la vez pasada"
+              accent="brand"
+              icon={
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="24" height="24">
+                  <path d="M9 12l2 2 4-4" strokeLinecap="round" strokeLinejoin="round" />
+                  <rect x="3" y="4" width="18" height="16" rx="2" />
+                </svg>
+              }
+            />
+            <StatCard
               label="Contratistas"
               value={data?.totalContratistas ?? 0}
+              sublabel="Ver contratos y vencimientos"
               accent="amber"
+              onClick={() => setContratosOpen(true)}
               icon={
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="24" height="24">
                   <rect x="4" y="7" width="16" height="13" rx="1.5" />
@@ -290,6 +308,8 @@ export default function DashboardPage() {
           </div>
         </>
       )}
+
+      <ContratosModal open={contratosOpen} onClose={() => setContratosOpen(false)} />
     </div>
   );
 }
