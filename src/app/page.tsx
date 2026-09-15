@@ -189,6 +189,7 @@ export default function DashboardPage() {
               value={data?.totalLideres ?? 0}
               sublabel={`${data?.lideresActivos ?? 0} activos · ${data?.lideresInactivos ?? 0} inactivos`}
               accent="brand"
+              href="/lideres"
               icon={
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="24" height="24">
                   <circle cx="12" cy="8" r="4" />
@@ -201,6 +202,7 @@ export default function DashboardPage() {
               value={data?.totalReferidos ?? 0}
               sublabel={`${data?.referidosQueVotaron ?? 0} votaron la vez pasada`}
               accent="emerald"
+              href="/referidos"
               icon={
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="24" height="24">
                   <circle cx="9" cy="7" r="3.2" />
@@ -214,6 +216,7 @@ export default function DashboardPage() {
               value={data?.referidosQueVotaron ?? 0}
               sublabel="Referidos que votaron la vez pasada"
               accent="brand"
+              href="/referidos?votaron=true"
               icon={
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="24" height="24">
                   <path d="M9 12l2 2 4-4" strokeLinecap="round" strokeLinejoin="round" />
@@ -239,6 +242,7 @@ export default function DashboardPage() {
               label="Damnificados terremoto"
               value={data?.referidosDamnificados ?? 0}
               accent="slate"
+              href="/referidos?damnificado=true"
               icon={
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="24" height="24">
                   <path d="M3 12l4-8 4 6 3-4 7 6" strokeLinecap="round" strokeLinejoin="round" />

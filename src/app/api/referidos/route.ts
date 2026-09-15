@@ -53,6 +53,10 @@ export async function GET(req: NextRequest) {
       conditions.push("r.damnificado_terremoto = 1");
     }
 
+    if (params.get("votaron") === "true") {
+      conditions.push("r.voto_anterior = 1");
+    }
+
     for (const atributo of ATRIBUTO_PARAMS) {
       if (params.get(atributo) === "true") {
         conditions.push(`r.${atributo} = 1`);

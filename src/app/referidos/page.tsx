@@ -26,7 +26,8 @@ function ReferidosContent() {
   const [comunaFilter, setComunaFilter] = useState("");
   const [barrioFilter, setBarrioFilter] = useState("");
   const [puestoFilter, setPuestoFilter] = useState("");
-  const [damnificadoFilter, setDamnificadoFilter] = useState(false);
+  const [damnificadoFilter, setDamnificadoFilter] = useState(() => searchParams.get("damnificado") === "true");
+  const [votaronFilter, setVotaronFilter] = useState(() => searchParams.get("votaron") === "true");
   const [atributosFilter, setAtributosFilter] = useState<Atributos>(DEFAULT_ATRIBUTOS);
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -48,6 +49,7 @@ function ReferidosContent() {
       if (barrioFilter) params.set("barrio_id", barrioFilter);
       if (puestoFilter) params.set("puesto_id", puestoFilter);
       if (damnificadoFilter) params.set("damnificado", "true");
+      if (votaronFilter) params.set("votaron", "true");
       (Object.keys(atributosFilter) as (keyof Atributos)[]).forEach((k) => {
         if (atributosFilter[k]) params.set(k, "true");
       });
@@ -60,7 +62,7 @@ function ReferidosContent() {
       setLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search, liderFilter, comunaFilter, barrioFilter, puestoFilter, damnificadoFilter, atributosFilter]);
+  }, [search, liderFilter, comunaFilter, barrioFilter, puestoFilter, damnificadoFilter, votaronFilter, atributosFilter]);
 
   useEffect(() => {
     const t = setTimeout(() => load(), 300);
@@ -102,6 +104,7 @@ function ReferidosContent() {
     setBarrioFilter("");
     setPuestoFilter("");
     setDamnificadoFilter(false);
+    setVotaronFilter(false);
     setAtributosFilter(DEFAULT_ATRIBUTOS);
   }
 
@@ -112,7 +115,7 @@ function ReferidosContent() {
   });
 
   const hayFiltrosActivos =
-    !!search || !!liderFilter || !!comunaFilter || !!barrioFilter || !!puestoFilter || damnificadoFilter ||
+    !!search || !!liderFilter || !!comunaFilter || !!barrioFilter || !!puestoFilter || damnificadoFilter || votaronFilter ||
     Object.values(atributosFilter).some(Boolean);
 
   return (
@@ -179,7 +182,10 @@ function ReferidosContent() {
 
         <div className="flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-start sm:justify-between">
           <AtributosCheckboxes value={atributosFilter} onChange={setAtributosFilter} />
-          <Checkbox label="Solo damnificados en terremoto" checked={damnificadoFilter} onChange={setDamnificadoFilter} />
+          <div className="flex gap-2">
+            <Checkbox label="Votó la vez pasada" checked={votaronFilter} onChange={setVotaronFilter} />
+            <Checkbox label="Solo damnificados en terremoto" checked={damnificadoFilter} onChange={setDamnificadoFilter} />
+          </div>
         </div>
       </div>
 
