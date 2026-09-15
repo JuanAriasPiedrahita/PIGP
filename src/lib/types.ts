@@ -104,6 +104,7 @@ export interface Evento {
 
 export interface InversionGestion {
   id: number;
+  referido_id: number;
   costo: number;
   fecha_resolucion: string | null;
   colaborador: string;

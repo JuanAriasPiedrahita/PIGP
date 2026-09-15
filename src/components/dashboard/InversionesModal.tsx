@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Modal } from "@/components/ui/Modal";
 import { apiGet } from "@/lib/api";
 import { useToast } from "@/components/ui/Toast";
@@ -56,7 +57,11 @@ export function InversionesModal({ open, onClose }: Props) {
 
           <div className="thin-scroll max-h-[50vh] space-y-1 overflow-y-auto pr-1">
             {filas.map((f, idx) => (
-              <div key={f.id} className="rounded-lg px-2 py-2.5 transition-colors hover:bg-slate-50">
+              <Link
+                key={f.id}
+                href={`/gestiones/${f.referido_id}?gestion_id=${f.id}`}
+                className="block rounded-lg px-2 py-2.5 transition-colors hover:bg-slate-50"
+              >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex min-w-0 items-start gap-3">
                     <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-slate-500">
@@ -81,7 +86,7 @@ export function InversionesModal({ open, onClose }: Props) {
                     style={{ width: `${(Number(f.costo) / maxCosto) * 100}%` }}
                   />
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>

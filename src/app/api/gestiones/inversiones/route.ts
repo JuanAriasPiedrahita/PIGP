@@ -7,7 +7,7 @@ export async function GET() {
   try {
     const [rows] = await pool.query<RowDataPacket[]>(
       `SELECT
-         g.id, g.costo, g.fecha_resolucion,
+         g.id, g.referido_id, g.costo, g.fecha_resolucion,
          CONCAT(r.nombre, ' ', r.apellidos) AS colaborador,
          ta.descripcion AS tipo_ayuda_descripcion,
          ge.nombre AS responsable

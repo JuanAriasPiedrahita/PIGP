@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { apiGet, apiDelete } from "@/lib/api";
 import { useGestionCatalogos } from "@/hooks/useGestionCatalogos";
 import { GestionesTable } from "@/components/gestiones/GestionesTable";
@@ -11,8 +11,9 @@ import { Modal, ConfirmDialog } from "@/components/ui/Modal";
 import { useToast } from "@/components/ui/Toast";
 import type { Gestion, Referido } from "@/lib/types";
 
-export default function GestionesReferidoPage() {
+function GestionesReferidoContent() {
   const params = useParams<{ id: string }>();
+  const searchParams = useSearchParams();
   const referidoId = Number(params.id);
   const toast = useToast();
   const catalogos = useGestionCatalogos();
@@ -23,6 +24,15 @@ export default function GestionesReferidoPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | undefined>(undefined);
   const [deleteId, setDeleteId] = useState<number | null>(null);
+
+  useEffect(() => {
+    const gestionId = searchParams.get("gestion_id");
+    if (gestionId) {
+      setEditingId(Number(gestionId));
+      setModalOpen(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     apiGet<Referido>(`/api/referidos/${referidoId}`)
@@ -134,5 +144,13 @@ export default function GestionesReferidoPage() {
         onCancel={() => setDeleteId(null)}
       />
     </div>
+  );
+}
+
+export default function GestionesReferidoPage() {
+  return (
+    <Suspense fallback={null}>
+      <GestionesReferidoContent />
+    </Suspense>
   );
 }
