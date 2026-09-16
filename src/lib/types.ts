@@ -144,7 +144,6 @@ export interface TerritorioDetalleGestion {
   costo: number | null;
   colaborador: string;
   responsable: string;
-  tipo_ayuda_descripcion: string;
 }
 
 export interface HistorialReferido {

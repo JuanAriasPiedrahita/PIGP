@@ -34,7 +34,7 @@ const COLUMNA_CLASS: Record<Columna, string> = {
 };
 
 interface Detalle {
-  tipoAyudaId: number | null;
+  tipoAyudaId: number;
   tipoDescripcion: string;
   columna: Columna;
 }
@@ -68,13 +68,12 @@ export function GestionesTerritorioModal({ seleccion, onClose }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seleccion]);
 
-  function abrirDetalle(tipoAyudaId: number | null, tipoDescripcion: string, columna: Columna) {
+  function abrirDetalle(tipoAyudaId: number, tipoDescripcion: string, columna: Columna) {
     if (!seleccion) return;
     setDetalle({ tipoAyudaId, tipoDescripcion, columna });
     setLoadingDetalle(true);
-    const tipoParam = tipoAyudaId != null ? `&tipo_ayuda_id=${tipoAyudaId}` : "";
     apiGet<TerritorioDetalleGestion[]>(
-      `/api/gestiones/territorio/detalle?${queryParam(seleccion)}${tipoParam}&columna=${columna}`
+      `/api/gestiones/territorio/detalle?${queryParam(seleccion)}&tipo_ayuda_id=${tipoAyudaId}&columna=${columna}`
     )
       .then(setFilas)
       .catch((err) => toast.show(err instanceof Error ? err.message : "Error cargando el detalle", "error"))
@@ -112,7 +111,6 @@ export function GestionesTerritorioModal({ seleccion, onClose }: Props) {
                 <thead>
                   <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-400">
                     <th className="py-2 pr-3 font-medium">Referido</th>
-                    {detalle.tipoAyudaId == null && <th className="px-3 py-2 font-medium">Tipo de ayuda</th>}
                     <th className="px-3 py-2 font-medium">Fecha</th>
                     <th className="px-3 py-2 font-medium">Responsable</th>
                     <th className="px-3 py-2 text-right font-medium">Costo</th>
@@ -122,9 +120,6 @@ export function GestionesTerritorioModal({ seleccion, onClose }: Props) {
                   {filas.map((g) => (
                     <tr key={g.id}>
                       <td className="py-2 pr-3 font-medium text-slate-800">{g.colaborador}</td>
-                      {detalle.tipoAyudaId == null && (
-                        <td className="px-3 py-2 text-slate-600">{g.tipo_ayuda_descripcion}</td>
-                      )}
                       <td className="px-3 py-2 text-slate-600">
                         {(g.fecha_resolucion || g.fecha_limite)?.slice(0, 10)}
                       </td>
@@ -137,7 +132,7 @@ export function GestionesTerritorioModal({ seleccion, onClose }: Props) {
                 </tbody>
                 <tfoot>
                   <tr className="border-t border-slate-200 font-semibold text-slate-800">
-                    <td className="py-2 pr-3" colSpan={detalle.tipoAyudaId == null ? 4 : 3}>Total</td>
+                    <td className="py-2 pr-3" colSpan={3}>Total</td>
                     <td className="px-3 py-2 text-right">
                       ${filas.reduce((sum, g) => sum + (g.costo != null ? Number(g.costo) : 0), 0).toLocaleString("es-CO")}
                     </td>
@@ -196,23 +191,11 @@ export function GestionesTerritorioModal({ seleccion, onClose }: Props) {
             <tfoot>
               <tr className="border-t border-slate-200 font-semibold text-slate-800">
                 <td className="py-2 pr-3">Total</td>
-                {(["resueltas", "pendientes", "vencidas", "no_viables"] as Columna[]).map((col) => {
-                  const valor = resumen.reduce((sum, t) => sum + Number(t[col]), 0);
-                  return (
-                    <td key={col} className="px-3 py-2 text-center">
-                      {valor > 0 ? (
-                        <button
-                          onClick={() => abrirDetalle(null, "Todos los tipos", col)}
-                          className={`font-semibold hover:underline ${COLUMNA_CLASS[col]}`}
-                        >
-                          {valor}
-                        </button>
-                      ) : (
-                        <span className="text-slate-300">0</span>
-                      )}
-                    </td>
-                  );
-                })}
+                {(["resueltas", "pendientes", "vencidas", "no_viables"] as Columna[]).map((col) => (
+                  <td key={col} className="px-3 py-2 text-center">
+                    {resumen.reduce((sum, t) => sum + Number(t[col]), 0)}
+                  </td>
+                ))}
                 <td className="px-3 py-2 text-right">
                   ${resumen.reduce((sum, t) => sum + (t.costo_total != null ? Number(t.costo_total) : 0), 0).toLocaleString("es-CO")}
                 </td>
