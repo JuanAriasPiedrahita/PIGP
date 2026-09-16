@@ -133,7 +133,7 @@ export default function DashboardPage() {
 
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <div className="card p-5">
-              <h3 className="mb-4 text-sm font-semibold text-slate-700">Gestiones por tipo de ayuda</h3>
+              <h3 className="mb-4 text-sm font-semibold text-slate-700">Gestiones por tipo de ayuda (top 5)</h3>
               <div className="space-y-3">
                 {data?.gestionesPorTipo.length ? (
                   data.gestionesPorTipo.map((t) => (
