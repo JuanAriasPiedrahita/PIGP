@@ -9,6 +9,9 @@ import { GestionesTerritorioModal, type TerritorioSeleccionado } from "@/compone
 interface Item {
   id: number;
   descripcion: string;
+  /** Solo vienen pobladas cuando conGestiones=true (tipos de ayuda). */
+  resueltas?: number;
+  pendientes?: number;
 }
 
 interface Props {
@@ -120,6 +123,62 @@ export function SimpleCatalogManager({ endpoint, singular, placeholder, conGesti
         <div className="space-y-2">{[1, 2, 3].map((i) => <div key={i} className="h-10 animate-pulse rounded-lg bg-slate-100" />)}</div>
       ) : items.length === 0 ? (
         <p className="py-6 text-center text-sm text-slate-400">Aún no hay registros.</p>
+      ) : conGestiones ? (
+        <div className="thin-scroll overflow-x-auto rounded-lg border border-slate-200">
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-400">
+                <th className="px-4 py-2 font-medium">Tipo de ayuda</th>
+                <th className="px-3 py-2 text-center font-medium">Resueltas</th>
+                <th className="px-3 py-2 text-center font-medium">Pendientes</th>
+                <th className="px-3 py-2" />
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {items.map((item) => (
+                <tr key={item.id}>
+                  <td className="px-4 py-2.5">
+                    {editingId === item.id ? (
+                      <input
+                        value={editingValue}
+                        onChange={(e) => setEditingValue(e.target.value)}
+                        className="field-input"
+                        autoFocus
+                        onKeyDown={(e) => e.key === "Enter" && saveEdit(item.id)}
+                      />
+                    ) : (
+                      <span className="text-sm text-slate-700">{item.descripcion}</span>
+                    )}
+                  </td>
+                  <td className="px-3 py-2.5 text-center text-sm font-medium text-emerald-700">{item.resueltas ?? 0}</td>
+                  <td className="px-3 py-2.5 text-center text-sm font-medium text-amber-700">{item.pendientes ?? 0}</td>
+                  <td className="px-3 py-2.5">
+                    <div className="flex shrink-0 justify-end gap-1">
+                      {editingId === item.id ? (
+                        <>
+                          <button className="btn-ghost !px-2 !py-1 text-emerald-600" onClick={() => saveEdit(item.id)}>Guardar</button>
+                          <button className="btn-ghost !px-2 !py-1" onClick={() => setEditingId(null)}>Cancelar</button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            className="btn-ghost !px-2 !py-1 text-slate-500 hover:bg-slate-100"
+                            onClick={() => setTerritorio({ tipo: "tipo_ayuda", id: item.id, nombre: item.descripcion })}
+                            aria-label="Gestiones de este tipo de ayuda"
+                          >
+                            <IconoReloj />
+                          </button>
+                          <button className="btn-ghost !px-2 !py-1" onClick={() => startEdit(item)}>Editar</button>
+                          <button className="btn-ghost !px-2 !py-1 text-red-500 hover:bg-red-50" onClick={() => setDeleteId(item.id)}>Eliminar</button>
+                        </>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       ) : (
         <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200">
           {items.map((item) => (
@@ -143,15 +202,6 @@ export function SimpleCatalogManager({ endpoint, singular, placeholder, conGesti
                   </>
                 ) : (
                   <>
-                    {conGestiones && (
-                      <button
-                        className="btn-ghost !px-2 !py-1 text-slate-500 hover:bg-slate-100"
-                        onClick={() => setTerritorio({ tipo: "tipo_ayuda", id: item.id, nombre: item.descripcion })}
-                        aria-label="Gestiones de este tipo de ayuda"
-                      >
-                        <IconoReloj />
-                      </button>
-                    )}
                     <button className="btn-ghost !px-2 !py-1" onClick={() => startEdit(item)}>Editar</button>
                     <button className="btn-ghost !px-2 !py-1 text-red-500 hover:bg-red-50" onClick={() => setDeleteId(item.id)}>Eliminar</button>
                   </>
