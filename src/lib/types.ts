@@ -141,6 +141,14 @@ export interface TerritorioDetalleGestion {
   responsable: string;
 }
 
+/** Fila de "ayudas resueltas por referido" de un tipo de ayuda puntual. */
+export interface TipoAyudaReferidoResuelta {
+  referido_id: number;
+  colaborador: string;
+  veces: number;
+  total_invertido: number;
+}
+
 export interface HistorialReferido {
   gestiones: Gestion[];
   eventos: (Evento & { asistio_desde?: string })[];
