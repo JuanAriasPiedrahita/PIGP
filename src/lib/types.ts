@@ -102,17 +102,12 @@ export interface Evento {
   updated_at?: string;
 }
 
-export interface InversionReferido {
-  referido_id: number;
-  colaborador: string;
-  total_invertido: number;
-  resueltas: number;
-}
-
 export interface InversionGestion {
   id: number;
-  costo: number | null;
+  referido_id: number;
+  costo: number;
   fecha_resolucion: string | null;
+  colaborador: string;
   tipo_ayuda_descripcion: string | null;
   responsable: string | null;
 }
