@@ -5,21 +5,24 @@ import type { RowDataPacket } from "mysql2";
 // Evita que Next.js cachee esto estáticamente desde el build (ver dashboard/route.ts).
 export const dynamic = "force-dynamic";
 
-/** Gestiones con costo asignado (dinero invertido), para el detalle del dashboard. Ordenadas de mayor a menor costo. */
+/**
+ * Resumen de "Costo invertido" del dashboard: un renglón por colaborador
+ * (referido) con el total invertido y cuántas gestiones resueltas tiene.
+ * Solo cuenta gestiones resueltas, igual que el cuadro "Costo invertido" del
+ * dashboard. Ordenado de mayor a menor inversión.
+ */
 export async function GET() {
   try {
     const [rows] = await pool.query<RowDataPacket[]>(
       `SELECT
-         g.id, g.referido_id, g.costo, g.fecha_resolucion,
+         r.id AS referido_id,
          CONCAT(r.nombre, ' ', r.apellidos) AS colaborador,
-         ta.descripcion AS tipo_ayuda_descripcion,
-         ge.nombre AS responsable
-       FROM gestiones g
-       JOIN referidos r ON r.id = g.referido_id
-       LEFT JOIN tipos_ayuda ta ON ta.id = g.tipo_ayuda_id
-       LEFT JOIN gestores ge ON ge.id = g.gestor_id
-       WHERE g.costo IS NOT NULL AND g.costo > 0
-       ORDER BY g.costo DESC`
+         COALESCE(SUM(g.costo), 0) AS total_invertido,
+         COUNT(*) AS resueltas
+       FROM referidos r
+       JOIN gestiones g ON g.referido_id = r.id AND g.estado = 'RESUELTO'
+       GROUP BY r.id, r.nombre, r.apellidos
+       ORDER BY total_invertido DESC`
     );
     return NextResponse.json(rows);
   } catch (err) {

@@ -102,12 +102,19 @@ export interface Evento {
   updated_at?: string;
 }
 
+/** Fila del resumen de "Costo invertido" del dashboard: un renglón por colaborador. */
+export interface InversionReferido {
+  referido_id: number;
+  colaborador: string;
+  total_invertido: number;
+  resueltas: number;
+}
+
+/** Gestión resuelta de un colaborador puntual, para el detalle de "Costo invertido". */
 export interface InversionGestion {
   id: number;
-  referido_id: number;
-  costo: number;
+  costo: number | null;
   fecha_resolucion: string | null;
-  colaborador: string;
   tipo_ayuda_descripcion: string | null;
   responsable: string | null;
 }

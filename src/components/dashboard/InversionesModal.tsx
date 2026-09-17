@@ -1,43 +1,115 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { Modal } from "@/components/ui/Modal";
 import { apiGet } from "@/lib/api";
 import { useToast } from "@/components/ui/Toast";
-import type { InversionGestion } from "@/lib/types";
+import type { InversionReferido, InversionGestion } from "@/lib/types";
 
 interface Props {
   open: boolean;
   onClose: () => void;
 }
 
+interface ReferidoSeleccionado {
+  id: number;
+  nombre: string;
+}
+
 function formatCosto(v: number): string {
   return `$${Number(v).toLocaleString("es-CO")}`;
 }
 
-/** Detalle de "Costo invertido" del dashboard: gestiones con costo asignado, de mayor a menor inversión. */
+/** Detalle de "Costo invertido" del dashboard: un renglón por colaborador (resumen), con drill-down a sus gestiones resueltas. */
 export function InversionesModal({ open, onClose }: Props) {
-  const [filas, setFilas] = useState<InversionGestion[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [filas, setFilas] = useState<InversionReferido[]>([]);
+  const [loadingResumen, setLoadingResumen] = useState(false);
+
+  const [referido, setReferido] = useState<ReferidoSeleccionado | null>(null);
+  const [gestiones, setGestiones] = useState<InversionGestion[]>([]);
+  const [loadingDetalle, setLoadingDetalle] = useState(false);
+
   const toast = useToast();
 
   useEffect(() => {
-    if (!open) return;
-    setLoading(true);
-    apiGet<InversionGestion[]>("/api/gestiones/inversiones")
+    if (!open) {
+      setReferido(null);
+      return;
+    }
+    setLoadingResumen(true);
+    apiGet<InversionReferido[]>("/api/gestiones/inversiones")
       .then(setFilas)
       .catch((err) => toast.show(err instanceof Error ? err.message : "Error cargando las inversiones", "error"))
-      .finally(() => setLoading(false));
+      .finally(() => setLoadingResumen(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  const total = filas.reduce((sum, f) => sum + Number(f.costo), 0);
-  const maxCosto = Math.max(1, ...filas.map((f) => Number(f.costo)));
+  function abrirDetalle(r: InversionReferido) {
+    setReferido({ id: r.referido_id, nombre: r.colaborador });
+    setLoadingDetalle(true);
+    apiGet<InversionGestion[]>(`/api/gestiones/inversiones/detalle?referido_id=${r.referido_id}`)
+      .then(setGestiones)
+      .catch((err) => toast.show(err instanceof Error ? err.message : "Error cargando el detalle", "error"))
+      .finally(() => setLoadingDetalle(false));
+  }
+
+  const total = filas.reduce((sum, f) => sum + Number(f.total_invertido), 0);
+  const maxInvertido = Math.max(1, ...filas.map((f) => Number(f.total_invertido)));
+  const totalDetalle = gestiones.reduce((sum, g) => sum + (g.costo != null ? Number(g.costo) : 0), 0);
+
+  const titulo = referido ? `Gestiones resueltas — ${referido.nombre}` : "Costo invertido en gestiones";
 
   return (
-    <Modal open={open} onClose={onClose} title="Costo invertido en gestiones" widthClass="max-w-2xl">
-      {loading ? (
+    <Modal open={open} onClose={onClose} title={titulo} widthClass="max-w-2xl">
+      {referido ? (
+        <div className="space-y-4">
+          <button className="text-sm text-brand-700 hover:underline" onClick={() => setReferido(null)}>
+            ← Volver al resumen
+          </button>
+          {loadingDetalle ? (
+            <div className="space-y-2 py-4">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-12 animate-pulse rounded-lg bg-slate-100" />
+              ))}
+            </div>
+          ) : gestiones.length === 0 ? (
+            <p className="py-8 text-center text-sm text-slate-400">Este colaborador no tiene gestiones resueltas.</p>
+          ) : (
+            <div className="thin-scroll overflow-x-auto">
+              <table className="w-full min-w-[560px] text-left text-sm">
+                <thead>
+                  <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-400">
+                    <th className="py-2 pr-3 font-medium">Tipo de ayuda</th>
+                    <th className="px-3 py-2 font-medium">Responsable</th>
+                    <th className="px-3 py-2 font-medium">Fecha</th>
+                    <th className="px-3 py-2 text-right font-medium">Costo</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {gestiones.map((g) => (
+                    <tr key={g.id}>
+                      <td className="py-2 pr-3 font-medium text-slate-800">{g.tipo_ayuda_descripcion || "Sin tipo"}</td>
+                      <td className="px-3 py-2 text-slate-600">{g.responsable || "—"}</td>
+                      <td className="px-3 py-2 text-slate-600">{g.fecha_resolucion?.slice(0, 10)}</td>
+                      <td className="px-3 py-2 text-right text-slate-600">
+                        {g.costo != null ? formatCosto(g.costo) : "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr className="border-t border-slate-200 font-semibold text-slate-800">
+                    <td className="py-2 pr-3" colSpan={3}>
+                      Total
+                    </td>
+                    <td className="px-3 py-2 text-right">{formatCosto(totalDetalle)}</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          )}
+        </div>
+      ) : loadingResumen ? (
         <div className="space-y-2 py-4">
           {[1, 2, 3].map((i) => (
             <div key={i} className="h-14 animate-pulse rounded-lg bg-slate-100" />
@@ -51,16 +123,17 @@ export function InversionesModal({ open, onClose }: Props) {
             <p className="text-xs font-medium uppercase tracking-wide text-brand-200">Total invertido</p>
             <p className="mt-1 text-3xl font-semibold tabular-nums">{formatCosto(total)}</p>
             <p className="mt-1 text-sm text-brand-200">
-              {filas.length} gestión{filas.length === 1 ? "" : "es"} con costo asignado
+              {filas.length} colaborador{filas.length === 1 ? "" : "es"} con inversión registrada
             </p>
           </div>
 
           <div className="thin-scroll max-h-[50vh] space-y-1 overflow-y-auto pr-1">
             {filas.map((f, idx) => (
-              <Link
-                key={f.id}
-                href={`/gestiones/${f.referido_id}?gestion_id=${f.id}`}
-                className="block rounded-lg px-2 py-2.5 transition-colors hover:bg-slate-50"
+              <button
+                key={f.referido_id}
+                type="button"
+                onClick={() => abrirDetalle(f)}
+                className="block w-full rounded-lg px-2 py-2.5 text-left transition-colors hover:bg-slate-50"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex min-w-0 items-start gap-3">
@@ -70,23 +143,22 @@ export function InversionesModal({ open, onClose }: Props) {
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium text-slate-800">{f.colaborador}</p>
                       <p className="truncate text-xs text-slate-400">
-                        {f.tipo_ayuda_descripcion || "Sin tipo"}
-                        {f.responsable && ` · ${f.responsable}`}
-                        {f.fecha_resolucion && ` · ${f.fecha_resolucion.slice(0, 10)}`}
+                        {f.resueltas} gestión{Number(f.resueltas) === 1 ? "" : "es"} resuelta
+                        {Number(f.resueltas) === 1 ? "" : "s"}
                       </p>
                     </div>
                   </div>
                   <span className="shrink-0 text-sm font-semibold tabular-nums text-slate-800">
-                    {formatCosto(f.costo)}
+                    {formatCosto(f.total_invertido)}
                   </span>
                 </div>
                 <div className="ml-9 mt-1.5 h-1.5 rounded-full bg-slate-100">
                   <div
                     className="h-1.5 rounded-full bg-brand-600"
-                    style={{ width: `${(Number(f.costo) / maxCosto) * 100}%` }}
+                    style={{ width: `${(Number(f.total_invertido) / maxInvertido) * 100}%` }}
                   />
                 </div>
-              </Link>
+              </button>
             ))}
           </div>
         </div>
