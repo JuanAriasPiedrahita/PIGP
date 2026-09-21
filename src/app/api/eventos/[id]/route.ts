@@ -15,20 +15,24 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const { nombre, ubicacion, fecha, hora } = await req.json();
+    const { nombre, ubicacion, fecha, hora, duracion_horas } = await req.json();
 
     const errors: Record<string, string> = {};
     if (!String(nombre || "").trim()) errors.nombre = "El nombre es obligatorio";
     if (!String(ubicacion || "").trim()) errors.ubicacion = "La ubicación es obligatoria";
     if (!fecha) errors.fecha = "La fecha es obligatoria";
     if (!hora) errors.hora = "La hora es obligatoria";
+    const duracion = Number(duracion_horas);
+    if (duracion_horas === "" || duracion_horas == null || !Number.isInteger(duracion) || duracion < 1 || duracion > 99) {
+      errors.duracion_horas = "La duración debe ser un número entero de horas (1 a 99)";
+    }
     if (Object.keys(errors).length > 0) {
       return NextResponse.json({ error: "Datos inválidos", fields: errors }, { status: 400 });
     }
 
     const [result] = await pool.query<import("mysql2").ResultSetHeader>(
-      "UPDATE eventos SET nombre=?, ubicacion=?, fecha=?, hora=? WHERE id=?",
-      [String(nombre).trim(), String(ubicacion).trim(), fecha, hora, params.id]
+      "UPDATE eventos SET nombre=?, ubicacion=?, fecha=?, hora=?, duracion_horas=? WHERE id=?",
+      [String(nombre).trim(), String(ubicacion).trim(), fecha, hora, duracion, params.id]
     );
     if (result.affectedRows === 0) return NextResponse.json({ error: "Evento no encontrado" }, { status: 404 });
     return NextResponse.json({ id: Number(params.id) });

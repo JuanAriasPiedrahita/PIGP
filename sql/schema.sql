@@ -198,9 +198,13 @@ CREATE TABLE IF NOT EXISTS eventos (
   ubicacion   VARCHAR(255) NOT NULL,
   fecha       DATE         NOT NULL,
   hora        TIME         NOT NULL,
+  duracion_horas INT       NOT NULL DEFAULT 1,
   created_at  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
+
+-- Bases ya creadas antes de agregar la duración (horas enteras; 1 por defecto)
+ALTER TABLE eventos ADD COLUMN IF NOT EXISTS duracion_horas INT NOT NULL DEFAULT 1 AFTER hora;
 
 CREATE TABLE IF NOT EXISTS evento_asistentes (
   id          INT AUTO_INCREMENT PRIMARY KEY,

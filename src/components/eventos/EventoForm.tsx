@@ -11,9 +11,10 @@ interface FormState {
   ubicacion: string;
   fecha: string;
   hora: string;
+  duracion_horas: string;
 }
 
-const EMPTY_FORM: FormState = { nombre: "", ubicacion: "", fecha: "", hora: "" };
+const EMPTY_FORM: FormState = { nombre: "", ubicacion: "", fecha: "", hora: "", duracion_horas: "1" };
 
 interface Props {
   eventoId?: number;
@@ -37,6 +38,7 @@ export function EventoForm({ eventoId, onSaved, onCancel }: Props) {
           ubicacion: e.ubicacion,
           fecha: e.fecha?.slice(0, 10) || "",
           hora: e.hora?.slice(0, 5) || "",
+          duracion_horas: String(e.duracion_horas ?? 1),
         });
       })
       .catch((err) => toast.show(err.message, "error"))
@@ -54,6 +56,9 @@ export function EventoForm({ eventoId, onSaved, onCancel }: Props) {
     if (!form.ubicacion.trim()) errs.ubicacion = "Obligatorio";
     if (!form.fecha) errs.fecha = "Obligatoria";
     if (!form.hora) errs.hora = "Obligatoria";
+    if (!/^\d+$/.test(form.duracion_horas) || Number(form.duracion_horas) < 1 || Number(form.duracion_horas) > 99) {
+      errs.duracion_horas = "Entero de 1 a 99";
+    }
     setErrors(errs);
     return Object.keys(errs).length === 0;
   }
@@ -121,6 +126,17 @@ export function EventoForm({ eventoId, onSaved, onCancel }: Props) {
           value={form.hora}
           error={errors.hora}
           onChange={(e) => set("hora", e.target.value)}
+        />
+        <Input
+          label="Duración (horas)"
+          type="number"
+          min={1}
+          max={99}
+          step={1}
+          required
+          value={form.duracion_horas}
+          error={errors.duracion_horas}
+          onChange={(e) => set("duracion_horas", e.target.value)}
         />
       </div>
 

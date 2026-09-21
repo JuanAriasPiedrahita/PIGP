@@ -95,6 +95,7 @@ export default function EventosPage() {
                   <th className="px-3 py-3 font-medium">Ubicación</th>
                   <th className="px-3 py-3 font-medium">Fecha</th>
                   <th className="px-3 py-3 font-medium">Hora</th>
+                  <th className="px-3 py-3 font-medium">Duración</th>
                   <th className="px-3 py-3 font-medium">Asistentes</th>
                   <th className="px-3 py-3 font-medium">Estado</th>
                   <th className="py-3 pl-3 pr-2 text-right font-medium">Acciones</th>
@@ -119,6 +120,7 @@ export default function EventosPage() {
                       <td className="px-3 py-3 text-slate-600">{e.ubicacion}</td>
                       <td className="px-3 py-3 text-slate-600">{formatFecha(e.fecha)}</td>
                       <td className="px-3 py-3 text-slate-600">{formatHora(e.hora)}</td>
+                      <td className="px-3 py-3 text-slate-600">{e.duracion_horas} h</td>
                       <td className="px-3 py-3 text-slate-600">{e.total_asistentes ?? 0}</td>
                       <td className="px-3 py-3">
                         <span className={`badge ${proximo ? "bg-amber-50 text-amber-700" : "bg-emerald-50 text-emerald-700"}`}>

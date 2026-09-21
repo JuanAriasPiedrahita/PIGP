@@ -97,6 +97,7 @@ export interface Evento {
   ubicacion: string;
   fecha: string;
   hora: string;
+  duracion_horas: number;
   total_asistentes?: number;
   created_at?: string;
   updated_at?: string;

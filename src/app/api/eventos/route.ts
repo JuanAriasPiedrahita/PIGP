@@ -32,20 +32,24 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const { nombre, ubicacion, fecha, hora } = await req.json();
+    const { nombre, ubicacion, fecha, hora, duracion_horas } = await req.json();
 
     const errors: Record<string, string> = {};
     if (!String(nombre || "").trim()) errors.nombre = "El nombre es obligatorio";
     if (!String(ubicacion || "").trim()) errors.ubicacion = "La ubicación es obligatoria";
     if (!fecha) errors.fecha = "La fecha es obligatoria";
     if (!hora) errors.hora = "La hora es obligatoria";
+    const duracion = Number(duracion_horas);
+    if (duracion_horas === "" || duracion_horas == null || !Number.isInteger(duracion) || duracion < 1 || duracion > 99) {
+      errors.duracion_horas = "La duración debe ser un número entero de horas (1 a 99)";
+    }
     if (Object.keys(errors).length > 0) {
       return NextResponse.json({ error: "Datos inválidos", fields: errors }, { status: 400 });
     }
 
     const [result] = await pool.query<ResultSetHeader>(
-      "INSERT INTO eventos (nombre, ubicacion, fecha, hora) VALUES (?, ?, ?, ?)",
-      [String(nombre).trim(), String(ubicacion).trim(), fecha, hora]
+      "INSERT INTO eventos (nombre, ubicacion, fecha, hora, duracion_horas) VALUES (?, ?, ?, ?, ?)",
+      [String(nombre).trim(), String(ubicacion).trim(), fecha, hora, duracion]
     );
     return NextResponse.json({ id: result.insertId }, { status: 201 });
   } catch (err) {
