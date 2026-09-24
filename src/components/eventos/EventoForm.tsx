@@ -111,33 +111,35 @@ export function EventoForm({ eventoId, onSaved, onCancel }: Props) {
           onChange={(e) => set("ubicacion", e.target.value)}
           className="sm:col-span-2"
         />
-        <Input
-          label="Fecha"
-          type="date"
-          required
-          value={form.fecha}
-          error={errors.fecha}
-          onChange={(e) => set("fecha", e.target.value)}
-        />
-        <Input
-          label="Hora"
-          type="time"
-          required
-          value={form.hora}
-          error={errors.hora}
-          onChange={(e) => set("hora", e.target.value)}
-        />
-        <Input
-          label="Duración (horas)"
-          type="number"
-          min={1}
-          max={99}
-          step={1}
-          required
-          value={form.duracion_horas}
-          error={errors.duracion_horas}
-          onChange={(e) => set("duracion_horas", e.target.value)}
-        />
+        <div className="grid grid-cols-2 gap-4 sm:col-span-2 sm:grid-cols-[1fr_1fr_100px]">
+          <Input
+            label="Fecha"
+            type="date"
+            required
+            value={form.fecha}
+            error={errors.fecha}
+            onChange={(e) => set("fecha", e.target.value)}
+          />
+          <Input
+            label="Hora"
+            type="time"
+            required
+            value={form.hora}
+            error={errors.hora}
+            onChange={(e) => set("hora", e.target.value)}
+          />
+          <Input
+            label="Duración (h)"
+            type="number"
+            min={1}
+            max={99}
+            step={1}
+            required
+            value={form.duracion_horas}
+            error={errors.duracion_horas}
+            onChange={(e) => set("duracion_horas", e.target.value)}
+          />
+        </div>
       </div>
 
       <div className="flex justify-end gap-2 border-t border-slate-100 pt-4">
