@@ -111,7 +111,7 @@ export function EventoForm({ eventoId, onSaved, onCancel }: Props) {
           onChange={(e) => set("ubicacion", e.target.value)}
           className="sm:col-span-2"
         />
-        <div className="grid grid-cols-2 gap-4 sm:col-span-2 sm:grid-cols-[1fr_1fr_100px]">
+        <div className="grid grid-cols-2 gap-4 sm:col-span-2 sm:grid-cols-[160px_140px_100px]">
           <Input
             label="Fecha"
             type="date"
