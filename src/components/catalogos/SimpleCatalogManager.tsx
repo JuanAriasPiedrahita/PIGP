@@ -12,6 +12,8 @@ interface Item {
   /** Solo vienen pobladas cuando conGestiones=true (tipos de ayuda). */
   resueltas?: number;
   pendientes?: number;
+  /** Solo viene poblado cuando se pasa totalLabel (profesiones, ocupaciones, parentescos, dependencias). */
+  total?: number;
 }
 
 interface Props {
@@ -20,6 +22,8 @@ interface Props {
   placeholder: string;
   /** Si es true (solo para Tipos de ayuda), agrega el ícono de reloj que abre el reporte de gestiones de ese tipo. */
   conGestiones?: boolean;
+  /** Etiqueta de la columna "Total" (ej: "Líderes", "Referidos", "Contratistas"). Si se pasa, el listado usa tabla con esa columna. */
+  totalLabel?: string;
 }
 
 function IconoReloj() {
@@ -32,7 +36,7 @@ function IconoReloj() {
 }
 
 /** CRUD genérico para catálogos de una sola columna (profesiones, ocupaciones, parentescos). */
-export function SimpleCatalogManager({ endpoint, singular, placeholder, conGestiones }: Props) {
+export function SimpleCatalogManager({ endpoint, singular, placeholder, conGestiones, totalLabel }: Props) {
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [newValue, setNewValue] = useState("");
@@ -168,6 +172,53 @@ export function SimpleCatalogManager({ endpoint, singular, placeholder, conGesti
                           >
                             <IconoReloj />
                           </button>
+                          <button className="btn-ghost !px-2 !py-1" onClick={() => startEdit(item)}>Editar</button>
+                          <button className="btn-ghost !px-2 !py-1 text-red-500 hover:bg-red-50" onClick={() => setDeleteId(item.id)}>Eliminar</button>
+                        </>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : totalLabel ? (
+        <div className="thin-scroll overflow-x-auto rounded-lg border border-slate-200">
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-400">
+                <th className="px-4 py-2 font-medium">Descripción</th>
+                <th className="px-3 py-2 text-center font-medium">{totalLabel}</th>
+                <th className="px-3 py-2" />
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {items.map((item) => (
+                <tr key={item.id}>
+                  <td className="px-4 py-2.5">
+                    {editingId === item.id ? (
+                      <input
+                        value={editingValue}
+                        onChange={(e) => setEditingValue(e.target.value)}
+                        className="field-input"
+                        autoFocus
+                        onKeyDown={(e) => e.key === "Enter" && saveEdit(item.id)}
+                      />
+                    ) : (
+                      <span className="text-sm text-slate-700">{item.descripcion}</span>
+                    )}
+                  </td>
+                  <td className="px-3 py-2.5 text-center text-sm font-medium text-slate-700">{item.total ?? 0}</td>
+                  <td className="px-3 py-2.5">
+                    <div className="flex shrink-0 justify-end gap-1">
+                      {editingId === item.id ? (
+                        <>
+                          <button className="btn-ghost !px-2 !py-1 text-emerald-600" onClick={() => saveEdit(item.id)}>Guardar</button>
+                          <button className="btn-ghost !px-2 !py-1" onClick={() => setEditingId(null)}>Cancelar</button>
+                        </>
+                      ) : (
+                        <>
                           <button className="btn-ghost !px-2 !py-1" onClick={() => startEdit(item)}>Editar</button>
                           <button className="btn-ghost !px-2 !py-1 text-red-500 hover:bg-red-50" onClick={() => setDeleteId(item.id)}>Eliminar</button>
                         </>
