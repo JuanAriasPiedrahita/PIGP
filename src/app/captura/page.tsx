@@ -1,34 +1,29 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { useCapturaCatalogos } from "@/hooks/useCapturaCatalogos";
+import { useNombreLider } from "@/hooks/useNombreLider";
 import { apiGet, apiDelete } from "@/lib/api";
 import type { Referido } from "@/lib/types";
 import { ReferidoTable } from "@/components/referidos/ReferidoTable";
 import { CapturaReferidoForm } from "@/components/captura/CapturaReferidoForm";
+import { CapturaSidebar } from "@/components/captura/CapturaSidebar";
+import { CapturaHeader } from "@/components/captura/CapturaHeader";
 import { Modal, ConfirmDialog } from "@/components/ui/Modal";
 import { ToastProvider, useToast } from "@/components/ui/Toast";
 
 function CapturaContent() {
   const catalogos = useCapturaCatalogos();
   const toast = useToast();
-  const router = useRouter();
+  const nombreLider = useNombreLider();
 
-  const [nombreLider, setNombreLider] = useState<string | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [referidos, setReferidos] = useState<Referido[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | undefined>(undefined);
   const [deleteId, setDeleteId] = useState<number | null>(null);
-
-  useEffect(() => {
-    fetch("/api/captura/auth/me")
-      .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((data) => setNombreLider(data.nombre))
-      .catch(() => router.replace("/login"));
-  }, [router]);
 
   const load = useCallback(async (q: string) => {
     setLoading(true);
@@ -77,29 +72,10 @@ function CapturaContent() {
     }
   }
 
-  async function handleLogout() {
-    await fetch("/api/captura/auth/logout", { method: "POST" });
-    router.replace("/login");
-    router.refresh();
-  }
-
   return (
     <div className="min-h-screen bg-slate-50">
-      <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-slate-200 bg-white/90 px-4 py-3 backdrop-blur sm:px-6">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-700 text-sm font-bold text-white">
-          CP
-        </div>
-        <div className="flex-1">
-          <h1 className="text-base font-semibold text-slate-900 sm:text-lg">Mis referidos</h1>
-          {nombreLider && <p className="text-xs text-slate-500">{nombreLider}</p>}
-        </div>
-        <button onClick={handleLogout} className="btn-ghost !px-2.5 !py-1.5 text-sm" title="Cerrar sesión">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="18" height="18">
-            <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M16 17l5-5-5-5M21 12H9" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </button>
-      </header>
+      <CapturaSidebar open={menuOpen} onClose={() => setMenuOpen(false)} />
+      <CapturaHeader onToggleMenu={() => setMenuOpen((v) => !v)} nombreLider={nombreLider} />
 
       <main className="mx-auto max-w-5xl space-y-5 px-4 py-6 sm:px-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
