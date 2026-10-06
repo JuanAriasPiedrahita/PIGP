@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useNombreLider } from "@/hooks/useNombreLider";
+import { useRouter } from "next/navigation";
+import { useLiderSesion } from "@/hooks/useLiderSesion";
 import { apiGet } from "@/lib/api";
 import { CapturaSidebar } from "@/components/captura/CapturaSidebar";
 import { CapturaHeader } from "@/components/captura/CapturaHeader";
@@ -22,8 +23,9 @@ function formatHora(hora: string): string {
 }
 
 function CapturaEventosContent() {
+  const router = useRouter();
   const toast = useToast();
-  const nombreLider = useNombreLider();
+  const sesion = useLiderSesion();
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [eventos, setEventos] = useState<Evento[]>([]);
@@ -40,7 +42,7 @@ function CapturaEventosContent() {
   return (
     <div className="min-h-screen bg-slate-50">
       <CapturaSidebar open={menuOpen} onClose={() => setMenuOpen(false)} />
-      <CapturaHeader onToggleMenu={() => setMenuOpen((v) => !v)} nombreLider={nombreLider} />
+      <CapturaHeader onToggleMenu={() => setMenuOpen((v) => !v)} nombreLider={sesion?.nombre ?? null} />
 
       <main className="mx-auto max-w-5xl space-y-5 px-4 py-6 sm:px-6">
         <div>
@@ -73,8 +75,13 @@ function CapturaEventosContent() {
                 <tbody className="divide-y divide-slate-100">
                   {eventos.map((e) => {
                     const proximo = esProximo(e);
+                    const editable = !!sesion?.coordinadorLogistica;
                     return (
-                      <tr key={e.id}>
+                      <tr
+                        key={e.id}
+                        onClick={editable ? () => router.push(`/captura/eventos/${e.id}`) : undefined}
+                        className={editable ? "cursor-pointer hover:bg-slate-50" : undefined}
+                      >
                         <td
                           className={`border-l-4 py-3 pl-2 pr-3 font-medium text-slate-800 ${
                             proximo ? "border-l-amber-500" : "border-l-emerald-500"

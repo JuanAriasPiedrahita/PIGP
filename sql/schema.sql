@@ -98,6 +98,7 @@ CREATE TABLE IF NOT EXISTS lideres (
   orador_publico     TINYINT(1)    NOT NULL DEFAULT 0,
   cantante           TINYINT(1)    NOT NULL DEFAULT 0,
   testigo_electoral  TINYINT(1)    NOT NULL DEFAULT 0,
+  coordinador_logistica TINYINT(1)    NOT NULL DEFAULT 0,
   contratista           TINYINT(1)    NOT NULL DEFAULT 0,
   objeto_contrato       VARCHAR(255)  NULL,
   vencimiento_contrato  DATE          NULL,
@@ -112,6 +113,9 @@ CREATE TABLE IF NOT EXISTS lideres (
   CONSTRAINT fk_lideres_ocupacion   FOREIGN KEY (ocupacion_id)   REFERENCES ocupaciones(id),
   CONSTRAINT fk_lideres_dependencia FOREIGN KEY (dependencia_id) REFERENCES dependencias(id)
 ) ENGINE=InnoDB;
+
+-- Bases ya creadas antes de agregar el atributo "Coordinador logística"
+ALTER TABLE lideres ADD COLUMN IF NOT EXISTS coordinador_logistica TINYINT(1) NOT NULL DEFAULT 0 AFTER testigo_electoral;
 
 -- ---------------------------------------------------------------------
 -- Referidos (dependen de un líder)

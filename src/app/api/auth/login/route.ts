@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
 
     // 2) No está en users.txt: ¿es un líder registrado en la base de datos?
     const [rows] = await pool.query<RowDataPacket[]>(
-      "SELECT id, nombre, apellidos, clave FROM lideres WHERE usuario = ?",
+      "SELECT id, nombre, apellidos, clave, coordinador_logistica FROM lideres WHERE usuario = ?",
       [usuarioTrim]
     );
     const lider = rows[0];
@@ -77,7 +77,11 @@ export async function POST(req: NextRequest) {
     }
 
     const nombreCompleto = `${lider.nombre} ${lider.apellidos}`;
-    const token = await createLiderSessionToken({ id: lider.id, nombre: nombreCompleto });
+    const token = await createLiderSessionToken({
+      id: lider.id,
+      nombre: nombreCompleto,
+      coordinador_logistica: !!lider.coordinador_logistica,
+    });
     const res = NextResponse.json({ ok: true, tipo: "lider", nombre: nombreCompleto, redirect: "/captura" });
     res.cookies.set(LIDER_COOKIE_NAME, token, {
       httpOnly: true,

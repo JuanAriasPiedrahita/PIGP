@@ -91,6 +91,15 @@ export interface ReferidoConGestiones {
   proxima_fecha: string | null;
 }
 
+/** Resultado liviano del buscador de referidos para agregar asistentes a un evento. */
+export interface ReferidoBusqueda {
+  id: number;
+  nombre: string;
+  apellidos: string;
+  cedula: string;
+  barrio_nombre: string | null;
+}
+
 export interface Evento {
   id: number;
   nombre: string;
@@ -203,6 +212,7 @@ export interface Lider extends Atributos {
   // "clave" solo viene poblada al pedir un líder individual (edición); en el
   // listado nunca se selecciona/retorna. Va descifrada (ver src/lib/liderClave.ts).
   clave?: string | null;
+  coordinador_logistica: boolean;
   contratista: boolean;
   objeto_contrato: string | null;
   vencimiento_contrato: string | null;

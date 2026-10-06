@@ -20,9 +20,11 @@ interface Props {
   eventoId?: number;
   onSaved: (id: number) => void;
   onCancel?: () => void;
+  /** Base de la API a usar (admin por defecto); /captura usa "/api/captura/eventos". */
+  apiBase?: string;
 }
 
-export function EventoForm({ eventoId, onSaved, onCancel }: Props) {
+export function EventoForm({ eventoId, onSaved, onCancel, apiBase = "/api/eventos" }: Props) {
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(!!eventoId);
@@ -31,7 +33,7 @@ export function EventoForm({ eventoId, onSaved, onCancel }: Props) {
 
   useEffect(() => {
     if (!eventoId) return;
-    apiGet<Evento>(`/api/eventos/${eventoId}`)
+    apiGet<Evento>(`${apiBase}/${eventoId}`)
       .then((e) => {
         setForm({
           nombre: e.nombre,
@@ -72,11 +74,11 @@ export function EventoForm({ eventoId, onSaved, onCancel }: Props) {
     setSaving(true);
     try {
       if (eventoId) {
-        await apiPutJson(`/api/eventos/${eventoId}`, form);
+        await apiPutJson(`${apiBase}/${eventoId}`, form);
         toast.show("Evento actualizado correctamente", "success");
         onSaved(eventoId);
       } else {
-        const { id } = await apiPostJson<{ id: number }>("/api/eventos", form);
+        const { id } = await apiPostJson<{ id: number }>(apiBase, form);
         toast.show("Evento creado correctamente", "success");
         onSaved(id);
       }

@@ -13,6 +13,7 @@ const LIST_SQL = `
     l.comuna_id, l.barrio_id, l.direccion, l.zona_id, l.puesto_id,
     l.profesion_id, l.ocupacion_id, l.fecha_nacimiento, l.estado, l.foto, l.usuario,
     l.vehiculo, l.redes_sociales, l.orador_publico, l.cantante, l.testigo_electoral,
+    l.coordinador_logistica,
     l.contratista, l.objeto_contrato, l.vencimiento_contrato, l.dependencia_id,
     l.created_at, l.updated_at,
     co.descripcion AS comuna_descripcion,
@@ -83,7 +84,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-const BOOL_FIELDS = ["vehiculo", "redes_sociales", "orador_publico", "cantante", "testigo_electoral"] as const;
+const BOOL_FIELDS = ["vehiculo", "redes_sociales", "orador_publico", "cantante", "testigo_electoral", "coordinador_logistica"] as const;
 
 export async function POST(req: NextRequest) {
   try {
@@ -144,8 +145,9 @@ export async function POST(req: NextRequest) {
         (nombre, apellidos, sexo, cedula, celular, email, comuna_id, barrio_id, direccion,
          zona_id, puesto_id, profesion_id, ocupacion_id, fecha_nacimiento, estado, foto,
          usuario, clave, vehiculo, redes_sociales, orador_publico, cantante, testigo_electoral,
+         coordinador_logistica,
          contratista, objeto_contrato, vencimiento_contrato, dependencia_id)
-       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
       [
         nombre, apellidos, sexo, cedula, celular, email || null, comuna_id, barrio_id, direccion,
         zona_id, puesto_id, profesion_id || null, ocupacion_id || null, fecha_nacimiento, estado, fotoPath,

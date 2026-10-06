@@ -14,9 +14,11 @@ const ATRIBUTOS_META: { key: keyof Atributos; label: string }[] = [
 interface Props {
   value: Atributos;
   onChange: (value: Atributos) => void;
+  /** Checkboxes adicionales (no parte de Atributos) para compartir la misma grilla, ej. en LiderForm. */
+  children?: React.ReactNode;
 }
 
-export function AtributosCheckboxes({ value, onChange }: Props) {
+export function AtributosCheckboxes({ value, onChange, children }: Props) {
   return (
     <div>
       <span className="field-label">Atributos</span>
@@ -29,6 +31,7 @@ export function AtributosCheckboxes({ value, onChange }: Props) {
             onChange={(checked) => onChange({ ...value, [a.key]: checked })}
           />
         ))}
+        {children}
       </div>
     </div>
   );

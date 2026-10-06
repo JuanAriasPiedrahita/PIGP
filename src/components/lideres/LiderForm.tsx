@@ -68,6 +68,7 @@ interface Props {
 export function LiderForm({ catalogos, liderId, onSaved, onCancel }: Props) {
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [atributos, setAtributos] = useState<Atributos>(DEFAULT_ATRIBUTOS);
+  const [coordinadorLogistica, setCoordinadorLogistica] = useState(false);
   const [contratista, setContratista] = useState(false);
   const [fotoFile, setFotoFile] = useState<File | null>(null);
   const [fotoUrl, setFotoUrl] = useState<string | null>(null);
@@ -109,6 +110,7 @@ export function LiderForm({ catalogos, liderId, onSaved, onCancel }: Props) {
           cantante: !!l.cantante,
           testigo_electoral: !!l.testigo_electoral,
         });
+        setCoordinadorLogistica(!!l.coordinador_logistica);
         setContratista(!!l.contratista);
         setFotoUrl(l.foto || null);
       })
@@ -156,6 +158,7 @@ export function LiderForm({ catalogos, liderId, onSaved, onCancel }: Props) {
       const fd = new FormData();
       Object.entries(form).forEach(([k, v]) => fd.append(k, v));
       Object.entries(atributos).forEach(([k, v]) => fd.append(k, String(v)));
+      fd.set("coordinador_logistica", String(coordinadorLogistica));
       fd.set("contratista", String(contratista));
       if (fotoFile) fd.append("foto", fotoFile);
 
@@ -253,7 +256,9 @@ export function LiderForm({ catalogos, liderId, onSaved, onCancel }: Props) {
         </div>
       </div>
 
-      <AtributosCheckboxes value={atributos} onChange={setAtributos} />
+      <AtributosCheckboxes value={atributos} onChange={setAtributos}>
+        <Checkbox label="Coordinador logística" checked={coordinadorLogistica} onChange={setCoordinadorLogistica} />
+      </AtributosCheckboxes>
 
       <div className="space-y-4 border-t border-slate-100 pt-4">
         <Checkbox label="Contratista" checked={contratista} onChange={setContratista} />

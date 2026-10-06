@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
     }
 
     const [rows] = await pool.query<RowDataPacket[]>(
-      "SELECT id, nombre, apellidos, clave FROM lideres WHERE usuario = ?",
+      "SELECT id, nombre, apellidos, clave, coordinador_logistica FROM lideres WHERE usuario = ?",
       [String(usuario).trim()]
     );
 
@@ -29,7 +29,11 @@ export async function POST(req: NextRequest) {
     }
 
     const nombreCompleto = `${lider.nombre} ${lider.apellidos}`;
-    const token = await createLiderSessionToken({ id: lider.id, nombre: nombreCompleto });
+    const token = await createLiderSessionToken({
+      id: lider.id,
+      nombre: nombreCompleto,
+      coordinador_logistica: !!lider.coordinador_logistica,
+    });
     const res = NextResponse.json({ ok: true, nombre: nombreCompleto });
     res.cookies.set(LIDER_COOKIE_NAME, token, {
       httpOnly: true,

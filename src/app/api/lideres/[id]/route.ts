@@ -9,7 +9,7 @@ import { parseContratista } from "@/lib/contratista";
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const [rows] = await pool.query<RowDataPacket[]>(
-      "SELECT id, nombre, apellidos, sexo, cedula, celular, email, comuna_id, barrio_id, direccion, zona_id, puesto_id, profesion_id, ocupacion_id, fecha_nacimiento, estado, foto, usuario, clave, vehiculo, redes_sociales, orador_publico, cantante, testigo_electoral, contratista, objeto_contrato, vencimiento_contrato, dependencia_id FROM lideres WHERE id = ?",
+      "SELECT id, nombre, apellidos, sexo, cedula, celular, email, comuna_id, barrio_id, direccion, zona_id, puesto_id, profesion_id, ocupacion_id, fecha_nacimiento, estado, foto, usuario, clave, vehiculo, redes_sociales, orador_publico, cantante, testigo_electoral, coordinador_logistica, contratista, objeto_contrato, vencimiento_contrato, dependencia_id FROM lideres WHERE id = ?",
       [params.id]
     );
     if (rows.length === 0) return NextResponse.json({ error: "Líder no encontrado" }, { status: 404 });
@@ -23,7 +23,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   }
 }
 
-const BOOL_FIELDS = ["vehiculo", "redes_sociales", "orador_publico", "cantante", "testigo_electoral"] as const;
+const BOOL_FIELDS = ["vehiculo", "redes_sociales", "orador_publico", "cantante", "testigo_electoral", "coordinador_logistica"] as const;
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -93,6 +93,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
         `UPDATE lideres SET nombre=?, apellidos=?, sexo=?, cedula=?, celular=?, email=?, comuna_id=?, barrio_id=?,
           direccion=?, zona_id=?, puesto_id=?, profesion_id=?, ocupacion_id=?, fecha_nacimiento=?, estado=?, foto=?,
           usuario=?, clave=?, vehiculo=?, redes_sociales=?, orador_publico=?, cantante=?, testigo_electoral=?,
+          coordinador_logistica=?,
           contratista=?, objeto_contrato=?, vencimiento_contrato=?, dependencia_id=?
          WHERE id=?`,
         [
@@ -106,6 +107,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
         `UPDATE lideres SET nombre=?, apellidos=?, sexo=?, cedula=?, celular=?, email=?, comuna_id=?, barrio_id=?,
           direccion=?, zona_id=?, puesto_id=?, profesion_id=?, ocupacion_id=?, fecha_nacimiento=?, estado=?, foto=?,
           usuario=?, vehiculo=?, redes_sociales=?, orador_publico=?, cantante=?, testigo_electoral=?,
+          coordinador_logistica=?,
           contratista=?, objeto_contrato=?, vencimiento_contrato=?, dependencia_id=?
          WHERE id=?`,
         [
