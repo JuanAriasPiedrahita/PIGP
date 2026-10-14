@@ -100,6 +100,15 @@ export interface ReferidoBusqueda {
   barrio_nombre: string | null;
 }
 
+/** Fila del detalle (modal de reloj) de Configuración → Profesiones/Ocupaciones/Parentescos/Dependencias. */
+export interface CatalogoDetalleFila {
+  id: number;
+  nombre: string;
+  apellidos: string;
+  cedula: string;
+  celular: string;
+}
+
 export interface Evento {
   id: number;
   nombre: string;

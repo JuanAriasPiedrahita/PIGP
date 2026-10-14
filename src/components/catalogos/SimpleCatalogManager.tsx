@@ -5,6 +5,7 @@ import { apiGet, apiPostJson, apiPutJson, apiDelete } from "@/lib/api";
 import { useToast } from "@/components/ui/Toast";
 import { ConfirmDialog } from "@/components/ui/Modal";
 import { GestionesTerritorioModal, type TerritorioSeleccionado } from "@/components/comunas/GestionesTerritorioModal";
+import { CatalogoDetalleModal, type CatalogoDetalleSeleccion, type CatalogoDetalleTipo } from "@/components/catalogos/CatalogoDetalleModal";
 
 interface Item {
   id: number;
@@ -24,6 +25,8 @@ interface Props {
   conGestiones?: boolean;
   /** Etiqueta de la columna "Total" (ej: "Líderes", "Referidos", "Contratistas"). Si se pasa, el listado usa tabla con esa columna. */
   totalLabel?: string;
+  /** Si viene junto a totalLabel, agrega el reloj que abre el detalle (lista de personas) de ese total. */
+  detalleTipo?: CatalogoDetalleTipo;
 }
 
 function IconoReloj() {
@@ -36,7 +39,7 @@ function IconoReloj() {
 }
 
 /** CRUD genérico para catálogos de una sola columna (profesiones, ocupaciones, parentescos). */
-export function SimpleCatalogManager({ endpoint, singular, placeholder, conGestiones, totalLabel }: Props) {
+export function SimpleCatalogManager({ endpoint, singular, placeholder, conGestiones, totalLabel, detalleTipo }: Props) {
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [newValue, setNewValue] = useState("");
@@ -45,6 +48,7 @@ export function SimpleCatalogManager({ endpoint, singular, placeholder, conGesti
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [territorio, setTerritorio] = useState<TerritorioSeleccionado | null>(null);
+  const [detalle, setDetalle] = useState<CatalogoDetalleSeleccion | null>(null);
   const toast = useToast();
 
   async function load() {
@@ -219,6 +223,15 @@ export function SimpleCatalogManager({ endpoint, singular, placeholder, conGesti
                         </>
                       ) : (
                         <>
+                          {detalleTipo && (
+                            <button
+                              className="btn-ghost !px-2 !py-1 text-slate-500 hover:bg-slate-100"
+                              onClick={() => setDetalle({ tipo: detalleTipo, id: item.id, nombre: item.descripcion })}
+                              aria-label={`Detalle de ${item.descripcion}`}
+                            >
+                              <IconoReloj />
+                            </button>
+                          )}
                           <button className="btn-ghost !px-2 !py-1" onClick={() => startEdit(item)}>Editar</button>
                           <button className="btn-ghost !px-2 !py-1 text-red-500 hover:bg-red-50" onClick={() => setDeleteId(item.id)}>Eliminar</button>
                         </>
@@ -264,6 +277,7 @@ export function SimpleCatalogManager({ endpoint, singular, placeholder, conGesti
       )}
 
       {conGestiones && <GestionesTerritorioModal seleccion={territorio} onClose={() => setTerritorio(null)} />}
+      {detalleTipo && <CatalogoDetalleModal seleccion={detalle} onClose={() => setDetalle(null)} />}
 
       <ConfirmDialog
         open={deleteId != null}

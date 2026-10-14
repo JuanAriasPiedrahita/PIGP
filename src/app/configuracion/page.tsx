@@ -5,10 +5,10 @@ import { SimpleCatalogManager } from "@/components/catalogos/SimpleCatalogManage
 import { GestoresManager } from "@/components/catalogos/GestoresManager";
 
 const TABS = [
-  { key: "profesiones", label: "Profesiones", kind: "simple", endpoint: "/api/profesiones", singular: "profesión", placeholder: "Ej: Ingeniero(a)", totalLabel: "Líderes" },
-  { key: "ocupaciones", label: "Ocupaciones", kind: "simple", endpoint: "/api/ocupaciones", singular: "ocupación", placeholder: "Ej: Independiente", totalLabel: "Líderes" },
-  { key: "parentescos", label: "Parentescos", kind: "simple", endpoint: "/api/parentescos", singular: "parentesco", placeholder: "Ej: Hermano(a)", totalLabel: "Referidos" },
-  { key: "dependencias", label: "Dependencias", kind: "simple", endpoint: "/api/dependencias", singular: "dependencia", placeholder: "Ej: Secretaría de Gobierno", totalLabel: "Contratistas" },
+  { key: "profesiones", label: "Profesiones", kind: "simple", endpoint: "/api/profesiones", singular: "profesión", placeholder: "Ej: Ingeniero(a)", totalLabel: "Líderes", detalleTipo: "profesion" },
+  { key: "ocupaciones", label: "Ocupaciones", kind: "simple", endpoint: "/api/ocupaciones", singular: "ocupación", placeholder: "Ej: Independiente", totalLabel: "Líderes", detalleTipo: "ocupacion" },
+  { key: "parentescos", label: "Parentescos", kind: "simple", endpoint: "/api/parentescos", singular: "parentesco", placeholder: "Ej: Hermano(a)", totalLabel: "Referidos", detalleTipo: "parentesco" },
+  { key: "dependencias", label: "Dependencias", kind: "simple", endpoint: "/api/dependencias", singular: "dependencia", placeholder: "Ej: Secretaría de Gobierno", totalLabel: "Contratistas", detalleTipo: "dependencia" },
   { key: "tipos_ayuda", label: "Tipos de ayuda", kind: "simple", endpoint: "/api/tipos-ayuda", singular: "tipo de ayuda", placeholder: "Ej: Mercado", conGestiones: true },
   { key: "gestores", label: "Gestores", kind: "gestores" },
 ] as const;
@@ -50,6 +50,7 @@ export default function ConfiguracionPage() {
             placeholder={active.placeholder}
             conGestiones={"conGestiones" in active && active.conGestiones}
             totalLabel={"totalLabel" in active ? active.totalLabel : undefined}
+            detalleTipo={"detalleTipo" in active ? active.detalleTipo : undefined}
           />
         )}
       </div>
