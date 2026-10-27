@@ -236,6 +236,90 @@ pm2 restart pigp
 
 Si el `git pull` trae cambios en `sql/schema.sql`, revísalo antes de aplicarlo — normalmente son solo tablas/columnas nuevas (`CREATE TABLE IF NOT EXISTS`, `ALTER TABLE ... ADD COLUMN`), pero conviene correr solo el bloque nuevo si el script completo ya se ejecutó antes (`CREATE INDEX` sin `IF NOT EXISTS` falla si el índice ya existe).
 
+## 16. Despliegue alterno con Docker (servidor de microservicios)
+
+Además del despliegue con PM2 de las secciones anteriores, el repo incluye
+un `Dockerfile` (build multi-stage, `output: "standalone"` de Next.js) para
+correr la app como contenedor en un servidor Docker que ya tenga una red
+para conectar la app con una base MySQL/MariaDB en otro contenedor.
+
+Ejemplo real (servidor `192.168.227.243`, red `lan1`, contenedor de base de
+datos llamado `mysql`, puerto host `3001` porque el `3000` ya lo usa otra
+app):
+
+```bash
+# 1) Clonar el repo (tiene el Dockerfile)
+git clone https://github.com/JuanAriasPiedrahita/PIGP.git ~/pigp
+cd ~/pigp
+
+# 2) Base de datos: crear un usuario dedicado en el contenedor mysql
+#    (no usar las credenciales root de ese contenedor desde la app)
+docker exec mysql mysql -uroot -p'<clave root>' -e "
+  CREATE USER IF NOT EXISTS 'pigp_app'@'%' IDENTIFIED BY '<clave nueva>';
+  GRANT ALL PRIVILEGES ON PIGP.* TO 'pigp_app'@'%';
+  FLUSH PRIVILEGES;
+"
+
+# 3) Config fuera de la imagen: un .env en el HOME del usuario del
+#    servidor (nunca se copia a la imagen, se pasa con --env-file).
+#    DB_HOST es el nombre del contenedor de MySQL (DNS interno de la red).
+cat > ~/pigp.env << 'EOF'
+DB_HOST=mysql
+DB_PORT=3306
+DB_USER=pigp_app
+DB_PASSWORD=<clave nueva>
+DB_NAME=PIGP
+AUTH_SECRET=<mismo valor que el servidor principal, si la base migrada tiene claves de líder cifradas con ese secreto>
+SENTINEL_BIRTH_YEAR=1900
+CONTRATO_MESES_ALERTA=1
+NODE_ENV=production
+COOKIE_SECURE=false
+EOF
+chmod 644 ~/pigp.env   # el engine de Docker lee este archivo como root; 644 es suficiente y evita sorpresas de permisos
+
+# 4) users.txt (admin del panel) tampoco va en la imagen
+cp /ruta/al/users.txt ~/pigp_users.txt
+chmod 644 ~/pigp_users.txt   # el proceso dentro del contenedor corre como usuario no-root "nextjs" (uid 1001):
+                              # un archivo montado en 600 (dueño=operador) no lo puede leer ese usuario
+
+# 5) Build
+docker build -t pigp:latest .
+
+# 6) Volumen para que las fotos subidas (líderes/gestiones) sobrevivan a un
+#    recreate del contenedor
+mkdir -p ~/pigp_uploads/lideres ~/pigp_uploads/gestiones
+chmod -R 777 ~/pigp_uploads   # mismo tema de permisos que el punto 4
+
+# 7) Levantar el contenedor en la misma red que el de MySQL
+docker run -d --name pigp --network lan1 \
+  --env-file ~/pigp.env \
+  -p 3001:3000 \
+  -v ~/pigp_uploads:/app/public/uploads \
+  -v ~/pigp_users.txt:/app/users.txt:ro \
+  --restart unless-stopped \
+  pigp:latest
+```
+
+**Para actualizar** esta variante Docker después de un cambio: `git pull`
+dentro de `~/pigp`, `docker build -t pigp:latest .` de nuevo, y
+`docker rm -f pigp` + repetir el `docker run` del paso 7 (los datos de
+`pigp.env`, `pigp_users.txt` y `pigp_uploads/` quedan intactos porque viven
+fuera de la imagen).
+
+**Advertencias:**
+- `public/` no está versionado en git (solo `public/uploads/`, y eso vía
+  `.gitignore` + un `.gitkeep`) — en un clon limpio esa carpeta no existe;
+  el Dockerfile la crea (`mkdir -p public`) antes del build.
+- Mismo problema que la sección 10 con PM2: `next start` cachea la lista de
+  archivos de `public/` al arrancar, así que una foto subida en caliente
+  después de iniciar el contenedor puede quedar invisible (404) hasta el
+  próximo `docker restart pigp`. Si esto molesta en producción, la solución
+  es la misma que ahí: servir `public/uploads/` con un proxy/Nginx aparte
+  en vez de dejar que lo haga `next start`.
+- El Dockerfile no copia `.env` ni `users.txt` a la imagen (ver
+  `.dockerignore`) — siempre se pasan en tiempo de ejecución, para no
+  terminar con credenciales horneadas en una capa de la imagen.
+
 ## Checklist de seguridad antes de anunciar el sitio
 
 - [ ] `AUTH_SECRET` generado específicamente para este servidor (no reutilizado de desarrollo)
