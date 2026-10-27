@@ -11,6 +11,9 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+# public/ no está versionado en git (solo lleva uploads/, ignorado) — en un
+# clon limpio la carpeta ni existe; nos asegura que exista antes del build.
+RUN mkdir -p public
 RUN npm run build
 
 FROM node:20-alpine AS runner
