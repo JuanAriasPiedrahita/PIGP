@@ -33,6 +33,16 @@ const items: NavItem[] = [
       </svg>
     ),
   },
+  {
+    href: "/captura/perfil",
+    label: "Mi Cuenta",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="20" height="20">
+        <circle cx="12" cy="8" r="3.5" />
+        <path d="M4.5 20c0-4 3.4-6.5 7.5-6.5s7.5 2.5 7.5 6.5" strokeLinecap="round" />
+      </svg>
+    ),
+  },
 ];
 
 interface CapturaSidebarProps {

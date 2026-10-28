@@ -1,111 +1,72 @@
-# Registro: migración de BD + despliegue en contenedor (192.168.227.243)
+# Plan: "Mi Cuenta" en /captura (autoedición de datos del líder)
 
-Tarea operativa (no de código con plan previo): el usuario pidió, en
-mensajes sucesivos, migrar la base de datos de producción a un nuevo
-servidor Docker y empaquetar/desplegar la app ahí como contenedor. Se
-ejecutó directamente, documentando cada paso.
+Objetivo: agregar una opción "Mi Cuenta" al menú de /captura que permita al
+líder autenticado modificar sus propios datos y subir/cambiar su foto —
+el equivalente, dentro de /captura, al formulario de líderes del panel
+admin, pero acotado a sus propios datos y sin campos administrativos.
 
-## 1) Migración de la base de datos (.242 → contenedor `mysql` en .243)
+**Campos incluidos** (igual que el formulario admin): nombre, apellidos,
+sexo, cédula, celular, email, comuna/barrio, dirección, zona/puesto,
+profesión, ocupación, fecha de nacimiento, usuario, clave, atributos
+(vehículo, redes sociales, orador público, cantante, testigo electoral) y
+foto.
 
-- [x] Conectado a `.242` (producción) por SSH con la llave existente.
-- [x] Conectado a `.243` por SSH con contraseña (usuario/clave que dio el
-      usuario) usando `plink.exe` (no había `sshpass` disponible en este
-      entorno Windows).
-- [x] `.243` ya tenía una base `campana_politica` — **no se tocó**, es de
-      otro proyecto (el usuario lo aclaró explícitamente).
-- [x] Se creó la base `PIGP` nueva en el contenedor `mysql` de `.243`, con
-      el mismo charset/collation que el origen (`utf8mb4_unicode_ci`).
-- [x] Export/import directo `mysqldump | mysql` desde `.242` hacia
-      `.243:3306` (sin dejar el volcado en disco). `.242` tenía línea
-      directa a `.243` en la misma LAN.
-- [x] Verificado con `COUNT(*)` real (no `information_schema`, que venía
-      con estadísticas desactualizadas) en las 15 tablas: coincide exacto
-      entre origen y destino.
+**Campos EXCLUIDOS** (administrativos, no autoeditable por el líder):
+estado (activo/inactivo), "Equipo Logístico" (otorga permisos), y todo el
+bloque de contratista (objeto/vencimiento del contrato, dependencia).
 
-## 2) Empaquetado Docker de la app
+## Backend
 
-- [x] `next.config.mjs`: `output: "standalone"`.
-- [x] `Dockerfile` nuevo (build multi-stage, imagen final `node:20-alpine`
-      no-root). La config (DB, `AUTH_SECRET`, etc.) nunca se copia a la
-      imagen — se pasa en tiempo de ejecución.
-- [x] `.dockerignore` nuevo.
-- [x] **Bug encontrado y corregido:** `public/` no estaba versionado en
-      git (solo `public/uploads/`, vía `.gitignore`), y el `.gitkeep` que
-      ese mismo `.gitignore` esperaba nunca se había creado — en un clon
-      limpio la carpeta no existía y el build de Docker fallaba en el
-      `COPY /app/public`. Se agregó el `.gitkeep` y un `mkdir -p public`
-      defensivo en el Dockerfile.
-- [x] Todo commiteado y pusheado a GitHub (3 commits: Dockerfile, fix de
-      `public/`, y la documentación en `DEPLOY.md`).
-- [x] (Nota lateral) el push falló la primera vez por permisos — la cuenta
-      `gh` activa (`reinel-arias`) no tiene push al repo; se cambió a la
-      cuenta `JuanAriasPiedrahita` con `gh auth switch` y quedó resuelto
-      para el resto de la sesión.
+- [x] `src/app/api/captura/catalogos/route.ts`: agregar `profesiones` y
+      `ocupaciones` a la respuesta (el formulario de perfil los necesita;
+      hoy solo se exponían para referidos).
+- [x] `src/hooks/useCapturaCatalogos.ts`: incluir esos dos catálogos en el
+      objeto devuelto.
+- [x] Nuevo `src/app/api/captura/perfil/route.ts`:
+      - `GET`: devuelve los datos del líder autenticado (`requireLider`),
+        clave descifrada, sin exponer `estado`/`contratista`.
+      - `PUT`: valida y actualiza solo el líder de la sesión (el id nunca
+        viene del cliente), maneja la foto (`saveImage`/`deleteImage`) igual
+        que `/api/lideres/[id]`, sin tocar `estado`, `coordinador_logistica`
+        ni los campos de contratista.
 
-## 3) Despliegue del contenedor en `.243`
+## Frontend
 
-- [x] Clonado el repo en `~/pigp` (mismo patrón que ya usaba `~/campana-app`
-      en ese servidor).
-- [x] Usuario de base de datos dedicado `pigp_app` creado en el contenedor
-      `mysql` (en vez de usar las credenciales root de ese contenedor
-      desde la app), con privilegios solo sobre `PIGP`.
-- [x] `~/pigp.env` creado en el **home de `operador`** (no dentro del
-      contenedor/imagen, como pidió el usuario), con `DB_HOST=mysql`
-      (nombre del contenedor, resuelto por DNS interno de la red `lan1`) y
-      el mismo `AUTH_SECRET` que producción (necesario para que las claves
-      de líder ya cifradas en la base migrada se puedan descifrar igual).
-- [x] `~/pigp_users.txt` (credenciales del panel admin) copiado también
-      fuera de la imagen, igual que `.env`.
-- [x] `~/pigp_uploads/` creado como volumen para que las fotos subidas
-      sobrevivan a un recreate del contenedor.
-- [x] Build (`docker build -t pigp:latest .`) y
-      `docker run -d --name pigp --network lan1 --env-file ~/pigp.env
-      -p 3001:3000 ...` (puerto 3001 porque el 3000 ya lo usa otra app en
-      ese mismo servidor).
-- [x] **Bug encontrado y corregido:** `pigp.env`/`pigp_users.txt` quedaron
-      en `600` (solo el dueño del archivo puede leerlo), pero el proceso
-      dentro del contenedor corre como usuario no-root `nextjs` (uid 1001)
-      — no podía leerlos. Se corrigió a `644`/`777` según el caso.
-- [x] Verificación funcional completa contra el contenedor real:
-      `/login` → 200, login real con las credenciales de `users.txt` →
-      `ok`, `/api/lideres` con sesión → devuelve los 5 líderes migrados
-      (con `coordinador_logistica` incluido), acceso externo confirmado
-      en `http://192.168.227.243:3001`.
-- [x] Documentado el flujo completo en `DEPLOY.md` (sección 16) para que
-      quede como referencia de cómo repetirlo/actualizarlo.
+- [x] Nuevo `src/components/captura/CapturaPerfilForm.tsx`: basado en
+      `LiderForm`, sin los campos excluidos arriba.
+- [x] Nuevo `src/app/captura/perfil/page.tsx`: página con el mismo layout
+      (sidebar + header) que `/captura/eventos`, mostrando el formulario
+      directamente.
+- [x] `src/components/captura/CapturaSidebar.tsx`: agregar ítem "Mi Cuenta"
+      → `/captura/perfil`.
+
+## Verificación
+
+- [x] `npx tsc --noEmit` — sin errores.
+- [x] Prueba funcional contra la base de datos local: login como líder vía
+      `/api/captura/auth/login`, `GET /api/captura/perfil` (datos y clave
+      descifrada correctos), `PUT /api/captura/perfil` (actualiza dirección
+      y atributos), confirmado por consulta directa a `lideres` que el
+      cambio persiste y que `estado`/`coordinador_logistica` (campos
+      administrativos) quedan intactos. Cambios de prueba revertidos.
 
 ---
 
 ## Revisión final
 
-**Qué se hizo:** se migró la base de datos de producción de PIGP a un
-contenedor MySQL nuevo en el servidor de microservicios Docker
-(`192.168.227.243`), y se empaquetó la app como contenedor Docker propio
-(`pigp`), conectado a esa base por la red interna `lan1`, expuesto en el
-puerto `3001` del host. Todo quedó verificado funcionando con datos reales
-(login, líderes, el atributo "Coordinador logística" de la tarea anterior).
+**Qué se hizo:** se agregó la opción "Mi Cuenta" al menú de `/captura`
+(`/captura/perfil`), que permite al líder autenticado editar sus propios
+datos (igual que el formulario de líderes del panel admin) y subir o
+cambiar su foto. Quedan fuera de su alcance, a propósito, los campos
+administrativos: `estado`, "Equipo Logístico" (otorga permisos) y el
+bloque de contratista — esos solo los puede tocar un admin desde
+`/lideres`. Usuario y clave de acceso sí son autoeditables, por decisión
+explícita del usuario.
 
-**Decisiones de seguridad tomadas sin que se pidieran explícitamente, pero
-alineadas con lo que ya pedía el usuario para `.env`:**
-- Usuario de base de datos dedicado (`pigp_app`) en vez de usar `root` del
-  contenedor `mysql` desde la app.
-- `users.txt` también se dejó fuera de la imagen (montado), igual que
-  `.env` — mismo criterio que pidió el usuario, aplicado por consistencia.
+**Decisión de diseño:** se reutilizó el endpoint `/api/captura/catalogos`
+(agregándole profesiones/ocupaciones) en vez de crear uno nuevo, y se
+extrajo `saveImage`/`deleteImage` (ya existentes en `lib/upload.ts`) en
+lugar de los alias `savePhoto`/`deletePhoto`, marcados `@deprecated` en el
+código.
 
-**Dos bugs preexistentes/nuevos encontrados y corregidos en el camino:**
-1. `public/` sin `.gitkeep` (afecta a cualquiera que clone el repo limpio,
-   no solo a Docker) — corregido y commiteado.
-2. Permisos `600` en archivos montados vs. el usuario no-root del
-   contenedor — eran archivos creados en este despliegue, no un problema
-   de antes.
-
-**Pendiente para el usuario:**
-- La advertencia de `DEPLOY.md` sobre `next start` cacheando la lista de
-  `public/` al arrancar sigue aplicando aquí: una foto subida en caliente
-  puede no verse hasta un `docker restart pigp`. No se montó un Nginx
-  aparte para `uploads/` en este contenedor (como sí existe en `.242`)
-  porque no se pidió — avísame si lo quieres replicar.
-- Las claves que quedaron en `~/pigp.env`, `~/pigp_users.txt` y el usuario
-  `pigp_app` de MySQL están en texto plano en el servidor `.243` (mismo
-  criterio que ya se usa en `.242`). Si quieres rotarlas más adelante,
-  dime.
+**Nada pendiente** de esta tarea.

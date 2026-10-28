@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { apiGet } from "@/lib/api";
 import type { Catalogos } from "@/hooks/useCatalogos";
-import type { Zona, Puesto, Comuna, Barrio, Parentesco } from "@/lib/types";
+import type { Zona, Puesto, Comuna, Barrio, Parentesco, Profesion, Ocupacion } from "@/lib/types";
 
 const EMPTY: Catalogos = {
   zonas: [],
@@ -22,12 +22,14 @@ interface CapturaCatalogosResponse {
   comunas: Comuna[];
   barrios: Barrio[];
   parentescos: Parentesco[];
+  profesiones: Profesion[];
+  ocupaciones: Ocupacion[];
 }
 
 /**
- * Catálogos de solo lectura para el formulario de referidos en /captura
- * (zonas, puestos, comunas, barrios, parentescos). No incluye profesiones,
- * ocupaciones ni dependencias porque esos campos son solo de líderes.
+ * Catálogos de solo lectura para los formularios de referidos y de perfil
+ * ("Mi Cuenta") en /captura. No incluye dependencias porque ese campo es
+ * solo para el bloque de contratista, que el líder no autoedita.
  */
 export function useCapturaCatalogos() {
   const [data, setData] = useState<Catalogos>(EMPTY);
