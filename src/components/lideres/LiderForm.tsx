@@ -257,7 +257,7 @@ export function LiderForm({ catalogos, liderId, onSaved, onCancel }: Props) {
       </div>
 
       <AtributosCheckboxes value={atributos} onChange={setAtributos}>
-        <Checkbox label="Coordinador logística" checked={coordinadorLogistica} onChange={setCoordinadorLogistica} />
+        <Checkbox label="Equipo Logístico" checked={coordinadorLogistica} onChange={setCoordinadorLogistica} />
       </AtributosCheckboxes>
 
       <div className="space-y-4 border-t border-slate-100 pt-4">
