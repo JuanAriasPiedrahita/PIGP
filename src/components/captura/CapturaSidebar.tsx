@@ -70,9 +70,9 @@ export function CapturaSidebar({ open, onClose }: CapturaSidebarProps) {
         }`}
       >
         <div className="flex items-center gap-3 px-6 py-5 border-b border-white/10">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-600 font-bold text-white">CP</div>
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-600 font-bold text-white">CH</div>
           <div>
-            <p className="text-sm font-semibold leading-tight">Campaña Política</p>
+            <p className="text-sm font-semibold leading-tight">Carolina Herrera</p>
             <p className="text-xs text-brand-200">Panel de colaboradores</p>
           </div>
         </div>
@@ -95,7 +95,7 @@ export function CapturaSidebar({ open, onClose }: CapturaSidebarProps) {
           })}
         </nav>
         <div className="border-t border-white/10 px-6 py-4 text-xs text-brand-300">
-          © {new Date().getFullYear()} Campaña Política
+          © {new Date().getFullYear()} solucionesweb.co
         </div>
       </aside>
     </>
