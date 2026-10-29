@@ -95,7 +95,10 @@ export function CapturaSidebar({ open, onClose }: CapturaSidebarProps) {
           })}
         </nav>
         <div className="border-t border-white/10 px-6 py-4 text-xs text-brand-300">
-          © {new Date().getFullYear()} solucionesweb.co
+          © {new Date().getFullYear()}{" "}
+          <a href="https://solucionesweb.co" target="_blank" rel="noopener noreferrer" className="hover:text-white hover:underline">
+            solucionesweb.co
+          </a>
         </div>
       </aside>
     </>
