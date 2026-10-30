@@ -49,9 +49,9 @@ function LoginForm() {
       <div className="w-full max-w-sm">
         <div className="mb-6 flex flex-col items-center gap-2">
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-700 text-lg font-bold text-white">
-            CP
+            CH
           </div>
-          <h1 className="text-lg font-semibold text-slate-900">Campaña Política</h1>
+          <h1 className="text-lg font-semibold text-slate-900">Carolina Herrera</h1>
           <p className="text-sm text-slate-500">Ingresa tus credenciales para continuar</p>
         </div>
 
