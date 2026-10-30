@@ -107,6 +107,8 @@ export interface CatalogoDetalleFila {
   apellidos: string;
   cedula: string;
   celular: string;
+  lider_nombre?: string | null;
+  lider_apellidos?: string | null;
 }
 
 export interface Evento {
