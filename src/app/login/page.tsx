@@ -45,7 +45,7 @@ function LoginForm() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-slate-50 px-4">
+    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
       <div className="w-full max-w-sm">
         <div className="mb-6 flex flex-col items-center gap-2">
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-700 text-lg font-bold text-white">
@@ -76,13 +76,13 @@ function LoginForm() {
             {loading ? "Ingresando..." : "Ingresar"}
           </button>
         </form>
-      </div>
 
-      <div className="absolute inset-x-0 bottom-0 py-4 text-center text-xs text-slate-400">
-        © {new Date().getFullYear()}{" "}
-        <a href="https://solucionesweb.co" target="_blank" rel="noopener noreferrer" className="hover:text-slate-600 hover:underline">
-          solucionesweb.co
-        </a>
+        <div className="mt-6 text-center text-xs text-slate-400">
+          © {new Date().getFullYear()}{" "}
+          <a href="https://solucionesweb.co" target="_blank" rel="noopener noreferrer" className="hover:text-slate-600 hover:underline">
+            solucionesweb.co
+          </a>
+        </div>
       </div>
     </div>
   );
