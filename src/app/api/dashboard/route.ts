@@ -9,48 +9,58 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const [[lideresRow]] = await pool.query<RowDataPacket[]>(
-      "SELECT COUNT(*) AS total, SUM(estado='ACTIVO') AS activos, SUM(estado='INACTIVO') AS inactivos, SUM(contratista=1) AS contratistas FROM lideres"
-    ) as unknown as [RowDataPacket[]];
-    const [[referidosRow]] = await pool.query<RowDataPacket[]>(
-      "SELECT COUNT(*) AS total, SUM(voto_anterior=1) AS votaron, SUM(damnificado_terremoto=1) AS damnificados FROM referidos"
-    ) as unknown as [RowDataPacket[]];
-    const [[gestionesRow]] = await pool.query<RowDataPacket[]>(
-      `SELECT
-         COUNT(*) AS total,
-         SUM(estado='RESUELTO') AS resueltas,
-         SUM(estado='PENDIENTE') AS pendientes,
-         SUM(estado='NO_VIABLE') AS no_viables,
-         SUM(estado='PENDIENTE' AND fecha_limite < CURDATE()) AS vencidas,
-         SUM(CASE WHEN estado='RESUELTO' THEN costo ELSE 0 END) AS costo_total
-       FROM gestiones`
-    ) as unknown as [RowDataPacket[]];
-    const [porComuna] = await pool.query<RowDataPacket[]>(
-      `SELECT co.id, co.descripcion AS comuna, COUNT(l.id) AS total
-       FROM comunas co LEFT JOIN lideres l ON l.comuna_id = co.id
-       GROUP BY co.id, co.descripcion ORDER BY co.descripcion`
-    );
-    const [topLideres] = await pool.query<RowDataPacket[]>(
-      `SELECT l.id, CONCAT(l.nombre, ' ', l.apellidos) AS nombre, COUNT(r.id) AS total_referidos
-       FROM lideres l LEFT JOIN referidos r ON r.lider_id = l.id
-       GROUP BY l.id, l.nombre, l.apellidos
-       ORDER BY total_referidos DESC LIMIT 5`
-    );
-    const [gestionesPorTipo] = await pool.query<RowDataPacket[]>(
-      `SELECT ta.id, ta.descripcion AS tipo, COUNT(g.id) AS total, COALESCE(SUM(g.costo), 0) AS costo_total
-       FROM tipos_ayuda ta JOIN gestiones g ON g.tipo_ayuda_id = ta.id AND g.estado = 'RESUELTO'
-       GROUP BY ta.id, ta.descripcion
-       ORDER BY total DESC LIMIT 5`
-    );
-    const [proximasAVencer] = await pool.query<RowDataPacket[]>(
-      `SELECT g.id, g.referido_id, CONCAT(r.nombre, ' ', r.apellidos) AS referido_nombre,
-              ta.descripcion AS tipo_ayuda, g.fecha_limite
-       FROM gestiones g
-       JOIN referidos r ON r.id = g.referido_id
-       LEFT JOIN tipos_ayuda ta ON ta.id = g.tipo_ayuda_id
-       WHERE g.estado = 'PENDIENTE'
-       ORDER BY g.fecha_limite ASC LIMIT 5`
-    );
+    const [
+      [[lideresRow]],
+      [[referidosRow]],
+      [[gestionesRow]],
+      [porComuna],
+      [topLideres],
+      [gestionesPorTipo],
+      [proximasAVencer],
+    ] = await Promise.all([
+      pool.query<RowDataPacket[]>(
+        "SELECT COUNT(*) AS total, SUM(estado='ACTIVO') AS activos, SUM(estado='INACTIVO') AS inactivos, SUM(contratista=1) AS contratistas FROM lideres"
+      ) as unknown as Promise<[RowDataPacket[]]>,
+      pool.query<RowDataPacket[]>(
+        "SELECT COUNT(*) AS total, SUM(voto_anterior=1) AS votaron, SUM(damnificado_terremoto=1) AS damnificados FROM referidos"
+      ) as unknown as Promise<[RowDataPacket[]]>,
+      pool.query<RowDataPacket[]>(
+        `SELECT
+           COUNT(*) AS total,
+           SUM(estado='RESUELTO') AS resueltas,
+           SUM(estado='PENDIENTE') AS pendientes,
+           SUM(estado='NO_VIABLE') AS no_viables,
+           SUM(estado='PENDIENTE' AND fecha_limite < CURDATE()) AS vencidas,
+           SUM(CASE WHEN estado='RESUELTO' THEN costo ELSE 0 END) AS costo_total
+         FROM gestiones`
+      ) as unknown as Promise<[RowDataPacket[]]>,
+      pool.query<RowDataPacket[]>(
+        `SELECT co.id, co.descripcion AS comuna, COUNT(l.id) AS total
+         FROM comunas co LEFT JOIN lideres l ON l.comuna_id = co.id
+         GROUP BY co.id, co.descripcion ORDER BY co.descripcion`
+      ),
+      pool.query<RowDataPacket[]>(
+        `SELECT l.id, CONCAT(l.nombre, ' ', l.apellidos) AS nombre, COUNT(r.id) AS total_referidos
+         FROM lideres l LEFT JOIN referidos r ON r.lider_id = l.id
+         GROUP BY l.id, l.nombre, l.apellidos
+         ORDER BY total_referidos DESC LIMIT 5`
+      ),
+      pool.query<RowDataPacket[]>(
+        `SELECT ta.id, ta.descripcion AS tipo, COUNT(g.id) AS total, COALESCE(SUM(g.costo), 0) AS costo_total
+         FROM tipos_ayuda ta JOIN gestiones g ON g.tipo_ayuda_id = ta.id AND g.estado = 'RESUELTO'
+         GROUP BY ta.id, ta.descripcion
+         ORDER BY total DESC LIMIT 5`
+      ),
+      pool.query<RowDataPacket[]>(
+        `SELECT g.id, g.referido_id, CONCAT(r.nombre, ' ', r.apellidos) AS referido_nombre,
+                ta.descripcion AS tipo_ayuda, g.fecha_limite
+         FROM gestiones g
+         JOIN referidos r ON r.id = g.referido_id
+         LEFT JOIN tipos_ayuda ta ON ta.id = g.tipo_ayuda_id
+         WHERE g.estado = 'PENDIENTE'
+         ORDER BY g.fecha_limite ASC LIMIT 5`
+      ),
+    ]);
 
     const totalGestiones = Number(gestionesRow?.total || 0);
     const gestionesResueltas = Number(gestionesRow?.resueltas || 0);

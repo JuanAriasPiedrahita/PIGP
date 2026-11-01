@@ -39,17 +39,8 @@ export function useCatalogos() {
     setLoading(true);
     setError(null);
     try {
-      const [zonas, puestos, comunas, barrios, profesiones, ocupaciones, parentescos, dependencias] = await Promise.all([
-        apiGet<Zona[]>("/api/zonas"),
-        apiGet<Puesto[]>("/api/puestos"),
-        apiGet<Comuna[]>("/api/comunas"),
-        apiGet<Barrio[]>("/api/barrios"),
-        apiGet<Profesion[]>("/api/profesiones"),
-        apiGet<Ocupacion[]>("/api/ocupaciones"),
-        apiGet<Parentesco[]>("/api/parentescos"),
-        apiGet<Dependencia[]>("/api/dependencias"),
-      ]);
-      setData({ zonas, puestos, comunas, barrios, profesiones, ocupaciones, parentescos, dependencias });
+      const data = await apiGet<Catalogos>("/api/catalogos");
+      setData(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error cargando catálogos");
     } finally {
