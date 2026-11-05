@@ -80,9 +80,13 @@ export async function PUT(req: NextRequest) {
 
     let fotoPath = existingFoto;
     const fotoFile = form.get("foto");
+    const eliminarFoto = form.get("eliminar_foto") === "true";
     if (fotoFile instanceof File && fotoFile.size > 0) {
       fotoPath = await saveImage(fotoFile, "lideres");
       await deleteImage(existingFoto);
+    } else if (eliminarFoto && existingFoto) {
+      await deleteImage(existingFoto);
+      fotoPath = null;
     }
 
     const bools = BOOL_FIELDS.map((f) => (form.get(f) === "true" || form.get(f) === "on" ? 1 : 0));

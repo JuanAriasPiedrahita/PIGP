@@ -86,6 +86,7 @@ export function CapturaPerfilForm({ catalogos, onSaved }: Props) {
   const [atributos, setAtributos] = useState<Atributos>(DEFAULT_ATRIBUTOS);
   const [fotoFile, setFotoFile] = useState<File | null>(null);
   const [fotoUrl, setFotoUrl] = useState<string | null>(null);
+  const [eliminarFoto, setEliminarFoto] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -120,6 +121,7 @@ export function CapturaPerfilForm({ catalogos, onSaved }: Props) {
           testigo_electoral: !!l.testigo_electoral,
         });
         setFotoUrl(l.foto || null);
+        setEliminarFoto(false);
       })
       .catch((err) => toast.show(err instanceof Error ? err.message : "Error cargando sus datos", "error"))
       .finally(() => setLoading(false));
@@ -128,6 +130,11 @@ export function CapturaPerfilForm({ catalogos, onSaved }: Props) {
 
   function set<K extends keyof FormState>(field: K, value: string) {
     setForm((f) => ({ ...f, [field]: value }));
+  }
+
+  function handleFotoSelected(file: File | null) {
+    setFotoFile(file);
+    if (file) setEliminarFoto(false);
   }
 
   function validate(): boolean {
@@ -161,6 +168,7 @@ export function CapturaPerfilForm({ catalogos, onSaved }: Props) {
       Object.entries(form).forEach(([k, v]) => fd.append(k, v));
       Object.entries(atributos).forEach(([k, v]) => fd.append(k, String(v)));
       if (fotoFile) fd.append("foto", fotoFile);
+      else if (eliminarFoto) fd.set("eliminar_foto", "true");
 
       await apiPutForm("/api/captura/perfil", fd);
       toast.show("Datos actualizados correctamente", "success");
@@ -181,7 +189,7 @@ export function CapturaPerfilForm({ catalogos, onSaved }: Props) {
     <form onSubmit={handleSubmit} className="space-y-5">
       <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
         <div className="order-first sm:order-last">
-          <PhotoUpload initialUrl={fotoUrl} onFileSelected={setFotoFile} />
+          <PhotoUpload initialUrl={fotoUrl} onFileSelected={handleFotoSelected} onRemove={() => setEliminarFoto(true)} />
         </div>
         <div className="grid flex-1 grid-cols-1 gap-4 sm:grid-cols-2">
           <Input label="Nombre" required value={form.nombre} error={errors.nombre} onChange={(e) => set("nombre", e.target.value)} />

@@ -1,34 +1,45 @@
-# Optimización: dashboard en paralelo + catálogos admin consolidados
+# Foto de líder: iconos editar/eliminar + opción de borrar foto
 
 ## Contexto
-Del análisis de `/optimizar`: el dashboard hace 7 queries SQL secuenciales en vez
-de paralelas, y `useCatalogos()` (usado en Líderes/Referidos) hace 8 peticiones
-HTTP separadas donde ya demostramos (con `/api/captura/catalogos`) que basta 1.
+`PhotoUpload` (componente compartido) usa un botón de texto "Cambiar foto"/
+"Subir foto" y no permite quitar una foto ya guardada. Se usa en el form de
+Líderes del panel admin (`LiderForm.tsx`) y en "Mi Cuenta" de `/captura`
+(`CapturaPerfilForm.tsx`), ambos contra el mismo backend de líderes.
 
 ## Plan
 
-- [x] 1. `src/app/api/dashboard/route.ts`: cambiar las 7 queries secuenciales por
-      `Promise.all`, sin cambiar la forma de la respuesta.
-- [x] 2. Nuevo endpoint `src/app/api/catalogos/route.ts`: devuelve zonas, puestos,
-      comunas, barrios, profesiones, ocupaciones, parentescos y dependencias en
-      una sola respuesta (mismo patrón que `/api/captura/catalogos`). No toca los
-      endpoints individuales (`/api/profesiones`, etc.) porque Configuración los
-      sigue usando por separado (traen un `total` que este nuevo endpoint no
-      necesita).
-- [x] 3. `src/hooks/useCatalogos.ts`: cambiar las 8 llamadas `apiGet` por una sola
-      a `/api/catalogos`.
-- [x] 4. Verificar `npx tsc --noEmit` sin errores.
+- [x] 1. `src/components/ui/PhotoUpload.tsx`: cuando hay foto (preview), mostrar
+      dos botones-icono en vez del botón de texto: lápiz (cambiar foto, abre
+      el file picker) y papelera (eliminar foto). Sin foto, mantener el botón
+      "Subir foto" tal cual (no hay nada que eliminar). Nuevo prop opcional
+      `onRemove?: () => void` que se dispara al hacer click en la papelera,
+      además de limpiar el preview local y notificar `onFileSelected(null)`.
+- [x] 2. `src/components/lideres/LiderForm.tsx`: estado `eliminarFoto`, se
+      activa con `onRemove`, se desactiva si el usuario elige un archivo nuevo
+      después. Al enviar el form: si hay `fotoFile` se manda como ahora; si no
+      y `eliminarFoto` es true, se manda `eliminar_foto=true`.
+- [x] 3. `src/components/captura/CapturaPerfilForm.tsx`: mismo cambio que el
+      punto 2.
+- [x] 4. `src/app/api/lideres/[id]/route.ts` (PUT): si llega `eliminar_foto=true`
+      y no llega un archivo nuevo, borrar el archivo físico existente
+      (`deletePhoto`) y guardar `foto=NULL`.
+- [x] 5. `src/app/api/captura/perfil/route.ts` (PUT): mismo cambio que el punto 4.
+- [x] 6. Verificar `npx tsc --noEmit` sin errores.
 
 ## Revisión final
 
-- El dashboard ahora dispara sus 7 consultas en paralelo con `Promise.all` en vez
-  de una tras otra; la respuesta JSON no cambió de forma.
-- Se agregó `GET /api/catalogos`, que junta zonas/puestos/comunas/barrios/
-  profesiones/ocupaciones/parentescos/dependencias en una sola respuesta,
-  replicando el patrón que ya usaba `/api/captura/catalogos`.
-- `useCatalogos()` (usado por los formularios de Líderes y Referidos en el panel
-  admin) pasó de hacer 8 peticiones HTTP a hacer 1 sola.
-- Los endpoints individuales (`/api/profesiones`, `/api/ocupaciones`, etc.) no se
-  tocaron: Configuración sigue usándolos directamente porque traen el campo
-  `total` (conteo de uso) que el nuevo endpoint combinado no necesita.
+- `PhotoUpload` ahora muestra, cuando ya hay una foto, dos botones-icono
+  (lápiz = cambiar, papelera = eliminar) en vez del botón de texto "Cambiar
+  foto". Sin foto sigue mostrando "Subir foto" igual que antes.
+- Al eliminar, el formulario manda `eliminar_foto=true` en vez del archivo;
+  si el usuario luego elige una foto nueva, esa bandera se desactiva sola.
+- Ambos backends (`/api/lideres/[id]` y `/api/captura/perfil`) borran el
+  archivo físico existente y guardan `foto=NULL` cuando llega esa bandera sin
+  un archivo nuevo.
 - `npx tsc --noEmit` sin errores.
+
+## Fuera de alcance
+- El form de creación de líder (sin foto todavía) no necesita el botón de
+  eliminar — solo aplica a edición cuando ya existe una foto guardada.
+- No se toca `MultiPhotoUpload` (usado en Gestiones, es un componente distinto
+  con su propia lógica de múltiples fotos).
