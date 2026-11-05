@@ -104,10 +104,15 @@ function LideresContent() {
   }
 
   const barriosDisponibles = catalogos.barrios.filter((b) => !comunaFilter || String(b.comuna_id) === comunaFilter);
-  const puestoOptions = catalogos.puestos.map((p) => {
-    const zona = catalogos.zonas.find((z) => z.id === p.zona_id);
-    return { id: p.id, label: `${zona ? "Zona " + zona.codigo + " · " : ""}${p.numero} - ${p.nombre}` };
-  });
+  const puestoOptions = catalogos.puestos
+    .map((p) => {
+      const zona = catalogos.zonas.find((z) => z.id === p.zona_id);
+      return { id: p.id, zonaCodigo: zona?.codigo ?? "", numero: p.numero, label: `${zona ? "Zona " + zona.codigo + " · " : ""}${p.numero} - ${p.nombre}` };
+    })
+    .sort((a, b) =>
+      a.zonaCodigo.localeCompare(b.zonaCodigo, undefined, { numeric: true }) ||
+      a.numero.localeCompare(b.numero, undefined, { numeric: true })
+    );
 
   const hayFiltrosActivos =
     !!search || !!comunaFilter || !!barrioFilter || !!puestoFilter || contratistaFilter ||
