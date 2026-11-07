@@ -52,6 +52,25 @@ export class DbError extends Error {
   }
 }
 
+/**
+ * Parsea una columna `JSON` leída de MariaDB. MariaDB no tiene un tipo JSON
+ * real a nivel de protocolo (es un alias de LONGTEXT), así que mysql2 la
+ * devuelve como string sin parsear en vez de array/objeto. Esta función
+ * normaliza ese valor a `string[] | null` sin importar si ya venía parseado.
+ */
+export function parseJsonArrayColumn(value: unknown): string[] | null {
+  if (Array.isArray(value)) return value;
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+      return Array.isArray(parsed) ? parsed : null;
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
 /** Traduce errores comunes de MySQL a mensajes entendibles para el usuario. */
 export function friendlyDbError(err: unknown): { message: string; status: number } {
   const e = err as { code?: string; sqlMessage?: string };

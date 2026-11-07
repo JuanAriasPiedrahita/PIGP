@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import pool, { friendlyDbError } from "@/lib/db";
+import pool, { friendlyDbError, parseJsonArrayColumn } from "@/lib/db";
 import type { RowDataPacket, ResultSetHeader } from "mysql2";
 import { saveImage } from "@/lib/upload";
 
@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
     }
     const sql = LIST_SQL + " WHERE g.referido_id = ? ORDER BY g.fecha_limite ASC";
     const [rows] = await pool.query<RowDataPacket[]>(sql, [referidoId]);
-    return NextResponse.json(rows);
+    return NextResponse.json(rows.map((r) => ({ ...r, fotos: parseJsonArrayColumn(r.fotos) })));
   } catch (err) {
     const { message, status } = friendlyDbError(err);
     return NextResponse.json({ error: message }, { status });

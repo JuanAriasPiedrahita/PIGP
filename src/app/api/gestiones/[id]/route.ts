@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import pool, { friendlyDbError } from "@/lib/db";
+import pool, { friendlyDbError, parseJsonArrayColumn } from "@/lib/db";
 import type { RowDataPacket } from "mysql2";
 import { saveImage, deleteImage } from "@/lib/upload";
 
@@ -7,7 +7,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   try {
     const [rows] = await pool.query<RowDataPacket[]>("SELECT * FROM gestiones WHERE id = ?", [params.id]);
     if (rows.length === 0) return NextResponse.json({ error: "Gestión no encontrada" }, { status: 404 });
-    return NextResponse.json(rows[0]);
+    return NextResponse.json({ ...rows[0], fotos: parseJsonArrayColumn(rows[0].fotos) });
   } catch (err) {
     const { message, status } = friendlyDbError(err);
     return NextResponse.json({ error: message }, { status });
@@ -38,7 +38,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
     const [existingRows] = await pool.query<RowDataPacket[]>("SELECT fotos, estado, fecha_resolucion FROM gestiones WHERE id = ?", [params.id]);
     if (existingRows.length === 0) return NextResponse.json({ error: "Gestión no encontrada" }, { status: 404 });
-    const fotosExistentesEnBD: string[] = existingRows[0].fotos || [];
+    const fotosExistentesEnBD: string[] = parseJsonArrayColumn(existingRows[0].fotos) || [];
     const estadoAnterior: string = existingRows[0].estado;
 
     const resuelto = estado === "RESUELTO";
@@ -96,7 +96,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
   try {
     const [rows] = await pool.query<RowDataPacket[]>("SELECT fotos FROM gestiones WHERE id = ?", [params.id]);
     await pool.query("DELETE FROM gestiones WHERE id = ?", [params.id]);
-    const fotos: string[] = rows[0]?.fotos || [];
+    const fotos: string[] = parseJsonArrayColumn(rows[0]?.fotos) || [];
     await Promise.all(fotos.map((f) => deleteImage(f)));
     return NextResponse.json({ ok: true });
   } catch (err) {
