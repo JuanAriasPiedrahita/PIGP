@@ -290,12 +290,19 @@ docker build -t pigp:latest .
 mkdir -p ~/pigp_uploads/lideres ~/pigp_uploads/gestiones
 chmod -R 777 ~/pigp_uploads   # mismo tema de permisos que el punto 4
 
+# 6.1) Archivo de log de accesos/acciones (access.log): se monta como
+#      archivo suelto para que sobreviva a un recreate y se pueda leer
+#      directo desde el host sin entrar al contenedor.
+touch ~/pigp_access.log
+chmod 666 ~/pigp_access.log   # mismo tema de permisos que el punto 4 (lo escribe el usuario "nextjs", uid 1001)
+
 # 7) Levantar el contenedor en la misma red que el de MySQL
 docker run -d --name pigp --network lan1 \
   --env-file ~/pigp.env \
   -p 3001:3000 \
   -v ~/pigp_uploads:/app/public/uploads \
   -v ~/pigp_users.txt:/app/users.txt:ro \
+  -v ~/pigp_access.log:/app/access.log \
   --restart unless-stopped \
   pigp:latest
 ```
@@ -303,8 +310,12 @@ docker run -d --name pigp --network lan1 \
 **Para actualizar** esta variante Docker después de un cambio: `git pull`
 dentro de `~/pigp`, `docker build -t pigp:latest .` de nuevo, y
 `docker rm -f pigp` + repetir el `docker run` del paso 7 (los datos de
-`pigp.env`, `pigp_users.txt` y `pigp_uploads/` quedan intactos porque viven
-fuera de la imagen).
+`pigp.env`, `pigp_users.txt`, `pigp_uploads/` y `pigp_access.log` quedan
+intactos porque viven fuera de la imagen).
+
+**Para ver el log de accesos/acciones** desde el host, sin entrar al
+contenedor: `cat ~/pigp_access.log` (o `tail -f ~/pigp_access.log` para
+seguirlo en vivo).
 
 **Advertencias:**
 - `public/` no está versionado en git (solo `public/uploads/`, y eso vía
