@@ -7,19 +7,33 @@ interface Props {
   lideres: (Lider & { total_referidos?: number })[];
   onEdit: (id: number) => void;
   onDelete: (id: number) => void;
+  selectedIds: Set<number>;
+  onToggleSelect: (id: number) => void;
+  onToggleSelectAll: () => void;
 }
 
-export function LiderTable({ lideres, onEdit, onDelete }: Props) {
+export function LiderTable({ lideres, onEdit, onDelete, selectedIds, onToggleSelect, onToggleSelectAll }: Props) {
   if (lideres.length === 0) {
     return <p className="py-10 text-center text-sm text-slate-400">No hay líderes registrados todavía.</p>;
   }
+
+  const todosSeleccionados = lideres.length > 0 && lideres.every((l) => selectedIds.has(l.id));
 
   return (
     <div className="thin-scroll overflow-x-auto">
       <table className="w-full min-w-[880px] text-left text-sm">
         <thead>
           <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-400">
-            <th className="py-3 pl-2 pr-3 font-medium">Líder</th>
+            <th className="py-3 pl-2 pr-2 font-medium">
+              <input
+                type="checkbox"
+                checked={todosSeleccionados}
+                onChange={onToggleSelectAll}
+                aria-label="Seleccionar todos"
+                className="h-4 w-4 rounded border-slate-300"
+              />
+            </th>
+            <th className="py-3 pr-3 font-medium">Líder</th>
             <th className="px-3 py-3 font-medium">Cédula</th>
             <th className="px-3 py-3 font-medium">Contacto</th>
             <th className="px-3 py-3 font-medium">Ubicación</th>
@@ -32,7 +46,16 @@ export function LiderTable({ lideres, onEdit, onDelete }: Props) {
         <tbody className="divide-y divide-slate-100">
           {lideres.map((l) => (
             <tr key={l.id} onClick={() => onEdit(l.id)} className="cursor-pointer hover:bg-slate-50">
-              <td className="py-3 pl-2 pr-3">
+              <td className="py-3 pl-2 pr-2" onClick={(e) => e.stopPropagation()}>
+                <input
+                  type="checkbox"
+                  checked={selectedIds.has(l.id)}
+                  onChange={() => onToggleSelect(l.id)}
+                  aria-label={`Seleccionar ${l.nombre} ${l.apellidos}`}
+                  className="h-4 w-4 rounded border-slate-300"
+                />
+              </td>
+              <td className="py-3 pr-3">
                 <div className="flex items-center gap-3">
                   <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-slate-100">
                     {l.foto ? (

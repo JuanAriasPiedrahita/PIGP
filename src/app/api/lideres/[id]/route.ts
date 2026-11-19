@@ -5,6 +5,8 @@ import { encryptClave, decryptClave } from "@/lib/liderClave";
 import { savePhoto, deletePhoto } from "@/lib/upload";
 import { isValidCedula, isValidCelular, isValidEmail } from "@/lib/validations";
 import { parseContratista } from "@/lib/contratista";
+import { getClientIp, logAction } from "@/lib/accessLog";
+import { verifySessionToken, COOKIE_NAME } from "@/lib/session";
 
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -122,6 +124,11 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       );
     }
 
+    const admin = await verifySessionToken(req.cookies.get(COOKIE_NAME)?.value);
+    if (admin) {
+      await logAction({ usuario: admin, ip: getClientIp(req), accion: `lider ${nombre} ${apellidos} modificado` });
+    }
+
     return NextResponse.json({ id: Number(params.id) });
   } catch (err) {
     const { message, status } = friendlyDbError(err);
@@ -129,11 +136,19 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const [rows] = await pool.query<RowDataPacket[]>("SELECT foto FROM lideres WHERE id = ?", [params.id]);
+    const [rows] = await pool.query<RowDataPacket[]>("SELECT nombre, apellidos, foto FROM lideres WHERE id = ?", [params.id]);
     await pool.query("DELETE FROM lideres WHERE id = ?", [params.id]);
     if (rows.length > 0) await deletePhoto(rows[0].foto);
+
+    if (rows.length > 0) {
+      const admin = await verifySessionToken(req.cookies.get(COOKIE_NAME)?.value);
+      if (admin) {
+        await logAction({ usuario: admin, ip: getClientIp(req), accion: `lider ${rows[0].nombre} ${rows[0].apellidos} eliminado` });
+      }
+    }
+
     return NextResponse.json({ ok: true });
   } catch (err) {
     const { message, status } = friendlyDbError(err);

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import pool, { friendlyDbError } from "@/lib/db";
 import type { RowDataPacket } from "mysql2";
 import { isValidCedula, isValidCelular, isValidEmail } from "@/lib/validations";
+import { getClientIp, logAction } from "@/lib/accessLog";
+import { verifySessionToken, COOKIE_NAME } from "@/lib/session";
 
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -57,6 +59,11 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       ]
     );
 
+    const admin = await verifySessionToken(req.cookies.get(COOKIE_NAME)?.value);
+    if (admin) {
+      await logAction({ usuario: admin, ip: getClientIp(req), accion: `referido ${nombre.trim()} ${apellidos.trim()} modificado` });
+    }
+
     return NextResponse.json({ id: Number(params.id) });
   } catch (err) {
     const { message, status } = friendlyDbError(err);
@@ -64,9 +71,18 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   try {
+    const [rows] = await pool.query<RowDataPacket[]>("SELECT nombre, apellidos FROM referidos WHERE id = ?", [params.id]);
     await pool.query("DELETE FROM referidos WHERE id = ?", [params.id]);
+
+    if (rows.length > 0) {
+      const admin = await verifySessionToken(req.cookies.get(COOKIE_NAME)?.value);
+      if (admin) {
+        await logAction({ usuario: admin, ip: getClientIp(req), accion: `referido ${rows[0].nombre} ${rows[0].apellidos} eliminado` });
+      }
+    }
+
     return NextResponse.json({ ok: true });
   } catch (err) {
     const { message, status } = friendlyDbError(err);

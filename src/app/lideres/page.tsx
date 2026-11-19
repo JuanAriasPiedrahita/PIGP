@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useCallback, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCatalogos } from "@/hooks/useCatalogos";
 import { apiGet, apiDelete } from "@/lib/api";
 import type { Atributos, Lider } from "@/lib/types";
@@ -12,7 +12,11 @@ import { Checkbox } from "@/components/ui/FormControls";
 import { AtributosCheckboxes, DEFAULT_ATRIBUTOS } from "@/components/shared/AtributosCheckboxes";
 import { useToast } from "@/components/ui/Toast";
 
+const SESSION_KEY = "pigp:lideres:envio-correo";
+const DEFAULT_PAGE_SIZE = Number(process.env.NEXT_PUBLIC_LIDERES_PAGE_SIZE) || 15;
+
 function LideresContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const catalogos = useCatalogos();
   const toast = useToast();
@@ -29,6 +33,9 @@ function LideresContent() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | undefined>(undefined);
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
 
   useEffect(() => {
     const liderId = searchParams.get("lider_id");
@@ -54,6 +61,8 @@ function LideresContent() {
       const url = `/api/lideres${params.toString() ? `?${params}` : ""}`;
       const data = await apiGet<Lider[]>(url);
       setLideres(data);
+      setSelectedIds(new Set());
+      setPage(1);
     } catch (err) {
       toast.show(err instanceof Error ? err.message : "Error cargando líderes", "error");
     } finally {
@@ -94,6 +103,41 @@ function LideresContent() {
     }
   }
 
+  function toggleSelect(id: number) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleSelectAll() {
+    setSelectedIds((prev) => {
+      const todosSeleccionados = paginaLideres.length > 0 && paginaLideres.every((l) => prev.has(l.id));
+      const next = new Set(prev);
+      if (todosSeleccionados) {
+        paginaLideres.forEach((l) => next.delete(l.id));
+      } else {
+        paginaLideres.forEach((l) => next.add(l.id));
+      }
+      return next;
+    });
+  }
+
+  function handlePageSizeChange(value: number) {
+    setPageSize(value > 0 ? value : 1);
+    setPage(1);
+  }
+
+  function irAEnviarCorreo() {
+    const seleccionados = lideres
+      .filter((l) => selectedIds.has(l.id))
+      .map((l) => ({ id: l.id, nombre: l.nombre, apellidos: l.apellidos, email: l.email }));
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(seleccionados));
+    router.push("/lideres/enviar-correo");
+  }
+
   function limpiarFiltros() {
     setSearch("");
     setComunaFilter("");
@@ -118,6 +162,10 @@ function LideresContent() {
     !!search || !!comunaFilter || !!barrioFilter || !!puestoFilter || contratistaFilter ||
     Object.values(atributosFilter).some(Boolean);
 
+  const totalPages = Math.max(1, Math.ceil(lideres.length / pageSize));
+  const paginaActual = Math.min(page, totalPages);
+  const paginaLideres = lideres.slice((paginaActual - 1) * pageSize, paginaActual * pageSize);
+
   return (
     <div className="space-y-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -125,12 +173,22 @@ function LideresContent() {
           <h2 className="text-xl font-semibold text-slate-900">Líderes</h2>
           <p className="text-sm text-slate-500">Administre el listado de líderes de la campaña.</p>
         </div>
-        <button className="btn-primary" onClick={openCreate}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18">
-            <path d="M12 5v14M5 12h14" strokeLinecap="round" />
-          </svg>
-          Nuevo líder
-        </button>
+        <div className="flex gap-2">
+          {selectedIds.size > 0 && (
+            <button className="btn-secondary" onClick={irAEnviarCorreo}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18">
+                <path d="M3 6l9 6 9-6M4 6h16v12H4V6z" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              Enviar correo ({selectedIds.size})
+            </button>
+          )}
+          <button className="btn-primary" onClick={openCreate}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18">
+              <path d="M12 5v14M5 12h14" strokeLinecap="round" />
+            </svg>
+            Nuevo líder
+          </button>
+        </div>
       </div>
 
       <div className="card space-y-4 p-4">
@@ -180,7 +238,73 @@ function LideresContent() {
             {[1, 2, 3].map((i) => <div key={i} className="h-12 animate-pulse rounded-lg bg-slate-100" />)}
           </div>
         ) : (
-          <LiderTable lideres={lideres} onEdit={openEdit} onDelete={setDeleteId} />
+          <LiderTable
+            lideres={paginaLideres}
+            onEdit={openEdit}
+            onDelete={setDeleteId}
+            selectedIds={selectedIds}
+            onToggleSelect={toggleSelect}
+            onToggleSelectAll={toggleSelectAll}
+          />
+        )}
+
+        {!loading && lideres.length > 0 && (
+          <div className="flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-1">
+              <button
+                className="btn-ghost !px-2 !py-1.5"
+                onClick={() => setPage(1)}
+                disabled={paginaActual <= 1}
+                aria-label="Primera página"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
+                  <path d="M18 17l-5-5 5-5M11 17l-5-5 5-5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+              <button
+                className="btn-ghost !px-2 !py-1.5"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={paginaActual <= 1}
+                aria-label="Página anterior"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
+                  <path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+              <span className="px-2 text-sm text-slate-500">Página {paginaActual} de {totalPages}</span>
+              <button
+                className="btn-ghost !px-2 !py-1.5"
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={paginaActual >= totalPages}
+                aria-label="Página siguiente"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
+                  <path d="M9 18l6-6-6-6" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+              <button
+                className="btn-ghost !px-2 !py-1.5"
+                onClick={() => setPage(totalPages)}
+                disabled={paginaActual >= totalPages}
+                aria-label="Última página"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
+                  <path d="M6 17l5-5-5-5M13 17l5-5-5-5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            </div>
+
+            <label className="flex items-center gap-2 text-sm text-slate-500">
+              Registros por página
+              <input
+                type="number"
+                min={1}
+                value={pageSize}
+                onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+                className="field-input w-20"
+              />
+            </label>
+          </div>
         )}
       </div>
 

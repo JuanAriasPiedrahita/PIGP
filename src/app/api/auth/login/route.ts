@@ -7,6 +7,7 @@ import type { RowDataPacket } from "mysql2";
 import { createSessionToken, COOKIE_NAME, SESSION_HOURS } from "@/lib/session";
 import { createLiderSessionToken, LIDER_COOKIE_NAME, LIDER_SESSION_HOURS } from "@/lib/liderSession";
 import { cookieSecure } from "@/lib/crypto";
+import { getClientIp, logAccess } from "@/lib/accessLog";
 
 const USERS_FILE = path.join(process.cwd(), "users.txt");
 
@@ -44,14 +45,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Usuario y clave son obligatorios" }, { status: 400 });
     }
     const usuarioTrim = String(usuario).trim();
+    const ip = getClientIp(req);
+    const userAgent = req.headers.get("user-agent") || "desconocido";
 
     // 1) ¿Usuario del panel de administración (users.txt)?
     const users = await loadUsers();
     const claveEsperada = users.get(usuarioTrim);
     if (claveEsperada !== undefined) {
       if (claveEsperada !== clave) {
+        await logAccess({ usuario: usuarioTrim, ip, userAgent, resultado: "FALLIDO" });
         return NextResponse.json({ error: "Usuario o clave incorrectos" }, { status: 401 });
       }
+      await logAccess({ usuario: usuarioTrim, ip, userAgent, resultado: "OK" });
       const token = await createSessionToken(usuarioTrim);
       const res = NextResponse.json({ ok: true, tipo: "admin", usuario: usuarioTrim, redirect: "/" });
       res.cookies.set(COOKIE_NAME, token, {
@@ -73,8 +78,10 @@ export async function POST(req: NextRequest) {
     const claveGuardada = lider ? decryptClave(lider.clave) : null;
     const ok = claveGuardada !== null && claveGuardada === clave;
     if (!lider || !ok) {
+      await logAccess({ usuario: usuarioTrim, ip, userAgent, resultado: "FALLIDO" });
       return NextResponse.json({ error: "Usuario o clave incorrectos" }, { status: 401 });
     }
+    await logAccess({ usuario: usuarioTrim, ip, userAgent, resultado: "OK" });
 
     const nombreCompleto = `${lider.nombre} ${lider.apellidos}`;
     const token = await createLiderSessionToken({

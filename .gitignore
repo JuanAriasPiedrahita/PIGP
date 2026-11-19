@@ -28,6 +28,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# log de accesos (usuarios, IPs, navegadores de usuarios reales: no versionar)
+access.log
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
