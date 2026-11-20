@@ -30,10 +30,7 @@ export function PlantillasManager() {
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-slate-500">
-        Plantillas de correo usadas por el sistema. El placeholder <code>$nombre</code> se reemplaza por el
-        nombre del destinatario.
-      </p>
+      <p className="text-sm text-slate-500">Plantillas de correo usadas por el sistema.</p>
       <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200">
         {PLANTILLAS.map((p) => (
           <li
