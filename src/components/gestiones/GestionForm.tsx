@@ -28,6 +28,7 @@ export function GestionForm({ referidoId, gestionId, tiposAyuda, gestores, onSav
   const [fechaLimite, setFechaLimite] = useState("");
   const [observaciones, setObservaciones] = useState("");
   const [estado, setEstado] = useState<EstadoGestion>("PENDIENTE");
+  const [enviarCorreo, setEnviarCorreo] = useState(true);
   const [costo, setCosto] = useState("");
   const [fechaResolucion, setFechaResolucion] = useState<string | null>(null);
   const [fotosExistentes, setFotosExistentes] = useState<string[]>([]);
@@ -84,6 +85,7 @@ export function GestionForm({ referidoId, gestionId, tiposAyuda, gestores, onSav
       fd.set("costo", resuelto ? costo : "");
       fd.set("fotos_existentes", JSON.stringify(fotosExistentes));
       fotosNuevas.forEach((f) => fd.append("fotos", f));
+      if (!gestionId) fd.set("enviar_correo", String(enviarCorreo));
 
       if (gestionId) {
         await apiPutForm(`/api/gestiones/${gestionId}`, fd);
@@ -156,6 +158,18 @@ export function GestionForm({ referidoId, gestionId, tiposAyuda, gestores, onSav
         onChange={(v) => setEstado(v as EstadoGestion)}
         options={ESTADO_OPTIONS}
       />
+
+      {!gestionId && (
+        <label className="flex items-center gap-2 text-sm text-slate-700">
+          <input
+            type="checkbox"
+            checked={enviarCorreo}
+            onChange={(e) => setEnviarCorreo(e.target.checked)}
+            className="h-4 w-4 rounded border-slate-300"
+          />
+          Enviar correo al gestor
+        </label>
+      )}
 
       <div className="grid grid-cols-1 gap-4 rounded-lg bg-slate-50 p-4 sm:grid-cols-2">
         <div>

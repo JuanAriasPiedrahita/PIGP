@@ -14,6 +14,8 @@ const PLANTILLAS = [
       ["$ayuda", "descripción del tipo de ayuda"],
       ["$fecha", "fecha límite de la gestión"],
       ["$observaciones", "observaciones registradas"],
+      ["$referido", "nombre completo del referido que requiere la gestión"],
+      ["$telefono", "celular del referido"],
     ] as [string, string][],
   },
 ] as const;

@@ -45,6 +45,7 @@ export async function POST(req: NextRequest) {
     const observaciones = String(form.get("observaciones") || "").trim();
     const estado = String(form.get("estado") || "PENDIENTE");
     const costoRaw = String(form.get("costo") || "").trim();
+    const enviarCorreo = form.get("enviar_correo") !== "false";
 
     const errors: Record<string, string> = {};
     if (!referido_id) errors.referido_id = "Falta el referido";
@@ -75,12 +76,15 @@ export async function POST(req: NextRequest) {
       [referido_id, tipo_ayuda_id, gestor_id, fecha_limite, observaciones || null, estado, costo, fechaResolucion, fotos ? JSON.stringify(fotos) : null]
     );
 
-    await notificarGestorNuevaGestion({
-      gestorId: Number(gestor_id),
-      tipoAyudaId: Number(tipo_ayuda_id),
-      fechaLimite: fecha_limite,
-      observaciones,
-    });
+    if (enviarCorreo) {
+      await notificarGestorNuevaGestion({
+        gestorId: Number(gestor_id),
+        tipoAyudaId: Number(tipo_ayuda_id),
+        referidoId: Number(referido_id),
+        fechaLimite: fecha_limite,
+        observaciones,
+      });
+    }
 
     return NextResponse.json({ id: result.insertId }, { status: 201 });
   } catch (err) {
@@ -92,12 +96,13 @@ export async function POST(req: NextRequest) {
 interface NotificarGestorParams {
   gestorId: number;
   tipoAyudaId: number;
+  referidoId: number;
   fechaLimite: string;
   observaciones: string;
 }
 
 /** Envía al gestor responsable el correo de "gestión nueva"; nunca bloquea ni falla la creación de la gestión. */
-async function notificarGestorNuevaGestion({ gestorId, tipoAyudaId, fechaLimite, observaciones }: NotificarGestorParams): Promise<void> {
+async function notificarGestorNuevaGestion({ gestorId, tipoAyudaId, referidoId, fechaLimite, observaciones }: NotificarGestorParams): Promise<void> {
   try {
     const [gestorRows] = await pool.query<RowDataPacket[]>("SELECT nombre, email FROM gestores WHERE id = ?", [gestorId]);
     const gestor = gestorRows[0];
@@ -107,6 +112,8 @@ async function notificarGestorNuevaGestion({ gestorId, tipoAyudaId, fechaLimite,
     if (!plantilla.trim()) return;
 
     const [tipoRows] = await pool.query<RowDataPacket[]>("SELECT descripcion FROM tipos_ayuda WHERE id = ?", [tipoAyudaId]);
+    const [referidoRows] = await pool.query<RowDataPacket[]>("SELECT nombre, apellidos, celular FROM referidos WHERE id = ?", [referidoId]);
+    const referido = referidoRows[0];
 
     const asunto = process.env.PLANTILLA_GESTION_NUEVA_ASUNTO?.trim() || "Nueva gestión asignada";
     const cuerpo = reemplazarPlaceholdersPlantilla(plantilla, {
@@ -114,6 +121,8 @@ async function notificarGestorNuevaGestion({ gestorId, tipoAyudaId, fechaLimite,
       ayuda: tipoRows[0]?.descripcion || "",
       fecha: fechaLimite.slice(0, 10),
       observaciones: observaciones || "",
+      referido: referido ? `${referido.nombre} ${referido.apellidos}` : "",
+      telefono: referido?.celular || "",
     });
     await sendMail(gestor.email, asunto, cuerpo);
   } catch (err) {

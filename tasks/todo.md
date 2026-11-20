@@ -575,3 +575,57 @@ Validación hecha:
 - `npx tsc --noEmit` y `npx next build` sin errores.
 
 No se subió nada a GitHub ni se desplegó a producción, según lo pedido.
+
+---
+
+# Placeholders $referido/$telefono + checkbox "Enviar correo al gestor"
+
+## Contexto
+- Agregar `$referido` (nombre completo del referido que requiere la
+  gestión) y `$telefono` (celular del referido) a los placeholders de la
+  plantilla "Gestiones nuevas".
+- En el formulario de **crear** gestión (`GestionForm.tsx`), agregar un
+  checkbox "Enviar correo al gestor", marcado por defecto, que decide si
+  se dispara o no la notificación al crear. Solo aplica a creación (no a
+  edición, ya que el correo nunca se envía al editar).
+
+## Plan
+- [x] `src/app/api/gestiones/route.ts`: en `POST`, leer
+      `enviar_correo` del formulario (`!== "false"` ⇒ por defecto `true`
+      si no viene); si es `false`, no llamar a
+      `notificarGestorNuevaGestion`. Agregar `referidoId` a los parámetros
+      de esa función, consultar `nombre, apellidos, celular` de
+      `referidos` y armar `$referido` (`"${nombre} ${apellidos}"`) y
+      `$telefono` (`celular`).
+- [x] `src/components/catalogos/PlantillasManager.tsx`: agregar
+      `$referido` y `$telefono` a la lista de `placeholders` de
+      "Gestiones nuevas".
+- [x] `src/components/gestiones/GestionForm.tsx`: estado
+      `enviarCorreo` (default `true`); checkbox "Enviar correo al gestor"
+      visible solo cuando `!gestionId` (creación); al enviar el form,
+      incluir `fd.set("enviar_correo", String(enviarCorreo))` solo en ese
+      caso.
+- [x] Verificar `npx tsc --noEmit` y `npx next build`.
+
+## Fuera de alcance (por ahora)
+- No se sube a GitHub ni se despliega a producción hasta aprobación
+  explícita.
+
+## Revisión
+
+Cambios realizados:
+- `src/app/api/gestiones/route.ts`: `POST` lee `enviar_correo` del form
+  (default `true`) y omite la notificación si viene `"false"`.
+  `notificarGestorNuevaGestion` ahora también recibe `referidoId`,
+  consulta `nombre, apellidos, celular` de `referidos` y agrega
+  `$referido` y `$telefono` al mapa de placeholders.
+- `src/components/catalogos/PlantillasManager.tsx`: `$referido` y
+  `$telefono` agregados a la tabla de ayuda de "Gestiones nuevas".
+- `src/components/gestiones/GestionForm.tsx`: checkbox "Enviar correo al
+  gestor" (default marcado), visible solo al crear una gestión nueva (no
+  al editar); su valor se envía como `enviar_correo` en el form.
+
+Validación hecha:
+- `npx tsc --noEmit` y `npx next build` sin errores.
+
+No se subió nada a GitHub ni se desplegó a producción, según lo pedido.
