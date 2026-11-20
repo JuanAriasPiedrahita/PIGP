@@ -1,0 +1,27 @@
+import { readFile, writeFile, mkdir } from "fs/promises";
+import path from "path";
+
+function resolvePlantillaFile(envVar: string, defaultPath: string): string {
+  const configurado = process.env[envVar]?.trim() || defaultPath;
+  return path.isAbsolute(configurado) ? configurado : path.join(process.cwd(), configurado);
+}
+
+/** Lee el contenido de una plantilla de correo (texto plano). Si el archivo no existe aún, devuelve "". */
+export async function leerPlantilla(envVar: string, defaultPath: string): Promise<string> {
+  try {
+    return await readFile(resolvePlantillaFile(envVar, defaultPath), "utf-8");
+  } catch {
+    return "";
+  }
+}
+
+export async function guardarPlantilla(envVar: string, defaultPath: string, contenido: string): Promise<void> {
+  const archivo = resolvePlantillaFile(envVar, defaultPath);
+  await mkdir(path.dirname(archivo), { recursive: true });
+  await writeFile(archivo, contenido, "utf-8");
+}
+
+/** Reemplaza "$nombre" en una plantilla por el nombre del gestor destinatario. */
+export function reemplazarPlaceholdersGestor(texto: string, nombre: string): string {
+  return texto.replace(/\$nombre\b/gi, nombre);
+}

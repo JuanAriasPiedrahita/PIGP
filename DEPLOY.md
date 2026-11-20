@@ -296,6 +296,11 @@ chmod -R 777 ~/pigp_uploads   # mismo tema de permisos que el punto 4
 touch ~/pigp_access.log
 chmod 666 ~/pigp_access.log   # mismo tema de permisos que el punto 4 (lo escribe el usuario "nextjs", uid 1001)
 
+# 6.2) Plantillas de correo (editables desde Configuración > Plantillas):
+#      se montan como carpeta para que sobrevivan a un recreate.
+mkdir -p ~/pigp_plantillas
+chmod -R 777 ~/pigp_plantillas   # mismo tema de permisos que el punto 4
+
 # 7) Levantar el contenedor en la misma red que el de MySQL
 docker run -d --name pigp --network lan1 \
   --env-file ~/pigp.env \
@@ -303,6 +308,7 @@ docker run -d --name pigp --network lan1 \
   -v ~/pigp_uploads:/app/public/uploads \
   -v ~/pigp_users.txt:/app/users.txt:ro \
   -v ~/pigp_access.log:/app/access.log \
+  -v ~/pigp_plantillas:/app/plantillas \
   --restart unless-stopped \
   pigp:latest
 ```
@@ -310,8 +316,8 @@ docker run -d --name pigp --network lan1 \
 **Para actualizar** esta variante Docker después de un cambio: `git pull`
 dentro de `~/pigp`, `docker build -t pigp:latest .` de nuevo, y
 `docker rm -f pigp` + repetir el `docker run` del paso 7 (los datos de
-`pigp.env`, `pigp_users.txt`, `pigp_uploads/` y `pigp_access.log` quedan
-intactos porque viven fuera de la imagen).
+`pigp.env`, `pigp_users.txt`, `pigp_uploads/`, `pigp_access.log` y
+`pigp_plantillas/` quedan intactos porque viven fuera de la imagen).
 
 **Para ver el log de accesos/acciones** desde el host, sin entrar al
 contenedor: `cat ~/pigp_access.log` (o `tail -f ~/pigp_access.log` para

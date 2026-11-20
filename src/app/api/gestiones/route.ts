@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import pool, { friendlyDbError, parseJsonArrayColumn } from "@/lib/db";
 import type { RowDataPacket, ResultSetHeader } from "mysql2";
 import { saveImage } from "@/lib/upload";
+import { sendMail } from "@/lib/mailer";
+import { leerPlantilla, reemplazarPlaceholdersGestor } from "@/lib/plantillas";
+import { isValidEmail } from "@/lib/validations";
 
 const LIST_SQL = `
   SELECT
@@ -72,9 +75,29 @@ export async function POST(req: NextRequest) {
       [referido_id, tipo_ayuda_id, gestor_id, fecha_limite, observaciones || null, estado, costo, fechaResolucion, fotos ? JSON.stringify(fotos) : null]
     );
 
+    await notificarGestorNuevaGestion(Number(gestor_id));
+
     return NextResponse.json({ id: result.insertId }, { status: 201 });
   } catch (err) {
     const { message, status } = friendlyDbError(err);
     return NextResponse.json({ error: message }, { status });
+  }
+}
+
+/** Envía al gestor responsable el correo de "gestión nueva"; nunca bloquea ni falla la creación de la gestión. */
+async function notificarGestorNuevaGestion(gestorId: number): Promise<void> {
+  try {
+    const [rows] = await pool.query<RowDataPacket[]>("SELECT nombre, email FROM gestores WHERE id = ?", [gestorId]);
+    const gestor = rows[0];
+    if (!gestor || !gestor.email || !isValidEmail(gestor.email)) return;
+
+    const plantilla = await leerPlantilla("PLANTILLA_GESTION_NUEVA_FILE", "plantillas/gestion_nueva.txt");
+    if (!plantilla.trim()) return;
+
+    const asunto = process.env.PLANTILLA_GESTION_NUEVA_ASUNTO?.trim() || "Nueva gestión asignada";
+    const cuerpo = reemplazarPlaceholdersGestor(plantilla, gestor.nombre);
+    await sendMail(gestor.email, asunto, cuerpo);
+  } catch (err) {
+    console.error("No se pudo enviar el correo de gestión nueva al gestor:", err);
   }
 }

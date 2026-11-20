@@ -31,6 +31,9 @@ yarn-error.log*
 # log de accesos (usuarios, IPs, navegadores de usuarios reales: no versionar)
 access.log
 
+# plantillas de correo (editables desde Configuración, contenido de producción)
+/plantillas/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

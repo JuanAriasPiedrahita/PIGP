@@ -408,3 +408,117 @@ Validación hecha:
   de prueba y revisando las líneas nuevas en `access.log`.
 
 No se subió nada a GitHub ni se desplegó a producción, según lo pedido.
+
+---
+
+# Plantilla de correo "Gestiones nuevas" + envío automático al crear gestión
+
+## Contexto
+Nueva pestaña "Plantillas" en Configuración, con una primera opción
+"Gestiones nuevas". Al crearse una gestión nueva (`POST /api/gestiones`),
+se envía un correo automático al gestor responsable (email de la tabla
+`gestores`) usando esa plantilla, con el placeholder `$nombre` resuelto al
+nombre del gestor. Se reutiliza el SMTP ya configurado (`src/lib/mailer.ts`).
+
+## Decisiones confirmadas
+- [x] El asunto del correo queda fijo en código, pero el texto es
+      configurable vía una variable de `.env` (ej.
+      `PLANTILLA_GESTION_NUEVA_ASUNTO=Nueva gestión asignada`); el archivo
+      de la plantilla es solo el cuerpo del mensaje.
+- [x] La plantilla se guarda como archivo de texto plano; la ruta del
+      archivo se define en `.env` (ej.
+      `PLANTILLA_GESTION_NUEVA_FILE=plantillas/gestion_nueva.txt`), mismo
+      patrón que `ACCESS_LOG_FILE`.
+- [x] La edición de la plantilla ocurre **dentro de la misma pestaña**
+      "Plantillas" (cambia el panel a un editor con textarea + Guardar/
+      Volver), igual al patrón de las demás pestañas de Configuración — no
+      es una página/URL aparte.
+- [x] Si el envío del correo falla (SMTP caído, gestor sin email, etc.), la
+      gestión se crea igual; el error solo se registra con
+      `console.error`, nunca bloquea ni se reporta en la respuesta al
+      usuario.
+
+## Plan
+- [x] `.env` / `.env.example`: agregar
+      `PLANTILLA_GESTION_NUEVA_FILE=plantillas/gestion_nueva.txt` y
+      `PLANTILLA_GESTION_NUEVA_ASUNTO=Nueva gestión asignada`.
+- [x] `.gitignore`: agregar `plantillas/` (contenido editable en
+      producción, no debe versionarse, igual que `users.txt`/`access.log`).
+- [x] Crear `src/lib/plantillas.ts`: `leerPlantilla(envVar, defaultPath)` /
+      `guardarPlantilla(...)` que leen/escriben el archivo de texto plano
+      (crean el directorio si no existe); si el archivo no existe aún,
+      devuelve `""` en la lectura.
+- [x] Endpoint `GET /api/plantillas/gestion-nueva` (devuelve
+      `{ contenido }`) y `PUT /api/plantillas/gestion-nueva` (recibe
+      `{ contenido }`, sobreescribe el archivo). Protegido por el
+      middleware de admin existente (no está bajo `/api/captura`).
+- [x] Reusar/extender `reemplazarPlaceholders` o una variante mínima para
+      soportar `$nombre` → nombre del gestor (sin reusar `LiderPlaceholderData`,
+      que no aplica aquí — función propia simple en `src/lib/plantillas.ts`
+      o inline en el endpoint de envío).
+- [x] En `src/app/configuracion/page.tsx`: agregar pestaña `{ key:
+      "plantillas", label: "Plantillas", kind: "plantillas" }` a `TABS`, y
+      renderizar un nuevo componente `PlantillasManager` cuando
+      `kind === "plantillas"`.
+- [x] Crear `src/components/catalogos/PlantillasManager.tsx`: lista con un
+      solo ítem "Gestiones nuevas"; al hacer click cambia el panel a un
+      editor (carga el contenido actual vía `GET`, textarea, botones
+      "Guardar" y "Volver"), con el Toast existente para confirmar guardado.
+- [x] En `src/app/api/gestiones/route.ts` (`POST`, tras el `INSERT`
+      exitoso): consultar `nombre, email` del `gestor_id` recién asignado;
+      si hay email válido, leer la plantilla, reemplazar `$nombre` y enviar
+      el correo con `sendMail` usando el asunto de
+      `PLANTILLA_GESTION_NUEVA_ASUNTO`. Nunca bloquea ni falla la respuesta
+      si el envío falla (try/catch con `console.error`).
+- [x] Verificar `npx tsc --noEmit` y `npx next build`. Probar en local:
+      editar la plantilla, crear una gestión de prueba con un gestor con
+      email real/propio y confirmar que llega el correo con `$nombre`
+      resuelto.
+
+## Fuera de alcance (por ahora)
+- No se agregan más plantillas aparte de "Gestiones nuevas" (la pestaña
+  queda preparada para agregar más después, pero hoy solo tiene una).
+- No se sube a GitHub ni se despliega a producción hasta aprobación
+  explícita (y, de desplegarse, habrá que agregar un volumen Docker para
+  `plantillas/` igual que se hizo con `access.log`, para que el archivo no
+  se pierda en cada deploy — se documentará en ese momento).
+
+## Revisión
+
+Cambios realizados:
+- `.env` / `.env.example`: nuevas variables `PLANTILLA_GESTION_NUEVA_FILE`
+  y `PLANTILLA_GESTION_NUEVA_ASUNTO`.
+- `.gitignore`: se agregó `/plantillas/` (contenido editable en
+  producción, no se versiona).
+- `src/lib/plantillas.ts` (nuevo): `leerPlantilla`/`guardarPlantilla`
+  (archivo de texto plano, crean el directorio si falta) y
+  `reemplazarPlaceholdersGestor` (placeholder `$nombre`).
+- `src/app/api/plantillas/gestion-nueva/route.ts` (nuevo): `GET`/`PUT` de
+  la plantilla. Se marcó `export const dynamic = "force-dynamic"` porque
+  Next optimizaba el `GET` como ruta estática (cacheaba el contenido leído
+  al momento del build) — sin eso, los cambios guardados desde la UI no se
+  habrían reflejado en producción hasta el próximo build/redeploy.
+- `src/components/catalogos/PlantillasManager.tsx` (nuevo): lista con el
+  ítem "Gestiones nuevas"; al click cambia el panel a un editor
+  (textarea + Guardar/Volver), mismo patrón que el resto de Configuración.
+- `src/app/configuracion/page.tsx`: nueva pestaña "Plantillas".
+- `src/app/api/gestiones/route.ts` (`POST`): tras crear la gestión,
+  `notificarGestorNuevaGestion` consulta el email del gestor, lee la
+  plantilla, reemplaza `$nombre` y envía el correo con `sendMail`; si no
+  hay email válido, no hay plantilla guardada, o el envío falla, no
+  bloquea ni falla la respuesta (try/catch con `console.error`).
+
+Validación hecha:
+- `npx tsc --noEmit` y `npx next build` sin errores.
+- Prueba end-to-end en un servidor de prueba local (puerto 3002, aparte
+  del dev server del usuario): login como admin, guardar una plantilla de
+  prueba vía `PUT` y confirmar que el `GET` posterior la refleja (no
+  cacheada), crear un gestor y una gestión de prueba con el email del
+  usuario, y confirmar que no quedó ningún error en el log del servidor
+  tras el envío. Gestor y gestión de prueba se eliminaron después; el
+  archivo de plantilla de prueba también se borró.
+- Pendiente que el usuario confirme si el correo de prueba llegó
+  efectivamente a su bandeja (el código no reporta error, pero esa es la
+  confirmación final de extremo a extremo).
+
+No se subió nada a GitHub ni se desplegó a producción, según lo pedido.

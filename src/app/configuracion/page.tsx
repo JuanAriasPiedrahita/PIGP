@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { SimpleCatalogManager } from "@/components/catalogos/SimpleCatalogManager";
 import { GestoresManager } from "@/components/catalogos/GestoresManager";
+import { PlantillasManager } from "@/components/catalogos/PlantillasManager";
 
 const TABS = [
   { key: "profesiones", label: "Profesiones", kind: "simple", endpoint: "/api/profesiones", singular: "profesión", placeholder: "Ej: Ingeniero(a)", totalLabel: "Líderes", detalleTipo: "profesion" },
@@ -11,6 +12,7 @@ const TABS = [
   { key: "dependencias", label: "Dependencias", kind: "simple", endpoint: "/api/dependencias", singular: "dependencia", placeholder: "Ej: Secretaría de Gobierno", totalLabel: "Contratistas", detalleTipo: "dependencia" },
   { key: "tipos_ayuda", label: "Tipos de ayuda", kind: "simple", endpoint: "/api/tipos-ayuda", singular: "tipo de ayuda", placeholder: "Ej: Mercado", conGestiones: true },
   { key: "gestores", label: "Gestores", kind: "gestores" },
+  { key: "plantillas", label: "Plantillas", kind: "plantillas" },
 ] as const;
 
 export default function ConfiguracionPage() {
@@ -43,6 +45,8 @@ export default function ConfiguracionPage() {
       <div className="card p-5">
         {active.kind === "gestores" ? (
           <GestoresManager />
+        ) : active.kind === "plantillas" ? (
+          <PlantillasManager />
         ) : (
           <SimpleCatalogManager
             endpoint={active.endpoint}
