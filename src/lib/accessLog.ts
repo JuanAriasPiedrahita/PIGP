@@ -55,3 +55,21 @@ export async function logAction({ usuario, ip, accion }: LogActionParams): Promi
     console.error("No se pudo escribir el log de acciones:", err);
   }
 }
+
+interface LogCumpleanosParams {
+  nombre: string;
+  email: string;
+}
+
+/** Registra el envío de un correo de cumpleaños a un líder en el mismo log de accesos. */
+export async function logCumpleanosEnviado({ nombre, email }: LogCumpleanosParams): Promise<void> {
+  const ahora = new Date();
+  const fecha = ahora.toISOString().slice(0, 10);
+  const hora = ahora.toTimeString().slice(0, 8);
+  const linea = `${fecha}\t${hora}\t${nombre}\tCorreo cumpleaños lider\t${email}\n`;
+  try {
+    await appendFile(resolveLogFile(), linea, "utf-8");
+  } catch (err) {
+    console.error("No se pudo escribir el log de cumpleaños:", err);
+  }
+}

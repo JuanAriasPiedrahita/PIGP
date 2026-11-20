@@ -3,6 +3,7 @@ import type { RowDataPacket } from "mysql2";
 import { reemplazarPlaceholders, type LiderPlaceholderData } from "@/lib/emailPlaceholders";
 import { leerPlantilla } from "@/lib/plantillas";
 import { sendMail, getEmailDelayMs, waitEmailDelay } from "@/lib/mailer";
+import { logCumpleanosEnviado } from "@/lib/accessLog";
 
 const ENV_VAR = "PLANTILLA_CUMPLEANOS_LIDER_FILE";
 const DEFAULT_PATH = "plantillas/cumpleanos_lider.txt";
@@ -62,6 +63,7 @@ export async function enviarCumpleanosDeHoy(): Promise<void> {
       const cuerpo = reemplazarPlaceholders(plantilla, l);
       await sendMail(l.email as string, asunto, cuerpo);
       enviados++;
+      await logCumpleanosEnviado({ nombre: `${l.nombre} ${l.apellidos}`, email: l.email as string });
     } catch (err) {
       fallidos++;
       console.error(`Cumpleaños de líderes: no se pudo enviar a ${l.nombre} ${l.apellidos} (id ${l.id}):`, err);
