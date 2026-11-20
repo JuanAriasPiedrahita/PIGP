@@ -11,4 +11,6 @@ export async function register() {
     },
     { timezone: "America/Bogota" }
   );
+
+  console.log("Cron de cumpleaños de líderes registrado (6:00am hora Bogotá).");
 }

@@ -748,6 +748,51 @@ Validación hecha:
 
 No se subió nada a GitHub ni se desplegó a producción, según lo pedido.
 Nota para el despliegue: no hace falta un volumen Docker nuevo (la
-plantilla vive en la misma carpeta `plantillas/` ya montada), pero sí
-conviene confirmar en los logs de producción tras el despliegue que
-`instrumentation.ts` cargó sin errores (igual que se validó en local).
+plantilla vive en la misma carpeta `plantillas/` ya montada).
+
+## Corrección post-primer-despliegue (2026-11-20)
+
+El primer despliegue a producción (commit `671382c`) quedó arriba sin
+errores visibles, pero el agente de despliegue detectó algo importante al
+verificar explícitamente el cron (no solo "¿el contenedor está Up?"):
+**`instrumentation.ts` nunca se cargaba**, ni en ese despliegue ni, muy
+probablemente, en la prueba local previa al push.
+
+Causa raíz: en Next.js 14.2.35 el hook `instrumentation.ts` requiere el
+flag `experimental.instrumentationHook: true` en `next.config.mjs` — sin
+él, Next **ni siquiera busca el archivo**, en silencio, sin warning ni
+error. La prueba local anterior solo confirmó "arranca sin errores", lo
+cual es indistinguible de "el hook no se cargó" a simple vista — exactamente
+el tipo de falla silenciosa que había que vigilar.
+
+Al activar ese flag apareció un segundo problema: Next compila
+`instrumentation.ts` también para el runtime **edge** (por el
+`middleware.ts` existente), y ahí `node-cron`, `nodemailer` y `mysql2`
+(con sus imports `node:*`) rompen el build de edge — aunque ese código
+nunca se ejecuta en edge (está protegido por
+`if (process.env.NEXT_RUNTIME !== "nodejs") return`). Se corrigió
+agregando un `webpack()` en `next.config.mjs` que marca esos paquetes (y
+`fs`, `fs/promises`, `path`) como externos **solo para el build de edge**,
+para que webpack no intente analizar su código interno.
+
+Cambios adicionales:
+- `next.config.mjs`: `experimental.instrumentationHook: true` +
+  función `webpack()` con los externals de edge descritos arriba.
+- `src/instrumentation.ts`: agregado un `console.log` permanente al
+  registrar el cron ("Cron de cumpleaños de líderes registrado..."), para
+  que quede visible en los logs de arranque (en producción y en cualquier
+  entorno) que el hook sí cargó — en vez de depender de "no hubo errores".
+
+Validación repetida con más rigor esta vez:
+- `npx tsc --noEmit` y `npx next build` sin errores.
+- Confirmé en `.next/standalone/.next/server/` que ahora sí se generan
+  `instrumentation.js` y `edge-instrumentation.js`.
+- Arranqué el entrypoint **standalone real** (`node .next/standalone/server.js`)
+  y esta vez sí apareció el log `"Cron de cumpleaños de líderes
+  registrado (6:00am hora Bogotá)."` en el arranque — confirmando que el
+  hook se ejecuta de verdad, no solo que no hay errores.
+- Verifiqué que la app sigue respondiendo normal (`/login`,
+  `/api/auth/login`) con el nuevo `webpack()` en su lugar.
+
+Pendiente: subir este fix y volver a desplegar, esta vez pidiendo
+explícitamente confirmar el log de registro del cron en producción.
