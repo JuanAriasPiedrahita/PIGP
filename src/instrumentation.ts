@@ -15,7 +15,7 @@ export async function register() {
   console.log("Cron de cumpleaños de líderes registrado (6:00am hora Bogotá).");
 
   cron.schedule(
-    "0 6 * * *",
+    "30 6 * * *",
     () => {
       enviarVencimientosDeHoy().catch((err) => console.error("Error en el cron de vencimiento de gestiones:", err));
     },
