@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { apiGet, apiPutJson } from "@/lib/api";
 import { useToast } from "@/components/ui/Toast";
+import { LIDER_PLACEHOLDERS } from "@/lib/emailPlaceholders";
 
 const PLANTILLAS = [
   {
@@ -17,6 +18,12 @@ const PLANTILLAS = [
       ["$referido", "nombre completo del referido que requiere la gestión"],
       ["$telefono", "celular del referido"],
     ] as [string, string][],
+  },
+  {
+    key: "cumpleanos-lider",
+    label: "Cumpleaños Líderes",
+    endpoint: "/api/plantillas/cumpleanos-lider",
+    placeholders: LIDER_PLACEHOLDERS,
   },
 ] as const;
 

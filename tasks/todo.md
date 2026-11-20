@@ -629,3 +629,125 @@ Validación hecha:
 - `npx tsc --noEmit` y `npx next build` sin errores.
 
 No se subió nada a GitHub ni se desplegó a producción, según lo pedido.
+
+---
+
+# Cumpleaños de líderes: plantilla + envío automático diario (cron en proceso)
+
+## Contexto
+Revisar diariamente la lista de líderes y, a quien cumpla años ese día,
+enviarle un correo de felicitación usando una plantilla nueva
+"Cumpleaños Líderes" en Configuración > Plantillas — mismo patrón que
+"Gestiones nuevas" (archivo de texto plano, ruta y asunto configurables
+en `.env`), pero con los placeholders de **líderes** (los mismos de
+"Redactar Email a Líderes": `$nombre`, `$apellido`, `$o`, `$a`, `$sexo`,
+`$genero`, `$direccion`, `$barrio`, `$comuna`, `$puesto`, `$email`,
+`$telefono`).
+
+El envío se dispara con un **scheduler dentro del mismo proceso Node**
+(hook `instrumentation.ts` de Next.js + librería `node-cron`), sin tocar
+el Dockerfile ni agregar procesos/volúmenes nuevos — la plantilla vive en
+la misma carpeta `plantillas/` que ya está montada como volumen en
+producción.
+
+## Decisiones (confirmadas)
+- [x] Hora de envío: **6:00 am hora Bogotá** todos los días
+      (`node-cron` con `timezone: "America/Bogota"`, para no depender de
+      la zona horaria del contenedor).
+- [x] Solo líderes con `estado = 'ACTIVO'` y con email registrado.
+- [x] NO se excluyen los líderes con año de nacimiento "centinela"
+      (`SENTINEL_BIRTH_YEAR`): aunque no se les calcula edad, sí se conoce
+      el mes/día de nacimiento, así que también reciben el saludo.
+- [x] El día de hoy se calcula en hora Bogotá (no con `CURDATE()` de
+      MySQL, para evitar desalinear el día si el servidor de BD está en
+      otra zona horaria).
+- [x] Un error al enviar a un líder puntual no detiene el resto del lote
+      (try/catch por líder, como ya hace `enviar-correo`); se usa el mismo
+      `EMAIL_DELAY_MS` entre envíos.
+
+## Plan
+- [x] `package.json`: agregar `node-cron` (v4.6.0, trae sus propios tipos —
+      no hizo falta `@types/node-cron`).
+- [x] `.env` / `.env.example`: agregar
+      `PLANTILLA_CUMPLEANOS_LIDER_FILE=plantillas/cumpleanos_lider.txt` y
+      `PLANTILLA_CUMPLEANOS_LIDER_ASUNTO=¡Feliz cumpleaños!`.
+- [x] `src/lib/emailPlaceholders.ts`: extraer la lista de placeholders de
+      líder (hoy definida inline en `enviar-correo/page.tsx`) a una
+      constante exportada `LIDER_PLACEHOLDERS: [string, string][]`, y usarla
+      desde esa página (sin duplicar la lista).
+- [x] Endpoint `GET`/`PUT /api/plantillas/cumpleanos-lider` — mismo patrón
+      que `gestion-nueva/route.ts` (`force-dynamic`, lee/escribe con
+      `leerPlantilla`/`guardarPlantilla`).
+- [x] `src/components/catalogos/PlantillasManager.tsx`: agregar la entrada
+      "Cumpleaños Líderes" a `PLANTILLAS`, usando `LIDER_PLACEHOLDERS`
+      como su lista de placeholders.
+- [x] Crear `src/lib/cumpleanosLideres.ts`: función
+      `enviarCumpleanosDeHoy()` que calcula mes/día de hoy en
+      `America/Bogota`, consulta líderes activos (`estado = 'ACTIVO'`) con
+      ese mes/día de nacimiento (sin excluir el año centinela) y con email
+      válido (mismo join barrio/comuna/puesto que `enviar-correo/route.ts`),
+      lee la plantilla, y envía el correo a cada uno con
+      `reemplazarPlaceholders` + `sendMail`, con el mismo manejo de
+      error/delay que el envío masivo existente. Loguea un resumen
+      (enviados/fallidos) con `console.log`/`console.error` al terminar.
+- [x] Crear `src/instrumentation.ts`: función `register()` que registra
+      el cron diario (`node-cron`, `0 6 * * *`, timezone Bogotá) llamando a
+      `enviarCumpleanosDeHoy()`.
+- [x] Verificar `npx tsc --noEmit` y `npx next build`. Probar en local
+      forzando la fecha de nacimiento de un líder de prueba a la fecha de
+      hoy y llamando `enviarCumpleanosDeHoy()` directamente (sin esperar al
+      cron) para confirmar que el correo llega.
+
+## Fuera de alcance (por ahora)
+- No hay UI para ver histórico de envíos de cumpleaños ni para
+  activar/desactivar el job — si se necesita después, se agrega aparte.
+- No se sube a GitHub ni se despliega a producción hasta aprobación
+  explícita.
+
+## Revisión
+
+Cambios realizados:
+- `package.json`: nueva dependencia `node-cron@4.6.0`.
+- `.env` / `.env.example`: `PLANTILLA_CUMPLEANOS_LIDER_FILE` y
+  `PLANTILLA_CUMPLEANOS_LIDER_ASUNTO`.
+- `src/lib/emailPlaceholders.ts`: nueva constante exportada
+  `LIDER_PLACEHOLDERS` (los 12 placeholders de líder); 
+  `src/app/lideres/enviar-correo/page.tsx` ahora la importa en vez de
+  declarar su propia copia.
+- `src/app/api/plantillas/cumpleanos-lider/route.ts` (nuevo): `GET`/`PUT`
+  de la plantilla, mismo patrón que `gestion-nueva`.
+- `src/components/catalogos/PlantillasManager.tsx`: nueva entrada
+  "Cumpleaños Líderes" usando `LIDER_PLACEHOLDERS`.
+- `src/lib/cumpleanosLideres.ts` (nuevo): `enviarCumpleanosDeHoy()` —
+  calcula el día de hoy en hora Bogotá con `Intl.DateTimeFormat`, consulta
+  líderes `ACTIVO` con email y ese mes/día de nacimiento (sin excluir año
+  centinela), y envía el correo uno a uno con el mismo manejo de
+  error/delay que el envío masivo de líderes.
+- `src/instrumentation.ts` (nuevo): registra el cron diario a las 6:00am
+  hora Bogotá (`node-cron`, import dinámico para no cargarlo si el
+  runtime no es Node.js, p.ej. Edge).
+
+Validación hecha:
+- `npx tsc --noEmit` y `npx next build` sin errores.
+- Confirmé que `node-cron` carga sin errores arrancando el server
+  **standalone real** (`node .next/standalone/server.js`, el mismo
+  entrypoint que usa el Dockerfile) — `next start` normal no sirve para
+  esto porque no usa el modo standalone y lo advierte explícitamente.
+- Prueba funcional end-to-end en un servidor de desarrollo local (puerto
+  3002, aparte del dev server del usuario): guardé una plantilla de
+  prueba, cambié temporalmente la fecha de nacimiento de un líder de
+  prueba existente (con el email del usuario) a la fecha de hoy, agregué
+  un endpoint de depuración temporal que llama
+  `enviarCumpleanosDeHoy()` directamente (sin esperar al cron), confirmé
+  en el log del servidor `"1 enviado(s), 0 fallido(s)"`, y luego restauré
+  la fecha de nacimiento original del líder y borré el endpoint de
+  depuración y el archivo de plantilla de prueba (no quedó nada de la
+  prueba en el repo).
+- Pendiente que el usuario confirme si el correo de prueba llegó
+  efectivamente a su bandeja.
+
+No se subió nada a GitHub ni se desplegó a producción, según lo pedido.
+Nota para el despliegue: no hace falta un volumen Docker nuevo (la
+plantilla vive en la misma carpeta `plantillas/` ya montada), pero sí
+conviene confirmar en los logs de producción tras el despliegue que
+`instrumentation.ts` cargó sin errores (igual que se validó en local).

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiPostJson } from "@/lib/api";
 import { useToast } from "@/components/ui/Toast";
+import { LIDER_PLACEHOLDERS } from "@/lib/emailPlaceholders";
 
 interface DestinatarioPreview {
   id: number;
@@ -20,21 +21,6 @@ interface EnvioResultado {
 }
 
 const SESSION_KEY = "pigp:lideres:envio-correo";
-
-const PLACEHOLDERS: [string, string][] = [
-  ["$nombre", "nombre"],
-  ["$apellido", "apellido"],
-  ["$o", '"o" (masc.) / "a" (fem.) — ej: estimad$o'],
-  ["$a", '"" (masc.) / "a" (fem.) — ej: señor$a'],
-  ["$sexo", "hombre / mujer"],
-  ["$genero", "masculino / femenino"],
-  ["$direccion", "dirección"],
-  ["$barrio", "barrio"],
-  ["$comuna", "comuna"],
-  ["$puesto", "puesto de votación"],
-  ["$email", "email"],
-  ["$telefono", "celular"],
-];
 
 export default function EnviarCorreoPage() {
   const router = useRouter();
@@ -125,7 +111,7 @@ export default function EnviarCorreoPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {PLACEHOLDERS.map(([ph, desc]) => (
+              {LIDER_PLACEHOLDERS.map(([ph, desc]) => (
                 <tr key={ph}>
                   <td className="px-5 py-2">
                     <code className="text-brand-700">{ph}</code>

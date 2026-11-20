@@ -1,5 +1,20 @@
 import type { Sexo } from "@/lib/types";
 
+export const LIDER_PLACEHOLDERS: [string, string][] = [
+  ["$nombre", "nombre"],
+  ["$apellido", "apellido"],
+  ["$o", '"o" (masc.) / "a" (fem.) — ej: estimad$o'],
+  ["$a", '"" (masc.) / "a" (fem.) — ej: señor$a'],
+  ["$sexo", "hombre / mujer"],
+  ["$genero", "masculino / femenino"],
+  ["$direccion", "dirección"],
+  ["$barrio", "barrio"],
+  ["$comuna", "comuna"],
+  ["$puesto", "puesto de votación"],
+  ["$email", "email"],
+  ["$telefono", "celular"],
+];
+
 export interface LiderPlaceholderData {
   nombre: string;
   apellidos: string;
