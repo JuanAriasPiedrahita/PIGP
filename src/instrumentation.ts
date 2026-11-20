@@ -21,5 +21,5 @@ export async function register() {
     },
     { timezone: "America/Bogota" }
   );
-  console.log("Cron de vencimiento de gestiones registrado (6:00am hora Bogotá).");
+  console.log("Cron de vencimiento de gestiones registrado (6:30am hora Bogotá).");
 }
