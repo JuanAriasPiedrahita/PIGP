@@ -522,3 +522,56 @@ Validación hecha:
   confirmación final de extremo a extremo).
 
 No se subió nada a GitHub ni se desplegó a producción, según lo pedido.
+
+---
+
+# Más placeholders en la plantilla "Gestiones nuevas"
+
+## Contexto
+Además de `$nombre`, la plantilla de correo al gestor debe soportar:
+- `$ayuda`: descripción del tipo de ayuda seleccionado.
+- `$fecha`: la fecha límite definida.
+- `$observaciones`: el texto de observaciones de la gestión.
+
+También agregar en el editor de la plantilla una ayuda "Placeholders
+disponibles", igual a la de `/lideres/enviar-correo` (tabla colapsable con
+placeholder + descripción).
+
+## Plan
+- [x] `src/lib/plantillas.ts`: generalizar
+      `reemplazarPlaceholdersGestor(texto, nombre)` a una función que
+      reciba un mapa de valores (`{ nombre, ayuda, fecha, observaciones }`)
+      y reemplace cada `$clave`, igual al patrón de
+      `emailPlaceholders.ts`.
+- [x] `src/app/api/gestiones/route.ts`: `notificarGestorNuevaGestion`
+      recibe también `tipo_ayuda_id`, `fecha_limite` y `observaciones`;
+      consulta la descripción del tipo de ayuda (`tipos_ayuda`) y arma el
+      mapa de placeholders antes de reemplazar.
+- [x] `src/components/catalogos/PlantillasManager.tsx`: agregar sección
+      colapsable "Placeholders disponibles" (tabla placeholder/descripción)
+      en el editor, igual patrón que `enviar-correo/page.tsx`.
+- [x] Verificar `npx tsc --noEmit` y `npx next build`.
+
+## Fuera de alcance (por ahora)
+- No se sube a GitHub ni se despliega a producción hasta aprobación
+  explícita.
+
+## Revisión
+
+Cambios realizados:
+- `src/lib/plantillas.ts`: `reemplazarPlaceholdersGestor` reemplazada por
+  `reemplazarPlaceholdersPlantilla(texto, valores)`, genérica (mapa
+  clave→valor), igual patrón que `emailPlaceholders.ts`.
+- `src/app/api/gestiones/route.ts`: `notificarGestorNuevaGestion` ahora
+  recibe `{ gestorId, tipoAyudaId, fechaLimite, observaciones }`, consulta
+  la descripción del tipo de ayuda y arma `$nombre`, `$ayuda`, `$fecha`
+  (recortada a `YYYY-MM-DD`) y `$observaciones` antes de enviar.
+- `src/components/catalogos/PlantillasManager.tsx`: cada plantilla declara
+  su lista de `placeholders`; el editor muestra una sección colapsable
+  "Placeholders disponibles" con esa tabla, igual a la de
+  `/lideres/enviar-correo`.
+
+Validación hecha:
+- `npx tsc --noEmit` y `npx next build` sin errores.
+
+No se subió nada a GitHub ni se desplegó a producción, según lo pedido.

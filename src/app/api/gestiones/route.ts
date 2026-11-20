@@ -3,7 +3,7 @@ import pool, { friendlyDbError, parseJsonArrayColumn } from "@/lib/db";
 import type { RowDataPacket, ResultSetHeader } from "mysql2";
 import { saveImage } from "@/lib/upload";
 import { sendMail } from "@/lib/mailer";
-import { leerPlantilla, reemplazarPlaceholdersGestor } from "@/lib/plantillas";
+import { leerPlantilla, reemplazarPlaceholdersPlantilla } from "@/lib/plantillas";
 import { isValidEmail } from "@/lib/validations";
 
 const LIST_SQL = `
@@ -75,7 +75,12 @@ export async function POST(req: NextRequest) {
       [referido_id, tipo_ayuda_id, gestor_id, fecha_limite, observaciones || null, estado, costo, fechaResolucion, fotos ? JSON.stringify(fotos) : null]
     );
 
-    await notificarGestorNuevaGestion(Number(gestor_id));
+    await notificarGestorNuevaGestion({
+      gestorId: Number(gestor_id),
+      tipoAyudaId: Number(tipo_ayuda_id),
+      fechaLimite: fecha_limite,
+      observaciones,
+    });
 
     return NextResponse.json({ id: result.insertId }, { status: 201 });
   } catch (err) {
@@ -84,18 +89,32 @@ export async function POST(req: NextRequest) {
   }
 }
 
+interface NotificarGestorParams {
+  gestorId: number;
+  tipoAyudaId: number;
+  fechaLimite: string;
+  observaciones: string;
+}
+
 /** Envía al gestor responsable el correo de "gestión nueva"; nunca bloquea ni falla la creación de la gestión. */
-async function notificarGestorNuevaGestion(gestorId: number): Promise<void> {
+async function notificarGestorNuevaGestion({ gestorId, tipoAyudaId, fechaLimite, observaciones }: NotificarGestorParams): Promise<void> {
   try {
-    const [rows] = await pool.query<RowDataPacket[]>("SELECT nombre, email FROM gestores WHERE id = ?", [gestorId]);
-    const gestor = rows[0];
+    const [gestorRows] = await pool.query<RowDataPacket[]>("SELECT nombre, email FROM gestores WHERE id = ?", [gestorId]);
+    const gestor = gestorRows[0];
     if (!gestor || !gestor.email || !isValidEmail(gestor.email)) return;
 
     const plantilla = await leerPlantilla("PLANTILLA_GESTION_NUEVA_FILE", "plantillas/gestion_nueva.txt");
     if (!plantilla.trim()) return;
 
+    const [tipoRows] = await pool.query<RowDataPacket[]>("SELECT descripcion FROM tipos_ayuda WHERE id = ?", [tipoAyudaId]);
+
     const asunto = process.env.PLANTILLA_GESTION_NUEVA_ASUNTO?.trim() || "Nueva gestión asignada";
-    const cuerpo = reemplazarPlaceholdersGestor(plantilla, gestor.nombre);
+    const cuerpo = reemplazarPlaceholdersPlantilla(plantilla, {
+      nombre: gestor.nombre,
+      ayuda: tipoRows[0]?.descripcion || "",
+      fecha: fechaLimite.slice(0, 10),
+      observaciones: observaciones || "",
+    });
     await sendMail(gestor.email, asunto, cuerpo);
   } catch (err) {
     console.error("No se pudo enviar el correo de gestión nueva al gestor:", err);

@@ -5,7 +5,17 @@ import { apiGet, apiPutJson } from "@/lib/api";
 import { useToast } from "@/components/ui/Toast";
 
 const PLANTILLAS = [
-  { key: "gestion-nueva", label: "Gestiones nuevas", endpoint: "/api/plantillas/gestion-nueva" },
+  {
+    key: "gestion-nueva",
+    label: "Gestiones nuevas",
+    endpoint: "/api/plantillas/gestion-nueva",
+    placeholders: [
+      ["$nombre", "nombre del gestor responsable"],
+      ["$ayuda", "descripción del tipo de ayuda"],
+      ["$fecha", "fecha límite de la gestión"],
+      ["$observaciones", "observaciones registradas"],
+    ] as [string, string][],
+  },
 ] as const;
 
 /** Lista de plantillas de correo disponibles; al elegir una se abre su editor (texto plano). */
@@ -41,6 +51,7 @@ function EditorPlantilla({ plantilla, onVolver }: { plantilla: (typeof PLANTILLA
   const [contenido, setContenido] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [placeholdersOpen, setPlaceholdersOpen] = useState(false);
   const toast = useToast();
 
   useEffect(() => {
@@ -71,6 +82,36 @@ function EditorPlantilla({ plantilla, onVolver }: { plantilla: (typeof PLANTILLA
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold text-slate-900">{plantilla.label}</h3>
         <button type="button" className="btn-secondary" onClick={onVolver}>← Volver</button>
+      </div>
+
+      <div className="card overflow-hidden p-0">
+        <button
+          type="button"
+          className="flex w-full items-center gap-2 px-5 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50"
+          onClick={() => setPlaceholdersOpen((v) => !v)}
+        >
+          <span>{placeholdersOpen ? "▼" : "▶"}</span> Placeholders disponibles
+        </button>
+        {placeholdersOpen && (
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-t border-slate-100 text-left text-xs uppercase tracking-wide text-slate-400">
+                <th className="px-5 py-2 font-medium">Placeholder</th>
+                <th className="px-5 py-2 font-medium">Reemplaza con</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {plantilla.placeholders.map(([ph, desc]) => (
+                <tr key={ph}>
+                  <td className="px-5 py-2">
+                    <code className="text-brand-700">{ph}</code>
+                  </td>
+                  <td className="px-5 py-2 text-slate-600">{desc}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
 
       {loading ? (

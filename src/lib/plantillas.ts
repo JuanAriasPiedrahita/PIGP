@@ -21,7 +21,10 @@ export async function guardarPlantilla(envVar: string, defaultPath: string, cont
   await writeFile(archivo, contenido, "utf-8");
 }
 
-/** Reemplaza "$nombre" en una plantilla por el nombre del gestor destinatario. */
-export function reemplazarPlaceholdersGestor(texto: string, nombre: string): string {
-  return texto.replace(/\$nombre\b/gi, nombre);
+/** Reemplaza placeholders tipo "$nombre" en una plantilla de correo según un mapa de valores. */
+export function reemplazarPlaceholdersPlantilla(texto: string, valores: Record<string, string>): string {
+  return texto.replace(/\$(\w+)/g, (match, clave: string) => {
+    const valor = valores[clave.toLowerCase()];
+    return valor !== undefined ? valor : match;
+  });
 }
