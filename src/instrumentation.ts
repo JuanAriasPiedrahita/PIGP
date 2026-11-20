@@ -3,6 +3,7 @@ export async function register() {
 
   const cron = await import("node-cron");
   const { enviarCumpleanosDeHoy } = await import("@/lib/cumpleanosLideres");
+  const { enviarVencimientosDeHoy } = await import("@/lib/vencimientoGestiones");
 
   cron.schedule(
     "0 6 * * *",
@@ -11,6 +12,14 @@ export async function register() {
     },
     { timezone: "America/Bogota" }
   );
-
   console.log("Cron de cumpleaños de líderes registrado (6:00am hora Bogotá).");
+
+  cron.schedule(
+    "0 6 * * *",
+    () => {
+      enviarVencimientosDeHoy().catch((err) => console.error("Error en el cron de vencimiento de gestiones:", err));
+    },
+    { timezone: "America/Bogota" }
+  );
+  console.log("Cron de vencimiento de gestiones registrado (6:00am hora Bogotá).");
 }

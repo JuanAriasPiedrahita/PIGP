@@ -15,6 +15,16 @@ export const LIDER_PLACEHOLDERS: [string, string][] = [
   ["$telefono", "celular"],
 ];
 
+/** Placeholders de gestión (gestor/tipo de ayuda/referido), usados tanto en "Gestiones nuevas" como en "Vencimiento gestiones". */
+export const GESTION_PLACEHOLDERS: [string, string][] = [
+  ["$nombre", "nombre del gestor responsable"],
+  ["$ayuda", "descripción del tipo de ayuda"],
+  ["$fecha", "fecha límite de la gestión"],
+  ["$observaciones", "observaciones registradas"],
+  ["$referido", "nombre completo del referido que requiere la gestión"],
+  ["$telefono", "celular del referido"],
+];
+
 export interface LiderPlaceholderData {
   nombre: string;
   apellidos: string;

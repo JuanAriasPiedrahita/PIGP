@@ -3,21 +3,20 @@
 import { useEffect, useState } from "react";
 import { apiGet, apiPutJson } from "@/lib/api";
 import { useToast } from "@/components/ui/Toast";
-import { LIDER_PLACEHOLDERS } from "@/lib/emailPlaceholders";
+import { LIDER_PLACEHOLDERS, GESTION_PLACEHOLDERS } from "@/lib/emailPlaceholders";
 
 const PLANTILLAS = [
   {
     key: "gestion-nueva",
     label: "Gestiones nuevas",
     endpoint: "/api/plantillas/gestion-nueva",
-    placeholders: [
-      ["$nombre", "nombre del gestor responsable"],
-      ["$ayuda", "descripción del tipo de ayuda"],
-      ["$fecha", "fecha límite de la gestión"],
-      ["$observaciones", "observaciones registradas"],
-      ["$referido", "nombre completo del referido que requiere la gestión"],
-      ["$telefono", "celular del referido"],
-    ] as [string, string][],
+    placeholders: GESTION_PLACEHOLDERS,
+  },
+  {
+    key: "vencimiento-gestion",
+    label: "Vencimiento gestiones",
+    endpoint: "/api/plantillas/vencimiento-gestion",
+    placeholders: GESTION_PLACEHOLDERS,
   },
   {
     key: "cumpleanos-lider",

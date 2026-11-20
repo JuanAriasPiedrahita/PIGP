@@ -796,3 +796,112 @@ Validación repetida con más rigor esta vez:
 
 Pendiente: subir este fix y volver a desplegar, esta vez pidiendo
 explícitamente confirmar el log de registro del cron en producción.
+
+---
+
+# Cron de vencimiento de gestiones + plantilla "Vencimiento gestiones"
+
+## Contexto
+Nuevo cron diario que revisa las gestiones **pendientes** cuya
+`fecha_limite` caiga exactamente a N días desde hoy (N configurable en
+`.env`) y le envía un correo al gestor responsable, usando una plantilla
+nueva "Vencimiento gestiones" en Configuración > Plantillas — mismo
+patrón que "Gestiones nuevas" (archivo de texto plano, ruta/asunto en
+`.env`, mismos placeholders: `$nombre`, `$ayuda`, `$fecha`,
+`$observaciones`, `$referido`, `$telefono`). También se registra cada
+envío en `access.log`.
+
+## Decisiones (confirmadas)
+- [x] Variable `.env`: `GESTIONES_VENCIMIENTO_DIAS_ALERTA=2` (días de
+      anticipación; `fecha_limite = hoy + N días`, coincidencia exacta,
+      no "en los próximos N días").
+- [x] `PLANTILLA_VENCIMIENTO_GESTION_FILE=plantillas/vencimiento_gestion.txt`
+      y `PLANTILLA_VENCIMIENTO_GESTION_ASUNTO=Gestión próxima a vencer`.
+- [x] Solo gestiones con `estado = 'PENDIENTE'` (no `RESUELTO`/`NO_VIABLE`).
+- [x] El cron corre también a las **6:00am hora Bogotá** (mismo horario
+      que el de cumpleaños, registrado aparte en `instrumentation.ts`).
+- [x] Línea en `access.log` por cada envío:
+      `fecha\thora\t<nombre del gestor>\tCorreo vencimiento gestion\t<email>`
+      — mismo patrón que `logCumpleanosEnviado`.
+- [x] Un error al enviar a un gestor puntual no detiene el resto del lote
+      (try/catch por gestión), mismo `EMAIL_DELAY_MS` entre envíos.
+
+## Plan
+- [x] `.env` / `.env.example`: agregar las 3 variables nuevas.
+- [x] `src/lib/accessLog.ts`: agregar
+      `logVencimientoGestionEnviado({ gestor, email })` (mismo patrón que
+      `logCumpleanosEnviado`).
+- [x] Endpoint `GET`/`PUT /api/plantillas/vencimiento-gestion` — mismo
+      patrón que `gestion-nueva/route.ts`.
+- [x] `src/components/catalogos/PlantillasManager.tsx`: agregar la
+      entrada "Vencimiento gestiones" a `PLANTILLAS`, con los mismos
+      placeholders que "Gestiones nuevas" (`GESTION_PLACEHOLDERS`,
+      extraído a `emailPlaceholders.ts` para no duplicarlo).
+- [x] Crear `src/lib/vencimientoGestiones.ts`: función
+      `enviarVencimientosDeHoy()` — calcula la fecha objetivo
+      (hoy en hora Bogotá + `GESTIONES_VENCIMIENTO_DIAS_ALERTA` días),
+      consulta gestiones `PENDIENTE` con esa `fecha_limite` (join con
+      gestor, tipo_ayuda, referido — mismas tablas que
+      `notificarGestorNuevaGestion` en `gestiones/route.ts`), filtra las
+      que tengan gestor con email válido, lee la plantilla, reemplaza
+      placeholders y envía con `sendMail` + registra en `access.log`.
+      Resumen final por `console.log`.
+- [x] `src/instrumentation.ts`: registrar un segundo `cron.schedule` (
+      mismo horario `0 6 * * *`, timezone Bogotá) que llame a
+      `enviarVencimientosDeHoy()`.
+- [x] Verificar `npx tsc --noEmit` y `npx next build`. Probar en local
+      forzando la `fecha_limite` de una gestión de prueba y llamando la
+      función directamente (sin esperar al cron), confirmando el correo y
+      la línea en `access.log`.
+
+## Fuera de alcance (por ahora)
+- No se evita un posible envío duplicado si el contenedor se reinicia
+  varias veces el mismo día (mismo comportamiento ya aceptado para el
+  cron de cumpleaños).
+- No se sube a GitHub ni se despliega a producción hasta aprobación
+  explícita.
+
+## Revisión
+
+Cambios realizados:
+- `.env` / `.env.example`: `GESTIONES_VENCIMIENTO_DIAS_ALERTA=2`,
+  `PLANTILLA_VENCIMIENTO_GESTION_FILE`, `PLANTILLA_VENCIMIENTO_GESTION_ASUNTO`.
+- `src/lib/accessLog.ts`: nueva `logVencimientoGestionEnviado({ gestor, email })`.
+- `src/lib/emailPlaceholders.ts`: nueva constante `GESTION_PLACEHOLDERS`
+  (antes vivía inline en `PlantillasManager.tsx`, ahora compartida).
+  **Importante**: esta constante NO puede vivir en `src/lib/plantillas.ts`
+  (que sí tiene las funciones `leerPlantilla`/`guardarPlantilla`) porque
+  ese archivo importa `fs/promises`/`path` a nivel de módulo — un
+  componente cliente (`PlantillasManager.tsx`) importándolo rompe el build
+  del navegador. `plantillas.ts` queda solo para lógica de servidor.
+- `src/app/api/plantillas/vencimiento-gestion/route.ts` (nuevo): `GET`/`PUT`
+  de la plantilla, mismo patrón que `gestion-nueva`.
+- `src/components/catalogos/PlantillasManager.tsx`: nueva entrada
+  "Vencimiento gestiones" usando `GESTION_PLACEHOLDERS`.
+- `src/lib/vencimientoGestiones.ts` (nuevo): `enviarVencimientosDeHoy()`.
+- `src/instrumentation.ts`: segundo `cron.schedule` (mismo horario, mismo
+  `register()`) para `enviarVencimientosDeHoy()`.
+
+Validación hecha:
+- `npx tsc --noEmit` y `npx next build` sin errores.
+- Arranqué el entrypoint **standalone real** (`node .next/standalone/server.js`)
+  y confirmé ambos logs de registro: "Cron de cumpleaños de líderes
+  registrado..." y "Cron de vencimiento de gestiones registrado...".
+- Prueba funcional end-to-end: plantilla de prueba guardada, gestor y
+  gestión de prueba creados (gestor con el email del usuario, gestión
+  `PENDIENTE` con `fecha_limite` = hoy + 2 días), disparé
+  `enviarVencimientosDeHoy()` vía un endpoint de depuración temporal
+  (`src/app/api/test-vencimiento/route.ts`, ya eliminado) — confirmé en
+  el log del servidor `"1 enviado(s), 0 fallido(s), 0 omitido(s)..."` y en
+  `access.log` la línea exacta `<fecha> <hora> Gestor Prueba Vencimiento
+  Correo vencimiento gestion reinel.arias@gmail.com`. Gestor y gestión de
+  prueba se eliminaron después; `access.log` y la plantilla de prueba
+  también se borraron.
+- Nota de proceso: a mitad de esta sesión `next build`/`next dev` se
+  colgaron repetidamente de forma no determinística (procesos Node
+  huérfanos de pruebas anteriores dejaron directorios bloqueados en
+  Windows); se resolvió matando todos los procesos `node.exe` activos y
+  reconstruyendo desde cero. No fue un problema de código — una vez
+  limpio el entorno, el mismo código compiló y corrió sin cambios.
+
+No se subió nada a GitHub ni se desplegó a producción, según lo pedido.
