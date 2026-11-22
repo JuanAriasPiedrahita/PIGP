@@ -5,6 +5,7 @@ import { saveImage } from "@/lib/upload";
 import { sendMail } from "@/lib/mailer";
 import { leerPlantilla, reemplazarPlaceholdersPlantilla } from "@/lib/plantillas";
 import { isValidEmail } from "@/lib/validations";
+import { getParametros } from "@/lib/parametros";
 
 const LIST_SQL = `
   SELECT
@@ -115,7 +116,7 @@ async function notificarGestorNuevaGestion({ gestorId, tipoAyudaId, referidoId, 
     const [referidoRows] = await pool.query<RowDataPacket[]>("SELECT nombre, apellidos, celular FROM referidos WHERE id = ?", [referidoId]);
     const referido = referidoRows[0];
 
-    const asunto = process.env.PLANTILLA_GESTION_NUEVA_ASUNTO?.trim() || "Nueva gestión asignada";
+    const asunto = (await getParametros()).plantilla_gestion_nueva_asunto;
     const cuerpo = reemplazarPlaceholdersPlantilla(plantilla, {
       nombre: gestor.nombre,
       ayuda: tipoRows[0]?.descripcion || "",

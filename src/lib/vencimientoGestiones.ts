@@ -4,6 +4,7 @@ import { leerPlantilla, reemplazarPlaceholdersPlantilla } from "@/lib/plantillas
 import { sendMail, getEmailDelayMs, waitEmailDelay } from "@/lib/mailer";
 import { isValidEmail } from "@/lib/validations";
 import { logVencimientoGestionEnviado } from "@/lib/accessLog";
+import { getParametros } from "@/lib/parametros";
 
 const ENV_VAR = "PLANTILLA_VENCIMIENTO_GESTION_FILE";
 const DEFAULT_PATH = "plantillas/vencimiento_gestion.txt";
@@ -55,13 +56,14 @@ export async function enviarVencimientosDeHoy(): Promise<void> {
     return;
   }
 
-  const diasAnticipacion = Number(process.env.GESTIONES_VENCIMIENTO_DIAS_ALERTA) || 2;
+  const parametros = await getParametros();
+  const diasAnticipacion = parametros.gestiones_vencimiento_dias_alerta;
   const fechaObjetivo = fechaObjetivoBogota(diasAnticipacion);
   const [rows] = await pool.query<GestionVencimientoRow[]>(GESTIONES_SQL, [fechaObjetivo]);
 
   if (rows.length === 0) return;
 
-  const asunto = process.env.PLANTILLA_VENCIMIENTO_GESTION_ASUNTO?.trim() || "Gestión próxima a vencer";
+  const asunto = parametros.plantilla_vencimiento_gestion_asunto;
   let enviados = 0;
   let omitidos = 0;
   let fallidos = 0;

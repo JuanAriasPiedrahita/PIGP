@@ -4,6 +4,7 @@ import { useState } from "react";
 import { SimpleCatalogManager } from "@/components/catalogos/SimpleCatalogManager";
 import { GestoresManager } from "@/components/catalogos/GestoresManager";
 import { PlantillasManager } from "@/components/catalogos/PlantillasManager";
+import { ParametrosManager } from "@/components/catalogos/ParametrosManager";
 
 const TABS = [
   { key: "profesiones", label: "Profesiones", kind: "simple", endpoint: "/api/profesiones", singular: "profesión", placeholder: "Ej: Ingeniero(a)", totalLabel: "Líderes", detalleTipo: "profesion" },
@@ -13,6 +14,7 @@ const TABS = [
   { key: "tipos_ayuda", label: "Tipos de ayuda", kind: "simple", endpoint: "/api/tipos-ayuda", singular: "tipo de ayuda", placeholder: "Ej: Mercado", conGestiones: true },
   { key: "gestores", label: "Gestores", kind: "gestores" },
   { key: "plantillas", label: "Plantillas", kind: "plantillas" },
+  { key: "parametros", label: "Parámetros", kind: "parametros" },
 ] as const;
 
 export default function ConfiguracionPage() {
@@ -47,6 +49,8 @@ export default function ConfiguracionPage() {
           <GestoresManager />
         ) : active.kind === "plantillas" ? (
           <PlantillasManager />
+        ) : active.kind === "parametros" ? (
+          <ParametrosManager />
         ) : (
           <SimpleCatalogManager
             endpoint={active.endpoint}

@@ -1,9 +1,12 @@
-// Cálculo de edad a partir de la fecha de nacimiento. El año "centinela" (por
-// defecto 1900) se usa como marcador de "fecha de nacimiento desconocida":
-// si el líder nació ese año, se reporta edad 0 en vez de una edad absurda.
+// Cálculo de edad a partir de la fecha de nacimiento. El año "centinela"
+// (configurable en Configuración > Parámetros, por defecto 1900) se usa como
+// marcador de "fecha de nacimiento desconocida": si el líder nació ese año,
+// se reporta edad 0 en vez de una edad absurda.
 
-export function sentinelBirthYear(): number {
-  return Number(process.env.SENTINEL_BIRTH_YEAR) || 1900;
+import { getParametros } from "@/lib/parametros";
+
+export async function sentinelBirthYear(): Promise<number> {
+  return (await getParametros()).sentinel_birth_year;
 }
 
 export function calcularEdad(fechaNacimiento: string | null | undefined, sentinelYear: number): number {

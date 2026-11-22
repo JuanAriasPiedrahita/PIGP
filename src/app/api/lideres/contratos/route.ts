@@ -21,7 +21,7 @@ export async function GET() {
        WHERE l.contratista = 1
        ORDER BY l.vencimiento_contrato ASC`
     );
-    const meses = mesesAlertaVencimiento();
+    const meses = await mesesAlertaVencimiento();
     const contratos = rows.map((r) => ({
       lider_id: r.lider_id,
       lider_nombre: r.lider_nombre,

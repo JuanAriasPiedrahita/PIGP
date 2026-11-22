@@ -268,3 +268,15 @@ export interface Referido extends Atributos {
   created_at?: string;
   updated_at?: string;
 }
+
+export interface Parametros {
+  sentinel_birth_year: number;
+  contrato_meses_alerta: number;
+  gestiones_vencimiento_dias_alerta: number;
+  lideres_page_size: number;
+  plantilla_gestion_nueva_asunto: string;
+  plantilla_cumpleanos_lider_asunto: string;
+  plantilla_vencimiento_gestion_asunto: string;
+  despacho_automatico_cumpleanos: boolean;
+  despacho_automatico_vencimiento_gestion: boolean;
+}

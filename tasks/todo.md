@@ -905,3 +905,190 @@ Validación hecha:
   limpio el entorno, el mismo código compiló y corrió sin cambios.
 
 No se subió nada a GitHub ni se desplegó a producción, según lo pedido.
+
+---
+
+# Parámetros configurables (Configuración > Parámetros)
+
+## Contexto
+Sacar de `.env` 9 variables que hoy decide el administrador del sistema (no
+la parte técnica) y dejarlas editables desde una pestaña nueva **Parámetros**
+en Configuración, guardadas en una tabla de la BD:
+
+- `SENTINEL_BIRTH_YEAR` (año centinela, hoy 1900)
+- `CONTRATO_MESES_ALERTA` (hoy 1)
+- `GESTIONES_VENCIMIENTO_DIAS_ALERTA` (hoy 2)
+- `NEXT_PUBLIC_LIDERES_PAGE_SIZE` (hoy 15)
+- `PLANTILLA_GESTION_NUEVA_ASUNTO` (hoy "Nueva gestión asignada")
+- `PLANTILLA_CUMPLEANOS_LIDER_ASUNTO` (hoy "¡Feliz cumpleaños!")
+- `PLANTILLA_VENCIMIENTO_GESTION_ASUNTO` (hoy "Gestión próxima a vencer")
+- `DESPACHO_AUTOMATICO_CUMPLEANOS` (hoy 1, como checkbox)
+- `DESPACHO_AUTOMATICO_VENCIMIENTO_GESTION` (hoy 1, como checkbox)
+
+Las demás variables de `.env` (BD, SMTP, rutas de archivos de plantilla,
+`ACCESS_LOG_FILE`, `AUTH_SECRET`, etc.) quedan igual, son de la parte técnica.
+
+## Decisiones de diseño
+- Tabla `parametros` de **una sola fila** (`id` fijo = 1, con `CHECK (id = 1)`
+  para impedir una segunda fila), una columna por parámetro con su tipo
+  nativo (no clave-valor genérica) — más simple de validar y leer con los
+  pocos parámetros que hay.
+- `src/lib/parametros.ts`: `getParametros()` (con caché en memoria a nivel de
+  módulo, para no pegarle a la BD en cada request de `/api/lideres`,
+  `/api/referidos`, etc.) y `actualizarParametros()` (hace el `UPDATE` e
+  invalida la caché). Mismo pool (`@/lib/db`) que el resto de la app.
+- `GET`/`PUT /api/parametros`: ya queda protegido automáticamente por el
+  middleware existente (todo `/api/*` menos `/api/auth` y `/api/captura/*`
+  exige sesión de administrador) — no hace falta lógica de roles nueva (hoy
+  no existe un rol "admin" distinto dentro del panel; cualquiera con sesión
+  de administrador ya puede editar catálogos y plantillas, así que esto
+  queda al mismo nivel de confianza).
+- `NEXT_PUBLIC_LIDERES_PAGE_SIZE` deja de ser una env var de Next.js (se
+  inyecta en build time, no sirve para esto); `lideres/page.tsx` pasa a
+  pedir el valor a `/api/parametros` al montar, con 15 como valor inicial
+  mientras carga.
+- Los 3 `process.env.PLANTILLA_*_ASUNTO` y los 2 `DESPACHO_AUTOMATICO_*` se
+  leen hoy dentro de funciones/callbacks (no cacheados en closures al
+  arrancar), así que pasarlos a BD no requiere reiniciar el proceso para que
+  un cambio surta efecto — mejora respecto a hoy (que sí requiere reiniciar
+  tras editar `.env`).
+- Se eliminan las 9 variables de `.env` y `.env.example` (y
+  `NEXT_PUBLIC_LIDERES_PAGE_SIZE`), dejando solo las técnicas.
+
+## Plan
+- [x] Crear `sql/002_parametros.sql`: `CREATE TABLE IF NOT EXISTS parametros`
+      (columnas descritas arriba, `updated_at`) + `INSERT IGNORE` con los
+      valores que hoy están en `.env`. Agregar el mismo bloque al final de
+      `sql/schema.sql` (para que una instalación nueva desde cero también
+      quede con la tabla y los valores por defecto).
+- [x] Ejecutar `sql/002_parametros.sql` contra la BD de **desarrollo**
+      (127.0.0.1:3306, BD `PIGP`, credenciales de `.env`) y confirmar que la
+      fila quedó con los valores actuales.
+- [x] Leer en el servidor de producción (`192.168.227.243`, por SSH) el
+      `DB_HOST`/credenciales reales de `~/pigp.env` (sin pegarlos en el chat)
+      y ejecutar el mismo script contra esa BD, confirmando la fila insertada.
+- [x] Crear `src/lib/parametros.ts`: tipo `Parametros`, `getParametros()`
+      (con caché en memoria) y `actualizarParametros(data)` (UPDATE +
+      invalidar caché).
+- [x] Crear `src/app/api/parametros/route.ts`: `GET` (devuelve el objeto) y
+      `PUT` (valida tipos/rangos razonables — año >= 1900 y <= año actual,
+      meses/días >= 1, tamaño de página entre 5 y 100, asuntos no vacíos —
+      y llama `actualizarParametros`).
+- [x] Reemplazar las lecturas de `process.env` por `getParametros()`:
+      - `src/lib/edad.ts` (`sentinelBirthYear` → async) y sus 3 llamadores
+        (`lideres/route.ts`, `referidos/route.ts`, `captura/referidos/route.ts`).
+      - `src/lib/contrato.ts` (`mesesAlertaVencimiento` → async) y su
+        llamador (`lideres/contratos/route.ts`).
+      - `src/lib/vencimientoGestiones.ts` y `src/lib/cumpleanosLideres.ts`
+        (asunto + días de alerta).
+      - `src/app/api/gestiones/route.ts` (asunto de "gestión nueva").
+      - `src/instrumentation.ts` (los dos `DESPACHO_AUTOMATICO_*`, leídos
+        dentro de cada callback del cron, no al registrar el cron).
+- [x] `src/app/lideres/page.tsx`: pedir `lideresPageSize` a `/api/parametros`
+      al montar (estado inicial 15 mientras carga).
+- [x] Crear `src/components/catalogos/ParametrosManager.tsx`: formulario con
+      `Input`/`Checkbox` de `@/components/ui/FormControls` (mismo patrón
+      "profesional" que `LiderForm`/`GestionForm`), organizado en secciones
+      con tarjetas: "Líderes y contratos" (año centinela, meses de alerta de
+      contrato, registros por página), "Gestiones" (días de alerta de
+      vencimiento), "Asuntos de correo" (los 3 textos), "Despacho
+      automático" (los 2 checkboxes). Carga con `apiGet`, guarda todo junto
+      con un botón "Guardar" + `apiPutJson` + Toast, igual al resto de
+      Configuración.
+- [x] Agregar la pestaña `{ key: "parametros", label: "Parámetros", kind:
+      "parametros" }` a `TABS` en `src/app/configuracion/page.tsx` y
+      renderizar `ParametrosManager`.
+- [x] Quitar las 9 variables (+ `NEXT_PUBLIC_LIDERES_PAGE_SIZE`) de `.env` y
+      `.env.example`, dejando solo las técnicas.
+- [x] Verificar `npx tsc --noEmit` y `npx next build`.
+- [x] Probar en local: `GET`/`PUT /api/parametros` end-to-end por API (login
+      real de admin, cambio de un valor de cada tipo, confirmación de
+      persistencia sin reiniciar el proceso, validación de rangos
+      rechazando valores fuera de rango), y confirmar que `/api/lideres` y
+      `/api/lideres/contratos` siguen respondiendo bien con la nueva
+      función async. No se probó visualmente en navegador en este entorno
+      (ver nota en Revisión).
+
+## Fuera de alcance (por ahora)
+- No se agrega un sistema de roles nuevo para restringir esta pestaña a un
+  "administrador" distinto de los demás usuarios del panel (hoy no existe
+  esa distinción en el panel de administración).
+- No se sube a GitHub ni se despliega el código a producción hasta
+  aprobación explícita (el cambio de BD en producción es solo el esquema
+  nuevo + la fila de parámetros, no el despliegue de la app).
+
+## Revisión
+
+Cambios realizados:
+- `sql/002_parametros.sql` (nuevo) y bloque equivalente agregado al final de
+  `sql/schema.sql`: tabla `parametros` (una sola fila, `id` fijo = 1 con
+  `CHECK (id = 1)`) + `INSERT IGNORE` con los valores que ya estaban en
+  `.env`.
+- Tabla `parametros` creada y poblada **en desarrollo** (127.0.0.1) y **en
+  producción** (192.168.227.243, contenedor `mysql`, BD `PIGP`) — confirmé
+  antes de insertar que los valores reales de `~/pigp.env` en producción
+  coincidían con los de desarrollo, así que la fila quedó igual en ambas.
+- `src/lib/types.ts`: nuevo tipo `Parametros` (snake_case, igual convención
+  que `Lider`/`Referido`).
+- `src/lib/parametros.ts` (nuevo): `getParametros()` (con caché en memoria,
+  invalidada en cada `actualizarParametros`) y `actualizarParametros(data)`.
+- `src/app/api/parametros/route.ts` (nuevo): `GET` y `PUT` con validación de
+  rangos (año centinela, meses/días de alerta, tamaño de página 5-100,
+  asuntos no vacíos ≤200 caracteres) devolviendo `fields` por campo inválido,
+  igual patrón que el resto de la API. Protegido automáticamente por el
+  middleware existente (sin lógica de roles nueva).
+- Reemplazados los `process.env` por `getParametros()`/`actualizarParametros()`
+  en: `src/lib/edad.ts`, `src/lib/contrato.ts` (ambas funciones ahora
+  async, con sus 4 llamadores actualizados con `await`),
+  `src/lib/vencimientoGestiones.ts`, `src/lib/cumpleanosLideres.ts`,
+  `src/app/api/gestiones/route.ts` y `src/instrumentation.ts` (los dos
+  `DESPACHO_AUTOMATICO_*` ahora se leen dentro de cada callback del cron,
+  no al registrar el cron, así que un cambio guardado desde la UI aplica
+  sin reiniciar el proceso — antes requería reiniciar tras editar `.env`).
+- `src/app/lideres/page.tsx`: ya no lee `NEXT_PUBLIC_LIDERES_PAGE_SIZE`
+  (variable eliminada); pide `lideres_page_size` a `/api/parametros` al
+  montar, con 15 como valor inicial mientras carga.
+- `src/components/catalogos/ParametrosManager.tsx` (nuevo): formulario con
+  `Input`/`Checkbox` de `FormControls` (mismo estilo que `LiderForm`),
+  organizado en 4 secciones ("Líderes y contratos", "Gestiones", "Asuntos
+  de los correos automáticos", "Despacho automático" con los 2 checkboxes
+  pedidos), carga/guarda con `apiGet`/`apiPutJson` + Toast, muestra errores
+  de validación por campo.
+- `src/app/configuracion/page.tsx`: nueva pestaña "Parámetros".
+- `.env` / `.env.example`: quitadas las 9 variables (+
+  `NEXT_PUBLIC_LIDERES_PAGE_SIZE`); quedan solo las técnicas (BD, SMTP,
+  rutas de archivos de plantilla, `ACCESS_LOG_FILE`, `AUTH_SECRET`,
+  `PIGP_243_PASS`).
+
+Validación hecha:
+- `npx tsc --noEmit` y `npx next build` sin errores (`/api/parametros`
+  queda como ruta dinámica, no estática).
+- Prueba end-to-end por API en un servidor de prueba local (puerto 3002,
+  aparte del dev server del usuario): login real como `admin`, `GET
+  /api/parametros` (valores migrados correctos), `PUT` con un cambio de
+  cada tipo (número, texto, booleano) y `GET` posterior confirmando que
+  persistió **sin reiniciar el proceso**, `PUT` con valores fuera de rango
+  devolviendo `400` con el detalle por campo, y `GET /api/lideres` +
+  `GET /api/lideres/contratos` (que ahora dependen de `getParametros()`
+  async) respondiendo `200` con los datos esperados. Al terminar, restauré
+  la fila de desarrollo a los valores originales y apagué el servidor de
+  prueba.
+- Nota de proceso: el primer intento de restaurar los valores originales
+  (asuntos con tildes/¡/ñ) vía `curl -d '...'` en Git Bash corrompió esos
+  caracteres (se guardaron como el carácter de reemplazo UTF-8, no por un
+  bug del endpoint sino por cómo esa shell pasa el argumento). Lo detecté
+  comparando los bytes (`HEX(...)`) contra lo esperado, y lo corregí
+  reenviando el mismo `PUT` desde un archivo `.json` en UTF-8 real
+  (`curl --data-binary @archivo`). Verifiqué con `HEX(...)` tanto en
+  desarrollo como en producción que la fila quedó con los bytes UTF-8
+  correctos.
+- No se probó visualmente en navegador en este entorno (sin herramienta de
+  browser disponible); la pantalla Configuración > Parámetros está pendiente
+  de que el usuario la confirme visualmente, aunque el endpoint que consume
+  (`GET`/`PUT /api/parametros`) ya quedó validado por API con los mismos
+  datos que ese formulario envía/recibe.
+
+No se subió nada a GitHub (el código sigue solo en el working directory
+local). La única acción que tocó producción fue el cambio de esquema de BD
+(tabla `parametros` nueva + su fila), explícitamente aprobado antes de
+ejecutarse; el código de la app en el contenedor de producción no cambió.

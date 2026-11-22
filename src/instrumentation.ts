@@ -4,12 +4,14 @@ export async function register() {
   const cron = await import("node-cron");
   const { enviarCumpleanosDeHoy } = await import("@/lib/cumpleanosLideres");
   const { enviarVencimientosDeHoy } = await import("@/lib/vencimientoGestiones");
+  const { getParametros } = await import("@/lib/parametros");
 
   cron.schedule(
     "0 6 * * *",
-    () => {
-      if (process.env.DESPACHO_AUTOMATICO_CUMPLEANOS !== "1") {
-        console.log("Despacho automático de cumpleaños de líderes deshabilitado (DESPACHO_AUTOMATICO_CUMPLEANOS != 1), se omite.");
+    async () => {
+      const parametros = await getParametros();
+      if (!parametros.despacho_automatico_cumpleanos) {
+        console.log("Despacho automático de cumpleaños de líderes deshabilitado (Configuración > Parámetros), se omite.");
         return;
       }
       enviarCumpleanosDeHoy().catch((err) => console.error("Error en el cron de cumpleaños de líderes:", err));
@@ -20,9 +22,10 @@ export async function register() {
 
   cron.schedule(
     "30 6 * * *",
-    () => {
-      if (process.env.DESPACHO_AUTOMATICO_VENCIMIENTO_GESTION !== "1") {
-        console.log("Despacho automático de vencimiento de gestiones deshabilitado (DESPACHO_AUTOMATICO_VENCIMIENTO_GESTION != 1), se omite.");
+    async () => {
+      const parametros = await getParametros();
+      if (!parametros.despacho_automatico_vencimiento_gestion) {
+        console.log("Despacho automático de vencimiento de gestiones deshabilitado (Configuración > Parámetros), se omite.");
         return;
       }
       enviarVencimientosDeHoy().catch((err) => console.error("Error en el cron de vencimiento de gestiones:", err));

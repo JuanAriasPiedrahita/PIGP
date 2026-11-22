@@ -4,7 +4,7 @@ import { Suspense, useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCatalogos } from "@/hooks/useCatalogos";
 import { apiGet, apiDelete } from "@/lib/api";
-import type { Atributos, Lider } from "@/lib/types";
+import type { Atributos, Lider, Parametros } from "@/lib/types";
 import { LiderTable } from "@/components/lideres/LiderTable";
 import { LiderForm } from "@/components/lideres/LiderForm";
 import { Modal, ConfirmDialog } from "@/components/ui/Modal";
@@ -13,7 +13,7 @@ import { AtributosCheckboxes, DEFAULT_ATRIBUTOS } from "@/components/shared/Atri
 import { useToast } from "@/components/ui/Toast";
 
 const SESSION_KEY = "pigp:lideres:envio-correo";
-const DEFAULT_PAGE_SIZE = Number(process.env.NEXT_PUBLIC_LIDERES_PAGE_SIZE) || 15;
+const DEFAULT_PAGE_SIZE = 15;
 
 function LideresContent() {
   const router = useRouter();
@@ -44,6 +44,12 @@ function LideresContent() {
       setModalOpen(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    apiGet<Parametros>("/api/parametros")
+      .then((p) => setPageSize(p.lideres_page_size))
+      .catch(() => {});
   }, []);
 
   const load = useCallback(async () => {

@@ -4,6 +4,7 @@ import { reemplazarPlaceholders, type LiderPlaceholderData } from "@/lib/emailPl
 import { leerPlantilla } from "@/lib/plantillas";
 import { sendMail, getEmailDelayMs, waitEmailDelay } from "@/lib/mailer";
 import { logCumpleanosEnviado } from "@/lib/accessLog";
+import { getParametros } from "@/lib/parametros";
 
 const ENV_VAR = "PLANTILLA_CUMPLEANOS_LIDER_FILE";
 const DEFAULT_PATH = "plantillas/cumpleanos_lider.txt";
@@ -52,7 +53,7 @@ export async function enviarCumpleanosDeHoy(): Promise<void> {
 
   if (rows.length === 0) return;
 
-  const asunto = process.env.PLANTILLA_CUMPLEANOS_LIDER_ASUNTO?.trim() || "¡Feliz cumpleaños!";
+  const asunto = (await getParametros()).plantilla_cumpleanos_lider_asunto;
   let enviados = 0;
   let fallidos = 0;
   const delayMs = getEmailDelayMs();

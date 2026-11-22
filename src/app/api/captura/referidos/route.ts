@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
     }
     sql += " ORDER BY r.created_at DESC";
     const [rows] = await pool.query<RowDataPacket[]>(sql, args);
-    const sentinel = sentinelBirthYear();
+    const sentinel = await sentinelBirthYear();
     const rowsConEdad = rows.map((r) => ({ ...r, edad: calcularEdad(r.fecha_nacimiento as string, sentinel) }));
     return NextResponse.json(rowsConEdad);
   } catch (err) {

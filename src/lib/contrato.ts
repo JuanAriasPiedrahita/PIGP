@@ -1,9 +1,11 @@
 // Clasificación de contratos de líderes contratistas según su fecha de
-// vencimiento. El umbral de "por vencer" es configurable vía .env
-// (CONTRATO_MESES_ALERTA, en meses; por defecto 1).
+// vencimiento. El umbral de "por vencer" es configurable en
+// Configuración > Parámetros (en meses; por defecto 1).
 
-export function mesesAlertaVencimiento(): number {
-  return Number(process.env.CONTRATO_MESES_ALERTA) || 1;
+import { getParametros } from "@/lib/parametros";
+
+export async function mesesAlertaVencimiento(): Promise<number> {
+  return (await getParametros()).contrato_meses_alerta;
 }
 
 export type EstadoContrato = "vencido" | "proximo" | "vigente";

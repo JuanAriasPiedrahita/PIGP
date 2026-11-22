@@ -72,7 +72,7 @@ export async function GET(req: NextRequest) {
     if (conditions.length) sql += " WHERE " + conditions.join(" AND ");
     sql += " ORDER BY r.nombre ASC, r.apellidos ASC";
     const [rows] = await pool.query<RowDataPacket[]>(sql, args);
-    const sentinel = sentinelBirthYear();
+    const sentinel = await sentinelBirthYear();
     const rowsConEdad = rows.map((r) => ({ ...r, edad: calcularEdad(r.fecha_nacimiento as string, sentinel) }));
     return NextResponse.json(rowsConEdad);
   } catch (err) {
