@@ -70,6 +70,7 @@ export function LiderTable({ lideres, onEdit, onDelete, selectedIds, onToggleSel
                   </div>
                   <div className="min-w-0">
                     <p className={`truncate font-medium ${sexoTextClass(l.sexo)}`}>{l.nombre} {l.apellidos}</p>
+                    {l.ocupacion_descripcion && <p className="truncate text-xs text-slate-400">{l.ocupacion_descripcion}</p>}
                     {l.contratista && <p className="truncate text-xs text-amber-600">Contratista</p>}
                   </div>
                 </div>
