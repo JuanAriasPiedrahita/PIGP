@@ -111,7 +111,7 @@ export function ParametrosManager() {
 
       <section className="space-y-4">
         <h4 className="text-sm font-semibold text-slate-700">Líderes y contratos</h4>
-        <div className="flex flex-wrap gap-4">
+        <div className="space-y-4">
           <Input
             label="Año centinela (fecha de nacimiento desconocida)"
             type="number"
@@ -119,7 +119,7 @@ export function ParametrosManager() {
             error={errors.sentinel_birth_year}
             onChange={(e) => set("sentinel_birth_year", e.target.value)}
             hint="Si un líder nace este año, su edad se muestra como 0"
-            className="w-24"
+            style={{ maxWidth: "6rem" }}
           />
           <Input
             label="Meses de alerta de vencimiento de contrato"
@@ -127,7 +127,7 @@ export function ParametrosManager() {
             value={form.contrato_meses_alerta}
             error={errors.contrato_meses_alerta}
             onChange={(e) => set("contrato_meses_alerta", e.target.value)}
-            className="w-24"
+            style={{ maxWidth: "6rem" }}
           />
           <Input
             label="Registros por página (listado de líderes)"
@@ -135,28 +135,28 @@ export function ParametrosManager() {
             value={form.lideres_page_size}
             error={errors.lideres_page_size}
             onChange={(e) => set("lideres_page_size", e.target.value)}
-            className="w-24"
+            style={{ maxWidth: "6rem" }}
           />
         </div>
       </section>
 
       <section className="space-y-4 border-t border-slate-100 pt-4">
         <h4 className="text-sm font-semibold text-slate-700">Gestiones</h4>
-        <div className="flex flex-wrap gap-4">
+        <div className="space-y-4">
           <Input
             label="Días de anticipación para alertar vencimiento"
             type="number"
             value={form.gestiones_vencimiento_dias_alerta}
             error={errors.gestiones_vencimiento_dias_alerta}
             onChange={(e) => set("gestiones_vencimiento_dias_alerta", e.target.value)}
-            className="w-24"
+            style={{ maxWidth: "6rem" }}
           />
         </div>
       </section>
 
       <section className="space-y-4 border-t border-slate-100 pt-4">
         <h4 className="text-sm font-semibold text-slate-700">Asuntos de los correos automáticos</h4>
-        <div className="grid grid-cols-1 gap-4 sm:max-w-md">
+        <div className="grid grid-cols-1 gap-4">
           <Input
             label="Gestión nueva asignada"
             value={form.plantilla_gestion_nueva_asunto}
