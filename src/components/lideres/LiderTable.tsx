@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { Lider } from "@/lib/types";
 import { sexoTextClass } from "@/lib/sexoColor";
 
@@ -88,8 +89,10 @@ export function LiderTable({ lideres, onEdit, onDelete, selectedIds, onToggleSel
                 Zona {l.zona_codigo}
                 <p className="text-xs text-slate-400">{l.puesto_nombre}</p>
               </td>
-              <td className="px-3 py-3">
-                <span className="badge bg-brand-50 text-brand-700">{l.total_referidos ?? 0}</span>
+              <td className="px-3 py-3" onClick={(e) => e.stopPropagation()}>
+                <Link href={`/referidos?lider_id=${l.id}`} className="badge bg-brand-50 text-brand-700 hover:bg-brand-100">
+                  {l.total_referidos ?? 0}
+                </Link>
               </td>
               <td className="px-3 py-3 text-slate-600">{l.edad ?? "—"}</td>
               <td className="py-3 pl-3 pr-2">
