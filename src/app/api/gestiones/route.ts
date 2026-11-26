@@ -116,15 +116,16 @@ async function notificarGestorNuevaGestion({ gestorId, tipoAyudaId, referidoId, 
     const [referidoRows] = await pool.query<RowDataPacket[]>("SELECT nombre, apellidos, celular FROM referidos WHERE id = ?", [referidoId]);
     const referido = referidoRows[0];
 
-    const asunto = (await getParametros()).plantilla_gestion_nueva_asunto;
-    const cuerpo = reemplazarPlaceholdersPlantilla(plantilla, {
+    const valoresPlaceholders = {
       nombre: gestor.nombre,
       ayuda: tipoRows[0]?.descripcion || "",
       fecha: fechaLimite.slice(0, 10),
       observaciones: observaciones || "",
       referido: referido ? `${referido.nombre} ${referido.apellidos}` : "",
       telefono: referido?.celular || "",
-    });
+    };
+    const asunto = reemplazarPlaceholdersPlantilla((await getParametros()).plantilla_gestion_nueva_asunto, valoresPlaceholders);
+    const cuerpo = reemplazarPlaceholdersPlantilla(plantilla, valoresPlaceholders);
     await sendMail(gestor.email, asunto, cuerpo);
   } catch (err) {
     console.error("No se pudo enviar el correo de gestión nueva al gestor:", err);

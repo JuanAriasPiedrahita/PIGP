@@ -11,9 +11,6 @@ interface FormState {
   contrato_meses_alerta: string;
   gestiones_vencimiento_dias_alerta: string;
   lideres_page_size: string;
-  plantilla_gestion_nueva_asunto: string;
-  plantilla_cumpleanos_lider_asunto: string;
-  plantilla_vencimiento_gestion_asunto: string;
   despacho_automatico_cumpleanos: boolean;
   despacho_automatico_vencimiento_gestion: boolean;
 }
@@ -23,9 +20,6 @@ const EMPTY_FORM: FormState = {
   contrato_meses_alerta: "",
   gestiones_vencimiento_dias_alerta: "",
   lideres_page_size: "",
-  plantilla_gestion_nueva_asunto: "",
-  plantilla_cumpleanos_lider_asunto: "",
-  plantilla_vencimiento_gestion_asunto: "",
   despacho_automatico_cumpleanos: true,
   despacho_automatico_vencimiento_gestion: true,
 };
@@ -46,9 +40,6 @@ export function ParametrosManager() {
           contrato_meses_alerta: String(p.contrato_meses_alerta),
           gestiones_vencimiento_dias_alerta: String(p.gestiones_vencimiento_dias_alerta),
           lideres_page_size: String(p.lideres_page_size),
-          plantilla_gestion_nueva_asunto: p.plantilla_gestion_nueva_asunto,
-          plantilla_cumpleanos_lider_asunto: p.plantilla_cumpleanos_lider_asunto,
-          plantilla_vencimiento_gestion_asunto: p.plantilla_vencimiento_gestion_asunto,
           despacho_automatico_cumpleanos: p.despacho_automatico_cumpleanos,
           despacho_automatico_vencimiento_gestion: p.despacho_automatico_vencimiento_gestion,
         })
@@ -73,9 +64,6 @@ export function ParametrosManager() {
         contrato_meses_alerta: Number(form.contrato_meses_alerta),
         gestiones_vencimiento_dias_alerta: Number(form.gestiones_vencimiento_dias_alerta),
         lideres_page_size: Number(form.lideres_page_size),
-        plantilla_gestion_nueva_asunto: form.plantilla_gestion_nueva_asunto.trim(),
-        plantilla_cumpleanos_lider_asunto: form.plantilla_cumpleanos_lider_asunto.trim(),
-        plantilla_vencimiento_gestion_asunto: form.plantilla_vencimiento_gestion_asunto.trim(),
         despacho_automatico_cumpleanos: form.despacho_automatico_cumpleanos,
         despacho_automatico_vencimiento_gestion: form.despacho_automatico_vencimiento_gestion,
       });
@@ -150,30 +138,6 @@ export function ParametrosManager() {
             error={errors.gestiones_vencimiento_dias_alerta}
             onChange={(e) => set("gestiones_vencimiento_dias_alerta", e.target.value)}
             style={{ maxWidth: "6rem" }}
-          />
-        </div>
-      </section>
-
-      <section className="space-y-4 border-t border-slate-100 pt-4">
-        <h4 className="text-sm font-semibold text-slate-700">Asuntos de los correos automáticos</h4>
-        <div className="grid grid-cols-1 gap-4">
-          <Input
-            label="Gestión nueva asignada"
-            value={form.plantilla_gestion_nueva_asunto}
-            error={errors.plantilla_gestion_nueva_asunto}
-            onChange={(e) => set("plantilla_gestion_nueva_asunto", e.target.value)}
-          />
-          <Input
-            label="Cumpleaños de líderes"
-            value={form.plantilla_cumpleanos_lider_asunto}
-            error={errors.plantilla_cumpleanos_lider_asunto}
-            onChange={(e) => set("plantilla_cumpleanos_lider_asunto", e.target.value)}
-          />
-          <Input
-            label="Vencimiento de gestión"
-            value={form.plantilla_vencimiento_gestion_asunto}
-            error={errors.plantilla_vencimiento_gestion_asunto}
-            onChange={(e) => set("plantilla_vencimiento_gestion_asunto", e.target.value)}
           />
         </div>
       </section>

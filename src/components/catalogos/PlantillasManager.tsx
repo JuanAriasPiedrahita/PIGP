@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { apiGet, apiPutJson } from "@/lib/api";
+import { apiGet, apiPutJson, ApiError } from "@/lib/api";
 import { useToast } from "@/components/ui/Toast";
+import { Input } from "@/components/ui/FormControls";
 import { LIDER_PLACEHOLDERS, GESTION_PLACEHOLDERS } from "@/lib/emailPlaceholders";
 
 const PLANTILLAS = [
@@ -53,7 +54,9 @@ export function PlantillasManager() {
 }
 
 function EditorPlantilla({ plantilla, onVolver }: { plantilla: (typeof PLANTILLAS)[number]; onVolver: () => void }) {
+  const [asunto, setAsunto] = useState("");
   const [contenido, setContenido] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [placeholdersOpen, setPlaceholdersOpen] = useState(false);
@@ -62,8 +65,8 @@ function EditorPlantilla({ plantilla, onVolver }: { plantilla: (typeof PLANTILLA
   useEffect(() => {
     let activo = true;
     setLoading(true);
-    apiGet<{ contenido: string }>(plantilla.endpoint)
-      .then((data) => { if (activo) setContenido(data.contenido); })
+    apiGet<{ contenido: string; asunto: string }>(plantilla.endpoint)
+      .then((data) => { if (activo) { setContenido(data.contenido); setAsunto(data.asunto); } })
       .catch((err) => toast.show(err instanceof Error ? err.message : "Error cargando la plantilla", "error"))
       .finally(() => { if (activo) setLoading(false); });
     return () => { activo = false; };
@@ -72,11 +75,17 @@ function EditorPlantilla({ plantilla, onVolver }: { plantilla: (typeof PLANTILLA
 
   async function handleGuardar() {
     setSaving(true);
+    setErrors({});
     try {
-      await apiPutJson(plantilla.endpoint, { contenido });
+      await apiPutJson(plantilla.endpoint, { contenido, asunto: asunto.trim() });
       toast.show("Plantilla guardada", "success");
     } catch (err) {
-      toast.show(err instanceof Error ? err.message : "Error al guardar la plantilla", "error");
+      if (err instanceof ApiError && err.fields) {
+        setErrors(err.fields);
+        toast.show(err.message, "error");
+      } else {
+        toast.show(err instanceof Error ? err.message : "Error al guardar la plantilla", "error");
+      }
     } finally {
       setSaving(false);
     }
@@ -122,13 +131,22 @@ function EditorPlantilla({ plantilla, onVolver }: { plantilla: (typeof PLANTILLA
       {loading ? (
         <div className="h-48 animate-pulse rounded-lg bg-slate-100" />
       ) : (
-        <textarea
-          value={contenido}
-          onChange={(e) => setContenido(e.target.value)}
-          rows={12}
-          placeholder="Hola $nombre, se te ha asignado una nueva gestión..."
-          className="field-input w-full font-mono text-sm"
-        />
+        <>
+          <Input
+            label="Asunto"
+            value={asunto}
+            error={errors.asunto}
+            onChange={(e) => setAsunto(e.target.value)}
+            hint="Admite los mismos placeholders que el contenido"
+          />
+          <textarea
+            value={contenido}
+            onChange={(e) => setContenido(e.target.value)}
+            rows={12}
+            placeholder="Hola $nombre, se te ha asignado una nueva gestión..."
+            className="field-input w-full font-mono text-sm"
+          />
+        </>
       )}
 
       <div className="flex justify-end gap-2">

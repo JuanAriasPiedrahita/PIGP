@@ -62,7 +62,7 @@ export async function enviarCumpleanosDeHoy(): Promise<void> {
     const l = rows[i];
     try {
       const cuerpo = reemplazarPlaceholders(plantilla, l);
-      await sendMail(l.email as string, asunto, cuerpo);
+      await sendMail(l.email as string, reemplazarPlaceholders(asunto, l), cuerpo);
       enviados++;
       await logCumpleanosEnviado({ nombre: `${l.nombre} ${l.apellidos}`, email: l.email as string });
     } catch (err) {

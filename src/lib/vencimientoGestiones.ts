@@ -76,15 +76,16 @@ export async function enviarVencimientosDeHoy(): Promise<void> {
       continue;
     }
     try {
-      const cuerpo = reemplazarPlaceholdersPlantilla(plantilla, {
+      const valoresPlaceholders = {
         nombre: g.gestor_nombre,
         ayuda: g.tipo_ayuda_descripcion || "",
         fecha: g.fecha_limite.slice(0, 10),
         observaciones: g.observaciones || "",
         referido: `${g.referido_nombre} ${g.referido_apellidos}`,
         telefono: g.referido_celular || "",
-      });
-      await sendMail(g.gestor_email, asunto, cuerpo);
+      };
+      const cuerpo = reemplazarPlaceholdersPlantilla(plantilla, valoresPlaceholders);
+      await sendMail(g.gestor_email, reemplazarPlaceholdersPlantilla(asunto, valoresPlaceholders), cuerpo);
       await logVencimientoGestionEnviado({ gestor: g.gestor_nombre, email: g.gestor_email });
       enviados++;
     } catch (err) {
