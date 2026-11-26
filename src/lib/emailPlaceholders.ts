@@ -25,6 +25,15 @@ export const GESTION_PLACEHOLDERS: [string, string][] = [
   ["$telefono", "celular del referido"],
 ];
 
+/** Placeholders de contrato (líder contratista), usados en "Vencimiento contratos". */
+export const CONTRATO_PLACEHOLDERS: [string, string][] = [
+  ["$nombre", "nombre del líder contratista"],
+  ["$apellido", "apellidos del líder contratista"],
+  ["$objeto", "objeto del contrato"],
+  ["$vencimiento", "fecha de vencimiento del contrato"],
+  ["$dependencia", "dependencia a la que pertenece el contrato"],
+];
+
 export interface LiderPlaceholderData {
   nombre: string;
   apellidos: string;

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { apiGet, apiPutJson, ApiError } from "@/lib/api";
 import { useToast } from "@/components/ui/Toast";
 import { Input } from "@/components/ui/FormControls";
-import { LIDER_PLACEHOLDERS, GESTION_PLACEHOLDERS } from "@/lib/emailPlaceholders";
+import { LIDER_PLACEHOLDERS, GESTION_PLACEHOLDERS, CONTRATO_PLACEHOLDERS } from "@/lib/emailPlaceholders";
 
 const PLANTILLAS = [
   {
@@ -24,6 +24,12 @@ const PLANTILLAS = [
     label: "Cumpleaños Líderes",
     endpoint: "/api/plantillas/cumpleanos-lider",
     placeholders: LIDER_PLACEHOLDERS,
+  },
+  {
+    key: "vencimiento-contrato",
+    label: "Vencimiento contratos",
+    endpoint: "/api/plantillas/vencimiento-contrato",
+    placeholders: CONTRATO_PLACEHOLDERS,
   },
 ] as const;
 

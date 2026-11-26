@@ -13,6 +13,7 @@ interface FormState {
   lideres_page_size: string;
   despacho_automatico_cumpleanos: boolean;
   despacho_automatico_vencimiento_gestion: boolean;
+  correo_gestion_contratos: string;
 }
 
 const EMPTY_FORM: FormState = {
@@ -22,6 +23,7 @@ const EMPTY_FORM: FormState = {
   lideres_page_size: "",
   despacho_automatico_cumpleanos: true,
   despacho_automatico_vencimiento_gestion: true,
+  correo_gestion_contratos: "",
 };
 
 /** Parámetros del sistema (Configuración > Parámetros): valores que antes vivían en .env a discreción del administrador. */
@@ -42,6 +44,7 @@ export function ParametrosManager() {
           lideres_page_size: String(p.lideres_page_size),
           despacho_automatico_cumpleanos: p.despacho_automatico_cumpleanos,
           despacho_automatico_vencimiento_gestion: p.despacho_automatico_vencimiento_gestion,
+          correo_gestion_contratos: p.correo_gestion_contratos,
         })
       )
       .catch((err) => toast.show(err instanceof Error ? err.message : "Error cargando los parámetros", "error"))
@@ -66,6 +69,7 @@ export function ParametrosManager() {
         lideres_page_size: Number(form.lideres_page_size),
         despacho_automatico_cumpleanos: form.despacho_automatico_cumpleanos,
         despacho_automatico_vencimiento_gestion: form.despacho_automatico_vencimiento_gestion,
+        correo_gestion_contratos: form.correo_gestion_contratos.trim(),
       });
       toast.show("Parámetros guardados", "success");
     } catch (err) {
@@ -124,6 +128,14 @@ export function ParametrosManager() {
             error={errors.lideres_page_size}
             onChange={(e) => set("lideres_page_size", e.target.value)}
             style={{ maxWidth: "6rem" }}
+          />
+          <Input
+            label="Correo electrónico gestión contratos"
+            type="email"
+            value={form.correo_gestion_contratos}
+            error={errors.correo_gestion_contratos}
+            onChange={(e) => set("correo_gestion_contratos", e.target.value)}
+            hint="Destinatario de las alertas de vencimiento de contrato"
           />
         </div>
       </section>

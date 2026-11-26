@@ -13,7 +13,8 @@ export async function getParametros(): Promise<Parametros> {
     `SELECT sentinel_birth_year, contrato_meses_alerta, gestiones_vencimiento_dias_alerta,
             lideres_page_size, plantilla_gestion_nueva_asunto, plantilla_cumpleanos_lider_asunto,
             plantilla_vencimiento_gestion_asunto, despacho_automatico_cumpleanos,
-            despacho_automatico_vencimiento_gestion
+            despacho_automatico_vencimiento_gestion, correo_gestion_contratos,
+            plantilla_vencimiento_contrato_asunto
      FROM parametros WHERE id = 1`
   );
   cache = rows[0];
@@ -22,7 +23,10 @@ export async function getParametros(): Promise<Parametros> {
 
 type ParametrosEditables = Omit<
   Parametros,
-  "plantilla_gestion_nueva_asunto" | "plantilla_cumpleanos_lider_asunto" | "plantilla_vencimiento_gestion_asunto"
+  | "plantilla_gestion_nueva_asunto"
+  | "plantilla_cumpleanos_lider_asunto"
+  | "plantilla_vencimiento_gestion_asunto"
+  | "plantilla_vencimiento_contrato_asunto"
 >;
 
 export async function actualizarParametros(data: ParametrosEditables): Promise<void> {
@@ -30,7 +34,7 @@ export async function actualizarParametros(data: ParametrosEditables): Promise<v
     `UPDATE parametros SET
        sentinel_birth_year = ?, contrato_meses_alerta = ?, gestiones_vencimiento_dias_alerta = ?,
        lideres_page_size = ?, despacho_automatico_cumpleanos = ?,
-       despacho_automatico_vencimiento_gestion = ?
+       despacho_automatico_vencimiento_gestion = ?, correo_gestion_contratos = ?
      WHERE id = 1`,
     [
       data.sentinel_birth_year,
@@ -39,6 +43,7 @@ export async function actualizarParametros(data: ParametrosEditables): Promise<v
       data.lideres_page_size,
       data.despacho_automatico_cumpleanos,
       data.despacho_automatico_vencimiento_gestion,
+      data.correo_gestion_contratos,
     ]
   );
   cache = null;
@@ -47,7 +52,8 @@ export async function actualizarParametros(data: ParametrosEditables): Promise<v
 type CampoAsuntoPlantilla =
   | "plantilla_gestion_nueva_asunto"
   | "plantilla_cumpleanos_lider_asunto"
-  | "plantilla_vencimiento_gestion_asunto";
+  | "plantilla_vencimiento_gestion_asunto"
+  | "plantilla_vencimiento_contrato_asunto";
 
 /** Actualiza el asunto de una sola plantilla de correo (Configuración > Plantillas). */
 export async function actualizarAsuntoPlantilla(campo: CampoAsuntoPlantilla, valor: string): Promise<void> {
