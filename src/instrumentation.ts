@@ -4,6 +4,7 @@ export async function register() {
   const cron = await import("node-cron");
   const { enviarCumpleanosDeHoy } = await import("@/lib/cumpleanosLideres");
   const { enviarVencimientosDeHoy } = await import("@/lib/vencimientoGestiones");
+  const { enviarVencimientosContratoDeHoy } = await import("@/lib/vencimientoContratos");
   const { getParametros } = await import("@/lib/parametros");
 
   cron.schedule(
@@ -33,4 +34,18 @@ export async function register() {
     { timezone: "America/Bogota" }
   );
   console.log("Cron de vencimiento de gestiones registrado (6:30am hora Bogotá).");
+
+  cron.schedule(
+    "0 7 * * *",
+    async () => {
+      const parametros = await getParametros();
+      if (!parametros.despacho_automatico_vencimiento_contrato) {
+        console.log("Despacho automático de vencimiento de contratos deshabilitado (Configuración > Parámetros), se omite.");
+        return;
+      }
+      enviarVencimientosContratoDeHoy().catch((err) => console.error("Error en el cron de vencimiento de contratos:", err));
+    },
+    { timezone: "America/Bogota" }
+  );
+  console.log("Cron de vencimiento de contratos registrado (7:00am hora Bogotá).");
 }

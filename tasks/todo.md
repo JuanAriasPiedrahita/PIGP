@@ -1,57 +1,95 @@
-# Nuevo parámetro "Correo gestión contratos" + plantilla "Vencimiento contratos"
+# Envío automático de alerta de vencimiento de contrato
 
 ## Contexto
-Se agrega la infraestructura para un futuro envío automático de alerta de
-vencimiento de contrato de líderes contratistas. El evento que disparará el
-envío se definirá más adelante; por ahora solo se agrega:
-- El correo del gestor de contratos (destinatario fijo) y el asunto del
-  mensaje, como nuevos parámetros.
-- Una nueva plantilla "Vencimiento contratos" en Configuración > Plantillas,
-  con placeholders para objeto del contrato, vencimiento y dependencia
-  (datos que viven en la tabla `lideres`), siguiendo el mismo estilo de las
-  plantillas existentes (gestión nueva, cumpleaños, vencimiento gestión).
+Activa el envío automático que ya se dejó preparado (parámetro
+`correo_gestion_contratos`, plantilla "Vencimiento contratos"): cada día a
+las 7:00am se revisan los contratos de líderes contratistas y, si alguno
+vence exactamente dentro de `contrato_meses_alerta` meses (contado desde
+hoy, hora Bogotá), se envía **un correo por contrato** al correo de
+`correo_gestion_contratos`, usando la plantilla "Vencimiento contratos" y
+sus placeholders (`$nombre`, `$apellido`, `$objeto`, `$vencimiento`,
+`$dependencia`).
 
 ## Decisiones a confirmar
-- Placeholders de la nueva plantilla: `$nombre`, `$apellido` (líder
-  contratista), `$objeto` (objeto del contrato), `$vencimiento` (fecha de
-  vencimiento) y `$dependencia` (descripción de la dependencia). Se incluyen
-  nombre/apellido además de los 3 pedidos porque el correo necesita
-  identificar de quién es el contrato.
-- "Correo electrónico gestión contratos" queda como campo **opcional** en
-  Parámetros (se valida formato de email solo si se diligencia), para no
-  bloquear el guardado de los demás parámetros mientras no exista aún el
-  envío automático.
-- El asunto de la nueva plantilla sigue la misma regla que las otras 3:
-  obligatorio, máximo 200 caracteres.
-- No se agrega checkbox de "despacho automático" todavía (se hará junto con
-  el evento disparador, cuando se defina).
+- **"El día y solo el día"**: se implementa igual que "Vencimiento
+  gestiones" — una comparación de fecha exacta (`vencimiento_contrato =
+  hoy + contrato_meses_alerta meses`), no un rango. Si el servidor está caído
+  justo ese día, ese contrato no se re-notifica después (mismo
+  comportamiento que ya existe para gestiones).
+- Nueva columna `despacho_automatico_vencimiento_contrato` (checkbox
+  "Enviar alertas de vencimiento contrato") en Configuración > Parámetros,
+  sección "Despacho automático". **Por defecto apagada (0)**, a diferencia
+  de los otros 2 despachos automáticos (que nacieron ya encendidos) —
+  porque esta es una funcionalidad nueva y conviene que el usuario revise
+  el contenido de la plantilla y el correo destinatario antes de activarla
+  en producción. Dime si prefieres que nazca encendida.
+- Si `correo_gestion_contratos` está vacío o no es un email válido, o si la
+  plantilla está vacía, el cron no envía nada ese día (mismo patrón que las
+  otras 2 alertas automáticas).
+- Cron nuevo a las 7:00am hora Bogotá (`0 7 * * *`), independiente de los
+  de 6:00am (cumpleaños) y 6:30am (vencimiento gestión).
 
 ## Plan
-- [x] `sql/003_contrato_vencimiento.sql` (nuevo): `ALTER TABLE parametros ADD COLUMN IF NOT EXISTS correo_gestion_contratos` y `plantilla_vencimiento_contrato_asunto`, para bases ya existentes (dev y prod).
-- [x] `sql/schema.sql`: agregar ambas columnas al `CREATE TABLE parametros` y al `INSERT` (instalaciones nuevas).
-- [x] `lib/types.ts`: agregar `correo_gestion_contratos` y `plantilla_vencimiento_contrato_asunto` a la interfaz `Parametros`.
-- [x] `lib/parametros.ts`: incluir las 2 columnas nuevas en el `SELECT`; `correo_gestion_contratos` editable vía `actualizarParametros` (como el resto de Parámetros); `plantilla_vencimiento_contrato_asunto` editable solo vía `actualizarAsuntoPlantilla` (como los otros 3 asuntos).
-- [x] `app/api/parametros/route.ts`: validar `correo_gestion_contratos` (opcional; si viene, debe ser email válido y ≤150 caracteres) e incluirlo en el `PUT`.
-- [x] `app/api/plantillas/vencimiento-contrato/route.ts` (nuevo): mismo patrón que los otros 3 endpoints de plantilla, con `PLANTILLA_VENCIMIENTO_CONTRATO_FILE` / `plantillas/vencimiento_contrato.txt`.
-- [x] `lib/emailPlaceholders.ts`: agregar `CONTRATO_PLACEHOLDERS`.
-- [x] `components/catalogos/ParametrosManager.tsx`: agregar input "Correo electrónico gestión contratos" (sección "Líderes y contratos").
-- [x] `components/catalogos/PlantillasManager.tsx`: agregar entrada "Vencimiento contratos" a la lista de plantillas.
-- [x] `.env` y `.env.example`: agregar `PLANTILLA_VENCIMIENTO_CONTRATO_FILE=plantillas/vencimiento_contrato.txt`.
-- [x] Migración `003_contrato_vencimiento.sql` aplicada contra la base de desarrollo local (verificado: columnas presentes con sus defaults).
-- [x] Migración `003_contrato_vencimiento.sql` aplicada contra la base de producción (.243).
+- [x] `sql/004_despacho_automatico_contrato.sql` (nuevo): agrega
+      `despacho_automatico_vencimiento_contrato` a `parametros`, con el
+      mismo patrón de procedimiento temporal + `information_schema` que
+      `003_contrato_vencimiento.sql` (el `ADD COLUMN IF NOT EXISTS` no
+      funciona en el MySQL de producción).
+- [x] `sql/schema.sql`: agregar la columna al `CREATE TABLE parametros` y
+      al `INSERT` (instalaciones nuevas).
+- [x] `lib/types.ts`: agregar `despacho_automatico_vencimiento_contrato:
+      boolean` a `Parametros`.
+- [x] `lib/parametros.ts`: incluirla en el `SELECT` y en
+      `actualizarParametros` (es un checkbox normal, no un asunto de
+      plantilla).
+- [x] `app/api/parametros/route.ts`: incluirla en el `PUT`.
+- [x] `lib/accessLog.ts`: agregar `logVencimientoContratoEnviado` (mismo
+      patrón que `logVencimientoGestionEnviado`).
+- [x] `lib/vencimientoContratos.ts` (nuevo): función
+      `enviarVencimientosContratoDeHoy()` — calcula la fecha objetivo
+      (hoy + `contrato_meses_alerta` meses, hora Bogotá), consulta
+      líderes contratistas cuyo `vencimiento_contrato` sea exactamente esa
+      fecha (join a `dependencias`), y envía un correo por contrato a
+      `correo_gestion_contratos` con la plantilla "Vencimiento contratos".
+- [x] `src/instrumentation.ts`: registrar el cron `0 7 * * *` (hora
+      Bogotá), respetando el flag `despacho_automatico_vencimiento_contrato`.
+- [x] `components/catalogos/ParametrosManager.tsx`: checkbox "Enviar
+      alertas de vencimiento contrato" en la sección "Despacho automático".
+- [x] Aplicar la migración en la base de datos de **desarrollo** local
+      (verificado: columna presente, valor `0`).
+- [x] Verificar `tsc --noEmit` y `next build` (ambos sin errores). También
+      se verificó por separado la aritmética de fechas
+      (`fechaObjetivoMesesBogota`) con varios casos (fin de mes, cambio de
+      año), y se confirmaron datos reales de prueba en `lideres`
+      (3 líderes contratistas con `vencimiento_contrato` distintos) contra
+      los que correrá la consulta.
 
 ## Fuera de alcance (por ahora)
-- El envío automático en sí (falta que el usuario indique el evento disparador).
-- El archivo físico `plantillas/vencimiento_contrato.txt` no se crea a mano; se genera al guardar la plantilla desde la UI, igual que las demás.
+- Aplicar la migración en **producción** y desplegar: se hace en un paso
+  aparte, cuando el usuario lo apruebe explícitamente (como las veces
+  anteriores).
 
 ## Revisión
 
-Se agregó la infraestructura para la futura alerta de vencimiento de contrato:
+Se implementó el envío automático de alertas de vencimiento de contrato:
 
-- **BD**: nuevas columnas `correo_gestion_contratos` (VARCHAR 150, opcional) y `plantilla_vencimiento_contrato_asunto` (VARCHAR 200) en `parametros`. Migración en `sql/003_contrato_vencimiento.sql` (aplicada en desarrollo; pendiente en producción al desplegar) y reflejadas en `sql/schema.sql` para instalaciones nuevas.
-- **Parámetros**: nuevo campo "Correo electrónico gestión contratos" en Configuración > Parámetros, sección "Líderes y contratos". Opcional; si se diligencia, debe ser un email válido.
-- **Plantillas**: nueva plantilla "Vencimiento contratos" en Configuración > Plantillas (`/api/plantillas/vencimiento-contrato`, archivo controlado por `PLANTILLA_VENCIMIENTO_CONTRATO_FILE` en `.env`), con asunto editable y placeholders `$nombre`, `$apellido`, `$objeto`, `$vencimiento`, `$dependencia` (`CONTRATO_PLACEHOLDERS` en `lib/emailPlaceholders.ts`).
+- Cron nuevo a las 7:00am hora Bogotá (`src/instrumentation.ts`), que
+  llama a `enviarVencimientosContratoDeHoy()` (`lib/vencimientoContratos.ts`)
+  solo si el checkbox "Enviar alertas de vencimiento contrato" está
+  activo.
+- La función calcula la fecha "hoy + `contrato_meses_alerta` meses" (hora
+  Bogotá) y busca líderes contratistas (`lideres.contratista = 1`) cuyo
+  `vencimiento_contrato` sea exactamente esa fecha — por eso el envío
+  ocurre solo el día en que se cruza el umbral, no en un rango.
+- Por cada contrato que coincide, envía un correo independiente a
+  `correo_gestion_contratos`, con la plantilla "Vencimiento contratos" y
+  sus placeholders (`$nombre`, `$apellido`, `$objeto`, `$vencimiento`,
+  `$dependencia`). Si falta la plantilla o el correo destinatario no es
+  válido, no envía nada (igual que las otras 2 alertas automáticas).
+- Nueva columna `despacho_automatico_vencimiento_contrato` en
+  `parametros` (nace en `0`, apagada), con su checkbox en Configuración >
+  Parámetros. Migración en `sql/004_despacho_automatico_contrato.sql`
+  (aplicada en desarrollo; pendiente en producción) y reflejada en
+  `sql/schema.sql`.
+- Cada envío se registra en el log de accesos (`logVencimientoContratoEnviado`).
 - Verificado con `tsc --noEmit` y `next build` sin errores.
-- No se implementó el envío automático: falta que el usuario indique el evento que lo dispara.
-- **Desplegado a producción** (`.243`) hasta el commit `be3f7ce`; contenedor recreado y corriendo sin errores.
-- **Hallazgo importante**: el MySQL de producción (`VERSION()` = `26.10.0`) no soporta la cláusula `ADD COLUMN IF NOT EXISTS` (error de sintaxis 1064), a diferencia del MySQL local de desarrollo. La migración se reescribió usando un procedimiento almacenado temporal que verifica `information_schema.COLUMNS` antes de alterar la tabla, para mantenerla idempotente sin depender de esa cláusula. Futuras migraciones contra esta base deben evitar `ADD COLUMN/DROP COLUMN ... IF [NOT] EXISTS` y usar ese mismo patrón.

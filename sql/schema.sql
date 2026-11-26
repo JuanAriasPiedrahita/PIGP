@@ -505,6 +505,7 @@ CREATE TABLE IF NOT EXISTS parametros (
   despacho_automatico_vencimiento_gestion  TINYINT(1)   NOT NULL DEFAULT 1,
   correo_gestion_contratos                 VARCHAR(150) NOT NULL DEFAULT '',
   plantilla_vencimiento_contrato_asunto    VARCHAR(200) NOT NULL DEFAULT 'Vencimiento de contrato próximo',
+  despacho_automatico_vencimiento_contrato TINYINT(1)   NOT NULL DEFAULT 0,
   updated_at                               TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   CONSTRAINT chk_parametros_id CHECK (id = 1)
 ) ENGINE=InnoDB;
@@ -513,8 +514,8 @@ INSERT IGNORE INTO parametros (
   id, sentinel_birth_year, contrato_meses_alerta, gestiones_vencimiento_dias_alerta,
   lideres_page_size, plantilla_gestion_nueva_asunto, plantilla_cumpleanos_lider_asunto,
   plantilla_vencimiento_gestion_asunto, despacho_automatico_cumpleanos, despacho_automatico_vencimiento_gestion,
-  correo_gestion_contratos, plantilla_vencimiento_contrato_asunto
+  correo_gestion_contratos, plantilla_vencimiento_contrato_asunto, despacho_automatico_vencimiento_contrato
 ) VALUES (
   1, 1900, 1, 2, 15, 'Nueva gestión asignada', '¡Feliz cumpleaños!', 'Gestión próxima a vencer', 1, 1,
-  '', 'Vencimiento de contrato próximo'
+  '', 'Vencimiento de contrato próximo', 0
 );

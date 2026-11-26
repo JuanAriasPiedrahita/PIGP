@@ -14,7 +14,7 @@ export async function getParametros(): Promise<Parametros> {
             lideres_page_size, plantilla_gestion_nueva_asunto, plantilla_cumpleanos_lider_asunto,
             plantilla_vencimiento_gestion_asunto, despacho_automatico_cumpleanos,
             despacho_automatico_vencimiento_gestion, correo_gestion_contratos,
-            plantilla_vencimiento_contrato_asunto
+            plantilla_vencimiento_contrato_asunto, despacho_automatico_vencimiento_contrato
      FROM parametros WHERE id = 1`
   );
   cache = rows[0];
@@ -34,7 +34,8 @@ export async function actualizarParametros(data: ParametrosEditables): Promise<v
     `UPDATE parametros SET
        sentinel_birth_year = ?, contrato_meses_alerta = ?, gestiones_vencimiento_dias_alerta = ?,
        lideres_page_size = ?, despacho_automatico_cumpleanos = ?,
-       despacho_automatico_vencimiento_gestion = ?, correo_gestion_contratos = ?
+       despacho_automatico_vencimiento_gestion = ?, correo_gestion_contratos = ?,
+       despacho_automatico_vencimiento_contrato = ?
      WHERE id = 1`,
     [
       data.sentinel_birth_year,
@@ -44,6 +45,7 @@ export async function actualizarParametros(data: ParametrosEditables): Promise<v
       data.despacho_automatico_cumpleanos,
       data.despacho_automatico_vencimiento_gestion,
       data.correo_gestion_contratos,
+      data.despacho_automatico_vencimiento_contrato,
     ]
   );
   cache = null;

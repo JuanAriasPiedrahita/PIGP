@@ -281,4 +281,5 @@ export interface Parametros {
   despacho_automatico_vencimiento_gestion: boolean;
   correo_gestion_contratos: string;
   plantilla_vencimiento_contrato_asunto: string;
+  despacho_automatico_vencimiento_contrato: boolean;
 }

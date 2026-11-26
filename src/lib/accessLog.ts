@@ -106,3 +106,19 @@ export async function logVencimientoGestionEnviado({ gestor, email }: LogVencimi
     console.error("No se pudo escribir el log de vencimiento de gestión:", err);
   }
 }
+
+interface LogVencimientoContratoParams {
+  lider: string;
+  email: string;
+}
+
+/** Registra el envío de un correo de vencimiento de contrato al correo de gestión de contratos, en el mismo log de accesos. */
+export async function logVencimientoContratoEnviado({ lider, email }: LogVencimientoContratoParams): Promise<void> {
+  const { fecha, hora } = fechaHoraBogota();
+  const linea = `${fecha}\t${hora}\t${lider}\tCorreo vencimiento contrato\t${email}\n`;
+  try {
+    await appendFile(resolveLogFile(), linea, "utf-8");
+  } catch (err) {
+    console.error("No se pudo escribir el log de vencimiento de contrato:", err);
+  }
+}

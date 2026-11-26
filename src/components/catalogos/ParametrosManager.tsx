@@ -14,6 +14,7 @@ interface FormState {
   despacho_automatico_cumpleanos: boolean;
   despacho_automatico_vencimiento_gestion: boolean;
   correo_gestion_contratos: string;
+  despacho_automatico_vencimiento_contrato: boolean;
 }
 
 const EMPTY_FORM: FormState = {
@@ -24,6 +25,7 @@ const EMPTY_FORM: FormState = {
   despacho_automatico_cumpleanos: true,
   despacho_automatico_vencimiento_gestion: true,
   correo_gestion_contratos: "",
+  despacho_automatico_vencimiento_contrato: false,
 };
 
 /** Parámetros del sistema (Configuración > Parámetros): valores que antes vivían en .env a discreción del administrador. */
@@ -45,6 +47,7 @@ export function ParametrosManager() {
           despacho_automatico_cumpleanos: p.despacho_automatico_cumpleanos,
           despacho_automatico_vencimiento_gestion: p.despacho_automatico_vencimiento_gestion,
           correo_gestion_contratos: p.correo_gestion_contratos,
+          despacho_automatico_vencimiento_contrato: p.despacho_automatico_vencimiento_contrato,
         })
       )
       .catch((err) => toast.show(err instanceof Error ? err.message : "Error cargando los parámetros", "error"))
@@ -70,6 +73,7 @@ export function ParametrosManager() {
         despacho_automatico_cumpleanos: form.despacho_automatico_cumpleanos,
         despacho_automatico_vencimiento_gestion: form.despacho_automatico_vencimiento_gestion,
         correo_gestion_contratos: form.correo_gestion_contratos.trim(),
+        despacho_automatico_vencimiento_contrato: form.despacho_automatico_vencimiento_contrato,
       });
       toast.show("Parámetros guardados", "success");
     } catch (err) {
@@ -169,6 +173,11 @@ export function ParametrosManager() {
             label="Enviar alertas de vencimiento de gestiones"
             checked={form.despacho_automatico_vencimiento_gestion}
             onChange={(v) => set("despacho_automatico_vencimiento_gestion", v)}
+          />
+          <Checkbox
+            label="Enviar alertas de vencimiento contrato"
+            checked={form.despacho_automatico_vencimiento_contrato}
+            onChange={(v) => set("despacho_automatico_vencimiento_contrato", v)}
           />
         </div>
       </section>

@@ -52,6 +52,7 @@ export async function PUT(req: NextRequest) {
       despacho_automatico_cumpleanos: Boolean(body.despacho_automatico_cumpleanos),
       despacho_automatico_vencimiento_gestion: Boolean(body.despacho_automatico_vencimiento_gestion),
       correo_gestion_contratos,
+      despacho_automatico_vencimiento_contrato: Boolean(body.despacho_automatico_vencimiento_contrato),
     };
 
     await actualizarParametros(data);
