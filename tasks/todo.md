@@ -38,7 +38,7 @@ envío se definirá más adelante; por ahora solo se agrega:
 - [x] `components/catalogos/PlantillasManager.tsx`: agregar entrada "Vencimiento contratos" a la lista de plantillas.
 - [x] `.env` y `.env.example`: agregar `PLANTILLA_VENCIMIENTO_CONTRATO_FILE=plantillas/vencimiento_contrato.txt`.
 - [x] Migración `003_contrato_vencimiento.sql` aplicada contra la base de desarrollo local (verificado: columnas presentes con sus defaults).
-- [ ] Migración `003_contrato_vencimiento.sql` aplicada contra la base de producción (.243) — pendiente, se hace junto con el despliegue.
+- [x] Migración `003_contrato_vencimiento.sql` aplicada contra la base de producción (.243).
 
 ## Fuera de alcance (por ahora)
 - El envío automático en sí (falta que el usuario indique el evento disparador).
@@ -53,3 +53,5 @@ Se agregó la infraestructura para la futura alerta de vencimiento de contrato:
 - **Plantillas**: nueva plantilla "Vencimiento contratos" en Configuración > Plantillas (`/api/plantillas/vencimiento-contrato`, archivo controlado por `PLANTILLA_VENCIMIENTO_CONTRATO_FILE` en `.env`), con asunto editable y placeholders `$nombre`, `$apellido`, `$objeto`, `$vencimiento`, `$dependencia` (`CONTRATO_PLACEHOLDERS` en `lib/emailPlaceholders.ts`).
 - Verificado con `tsc --noEmit` y `next build` sin errores.
 - No se implementó el envío automático: falta que el usuario indique el evento que lo dispara.
+- **Desplegado a producción** (`.243`) hasta el commit `be3f7ce`; contenedor recreado y corriendo sin errores.
+- **Hallazgo importante**: el MySQL de producción (`VERSION()` = `26.10.0`) no soporta la cláusula `ADD COLUMN IF NOT EXISTS` (error de sintaxis 1064), a diferencia del MySQL local de desarrollo. La migración se reescribió usando un procedimiento almacenado temporal que verifica `information_schema.COLUMNS` antes de alterar la tabla, para mantenerla idempotente sin depender de esa cláusula. Futuras migraciones contra esta base deben evitar `ADD COLUMN/DROP COLUMN ... IF [NOT] EXISTS` y usar ese mismo patrón.

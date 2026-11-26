@@ -119,6 +119,7 @@ export function ParametrosManager() {
             value={form.contrato_meses_alerta}
             error={errors.contrato_meses_alerta}
             onChange={(e) => set("contrato_meses_alerta", e.target.value)}
+            hint="Los contratos inferiores a este rango serán mostrados en rojo"
             style={{ maxWidth: "6rem" }}
           />
           <Input
@@ -136,6 +137,7 @@ export function ParametrosManager() {
             error={errors.correo_gestion_contratos}
             onChange={(e) => set("correo_gestion_contratos", e.target.value)}
             hint="Destinatario de las alertas de vencimiento de contrato"
+            style={{ maxWidth: "20rem" }}
           />
         </div>
       </section>
@@ -149,6 +151,7 @@ export function ParametrosManager() {
             value={form.gestiones_vencimiento_dias_alerta}
             error={errors.gestiones_vencimiento_dias_alerta}
             onChange={(e) => set("gestiones_vencimiento_dias_alerta", e.target.value)}
+            hint="Se enviará un correo al gestor al llegar a este umbral"
             style={{ maxWidth: "6rem" }}
           />
         </div>
