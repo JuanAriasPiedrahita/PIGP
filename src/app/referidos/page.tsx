@@ -4,7 +4,7 @@ import { Suspense, useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useCatalogos } from "@/hooks/useCatalogos";
 import { apiGet, apiDelete } from "@/lib/api";
-import type { Atributos, Lider, Referido } from "@/lib/types";
+import type { Atributos, Lider, Parametros, Referido } from "@/lib/types";
 import { ReferidoTable } from "@/components/referidos/ReferidoTable";
 import { ReferidoForm } from "@/components/referidos/ReferidoForm";
 import { HistorialReferidoModal } from "@/components/referidos/HistorialReferidoModal";
@@ -13,11 +13,15 @@ import { Checkbox, SiNoSelect } from "@/components/ui/FormControls";
 import { ATRIBUTOS_META, DEFAULT_ATRIBUTOS } from "@/components/shared/AtributosCheckboxes";
 import { useToast } from "@/components/ui/Toast";
 
+const DEFAULT_PAGE_SIZE = 15;
+
 function ReferidosContent() {
   const searchParams = useSearchParams();
   const catalogos = useCatalogos();
   const toast = useToast();
   const [referidos, setReferidos] = useState<Referido[]>([]);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [lideres, setLideres] = useState<Lider[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -58,6 +62,12 @@ function ReferidosContent() {
     apiGet<Lider[]>("/api/lideres").then(setLideres).catch(() => {});
   }, []);
 
+  useEffect(() => {
+    apiGet<Parametros>("/api/parametros")
+      .then((p) => setPageSize(p.lideres_page_size))
+      .catch(() => {});
+  }, []);
+
   const load = useCallback(async () => {
     setLoading(true);
     try {
@@ -75,6 +85,7 @@ function ReferidosContent() {
       const url = `/api/referidos${params.toString() ? `?${params}` : ""}`;
       const data = await apiGet<Referido[]>(url);
       setReferidos(data);
+      setPage(1);
     } catch (err) {
       toast.show(err instanceof Error ? err.message : "Error cargando referidos", "error");
     } finally {
@@ -116,6 +127,11 @@ function ReferidosContent() {
     }
   }
 
+  function handlePageSizeChange(value: number) {
+    setPageSize(value > 0 ? value : 1);
+    setPage(1);
+  }
+
   function limpiarFiltros() {
     setSearch("");
     setLiderFilter("");
@@ -145,6 +161,10 @@ function ReferidosContent() {
   const hayFiltrosActivos =
     !!search || !!liderFilter || !!comunaFilter || !!barrioFilter || !!puestoFilter || damnificadoFilter || votaronFilter ||
     Object.values(atributosFilter).some(Boolean);
+
+  const totalPages = Math.max(1, Math.ceil(referidos.length / pageSize));
+  const paginaActual = Math.min(page, totalPages);
+  const paginaReferidos = referidos.slice((paginaActual - 1) * pageSize, paginaActual * pageSize);
 
   return (
     <div className="space-y-5">
@@ -250,7 +270,66 @@ function ReferidosContent() {
             {[1, 2, 3].map((i) => <div key={i} className="h-12 animate-pulse rounded-lg bg-slate-100" />)}
           </div>
         ) : (
-          <ReferidoTable referidos={referidos} onEdit={openEdit} onDelete={setDeleteId} onHistorial={setHistorialReferido} />
+          <ReferidoTable referidos={paginaReferidos} onEdit={openEdit} onDelete={setDeleteId} onHistorial={setHistorialReferido} />
+        )}
+
+        {!loading && referidos.length > 0 && (
+          <div className="flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-1">
+              <button
+                className="btn-ghost !px-2 !py-1.5"
+                onClick={() => setPage(1)}
+                disabled={paginaActual <= 1}
+                aria-label="Primera página"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
+                  <path d="M18 17l-5-5 5-5M11 17l-5-5 5-5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+              <button
+                className="btn-ghost !px-2 !py-1.5"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={paginaActual <= 1}
+                aria-label="Página anterior"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
+                  <path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+              <span className="px-2 text-sm text-slate-500">Página {paginaActual} de {totalPages}</span>
+              <button
+                className="btn-ghost !px-2 !py-1.5"
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={paginaActual >= totalPages}
+                aria-label="Página siguiente"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
+                  <path d="M9 18l6-6-6-6" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+              <button
+                className="btn-ghost !px-2 !py-1.5"
+                onClick={() => setPage(totalPages)}
+                disabled={paginaActual >= totalPages}
+                aria-label="Última página"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
+                  <path d="M6 17l5-5-5-5M13 17l5-5-5-5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            </div>
+
+            <label className="flex items-center gap-2 text-sm text-slate-500">
+              Registros por página
+              <input
+                type="number"
+                min={1}
+                value={pageSize}
+                onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+                className="field-input w-20"
+              />
+            </label>
+          </div>
         )}
       </div>
 

@@ -127,11 +127,12 @@ export function ParametrosManager() {
             style={{ maxWidth: "6rem" }}
           />
           <Input
-            label="Registros por página (listado de líderes)"
+            label="Registros por página"
             type="number"
             value={form.lideres_page_size}
             error={errors.lideres_page_size}
             onChange={(e) => set("lideres_page_size", e.target.value)}
+            hint="Se aplica en lista de líderes y referidos"
             style={{ maxWidth: "6rem" }}
           />
           <Input

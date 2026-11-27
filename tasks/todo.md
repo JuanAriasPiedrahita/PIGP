@@ -1,95 +1,39 @@
-# Envío automático de alerta de vencimiento de contrato
+# Paginación en Referidos + ajuste de texto en Parámetros
 
 ## Contexto
-Activa el envío automático que ya se dejó preparado (parámetro
-`correo_gestion_contratos`, plantilla "Vencimiento contratos"): cada día a
-las 7:00am se revisan los contratos de líderes contratistas y, si alguno
-vence exactamente dentro de `contrato_meses_alerta` meses (contado desde
-hoy, hora Bogotá), se envía **un correo por contrato** al correo de
-`correo_gestion_contratos`, usando la plantilla "Vencimiento contratos" y
-sus placeholders (`$nombre`, `$apellido`, `$objeto`, `$vencimiento`,
-`$dependencia`).
-
-## Decisiones a confirmar
-- **"El día y solo el día"**: se implementa igual que "Vencimiento
-  gestiones" — una comparación de fecha exacta (`vencimiento_contrato =
-  hoy + contrato_meses_alerta meses`), no un rango. Si el servidor está caído
-  justo ese día, ese contrato no se re-notifica después (mismo
-  comportamiento que ya existe para gestiones).
-- Nueva columna `despacho_automatico_vencimiento_contrato` (checkbox
-  "Enviar alertas de vencimiento contrato") en Configuración > Parámetros,
-  sección "Despacho automático". **Por defecto apagada (0)**, a diferencia
-  de los otros 2 despachos automáticos (que nacieron ya encendidos) —
-  porque esta es una funcionalidad nueva y conviene que el usuario revise
-  el contenido de la plantilla y el correo destinatario antes de activarla
-  en producción. Dime si prefieres que nazca encendida.
-- Si `correo_gestion_contratos` está vacío o no es un email válido, o si la
-  plantilla está vacía, el cron no envía nada ese día (mismo patrón que las
-  otras 2 alertas automáticas).
-- Cron nuevo a las 7:00am hora Bogotá (`0 7 * * *`), independiente de los
-  de 6:00am (cumpleaños) y 6:30am (vencimiento gestión).
+La lista de Líderes ya tiene paginación client-side (carga todos los
+registros filtrados y los pagina en el navegador), usando
+`parametros.lideres_page_size` como tamaño de página inicial, con un
+input para cambiarlo localmente y controles de primera/anterior/
+siguiente/última página. Se pide el mismo comportamiento en Referidos,
+reutilizando el mismo parámetro `lideres_page_size`. También se pide
+renombrar el label de ese parámetro en Configuración > Parámetros (ya
+no es solo para líderes) y agregar un hint.
 
 ## Plan
-- [x] `sql/004_despacho_automatico_contrato.sql` (nuevo): agrega
-      `despacho_automatico_vencimiento_contrato` a `parametros`, con el
-      mismo patrón de procedimiento temporal + `information_schema` que
-      `003_contrato_vencimiento.sql` (el `ADD COLUMN IF NOT EXISTS` no
-      funciona en el MySQL de producción).
-- [x] `sql/schema.sql`: agregar la columna al `CREATE TABLE parametros` y
-      al `INSERT` (instalaciones nuevas).
-- [x] `lib/types.ts`: agregar `despacho_automatico_vencimiento_contrato:
-      boolean` a `Parametros`.
-- [x] `lib/parametros.ts`: incluirla en el `SELECT` y en
-      `actualizarParametros` (es un checkbox normal, no un asunto de
-      plantilla).
-- [x] `app/api/parametros/route.ts`: incluirla en el `PUT`.
-- [x] `lib/accessLog.ts`: agregar `logVencimientoContratoEnviado` (mismo
-      patrón que `logVencimientoGestionEnviado`).
-- [x] `lib/vencimientoContratos.ts` (nuevo): función
-      `enviarVencimientosContratoDeHoy()` — calcula la fecha objetivo
-      (hoy + `contrato_meses_alerta` meses, hora Bogotá), consulta
-      líderes contratistas cuyo `vencimiento_contrato` sea exactamente esa
-      fecha (join a `dependencias`), y envía un correo por contrato a
-      `correo_gestion_contratos` con la plantilla "Vencimiento contratos".
-- [x] `src/instrumentation.ts`: registrar el cron `0 7 * * *` (hora
-      Bogotá), respetando el flag `despacho_automatico_vencimiento_contrato`.
-- [x] `components/catalogos/ParametrosManager.tsx`: checkbox "Enviar
-      alertas de vencimiento contrato" en la sección "Despacho automático".
-- [x] Aplicar la migración en la base de datos de **desarrollo** local
-      (verificado: columna presente, valor `0`).
-- [x] Verificar `tsc --noEmit` y `next build` (ambos sin errores). También
-      se verificó por separado la aritmética de fechas
-      (`fechaObjetivoMesesBogota`) con varios casos (fin de mes, cambio de
-      año), y se confirmaron datos reales de prueba en `lideres`
-      (3 líderes contratistas con `vencimiento_contrato` distintos) contra
-      los que correrá la consulta.
+- [x] `src/app/referidos/page.tsx`: agregar `page`/`pageSize` (inicializado
+      desde `GET /api/parametros` → `lideres_page_size`), calcular
+      `totalPages`/`paginaActual`/`paginaReferidos` igual que en
+      `lideres/page.tsx`, resetear a página 1 en cada `load()`, y
+      agregar los mismos controles de paginación (primera/anterior/
+      siguiente/última página + input "Registros por página") debajo
+      de la tabla.
+- [x] `src/components/catalogos/ParametrosManager.tsx`: cambiar el label
+      "Registros por página (listado de líderes)" por "Registros por
+      página" y agregar `hint="Se aplica en lista de líderes y
+      referidos"`.
+- [x] Verificar `tsc --noEmit`.
 
-## Fuera de alcance (por ahora)
-- Aplicar la migración en **producción** y desplegar: se hace en un paso
-  aparte, cuando el usuario lo apruebe explícitamente (como las veces
-  anteriores).
+## Fuera de alcance
+- Subir y desplegar: en un paso aparte, cuando el usuario lo apruebe.
 
 ## Revisión
 
-Se implementó el envío automático de alertas de vencimiento de contrato:
-
-- Cron nuevo a las 7:00am hora Bogotá (`src/instrumentation.ts`), que
-  llama a `enviarVencimientosContratoDeHoy()` (`lib/vencimientoContratos.ts`)
-  solo si el checkbox "Enviar alertas de vencimiento contrato" está
-  activo.
-- La función calcula la fecha "hoy + `contrato_meses_alerta` meses" (hora
-  Bogotá) y busca líderes contratistas (`lideres.contratista = 1`) cuyo
-  `vencimiento_contrato` sea exactamente esa fecha — por eso el envío
-  ocurre solo el día en que se cruza el umbral, no en un rango.
-- Por cada contrato que coincide, envía un correo independiente a
-  `correo_gestion_contratos`, con la plantilla "Vencimiento contratos" y
-  sus placeholders (`$nombre`, `$apellido`, `$objeto`, `$vencimiento`,
-  `$dependencia`). Si falta la plantilla o el correo destinatario no es
-  válido, no envía nada (igual que las otras 2 alertas automáticas).
-- Nueva columna `despacho_automatico_vencimiento_contrato` en
-  `parametros` (nace en `0`, apagada), con su checkbox en Configuración >
-  Parámetros. Migración en `sql/004_despacho_automatico_contrato.sql`
-  (aplicada en desarrollo; pendiente en producción) y reflejada en
-  `sql/schema.sql`.
-- Cada envío se registra en el log de accesos (`logVencimientoContratoEnviado`).
-- Verificado con `tsc --noEmit` y `next build` sin errores.
+- Referidos ahora pagina igual que Líderes: carga todos los registros
+  filtrados y los pagina en el navegador, con tamaño de página inicial
+  tomado de `parametros.lideres_page_size` y controles de primera/
+  anterior/siguiente/última página + input para cambiarlo localmente.
+- En Configuración > Parámetros, el campo se renombró a "Registros por
+  página" con el hint "Se aplica en lista de líderes y referidos", ya
+  que ahora aplica a ambas listas.
+- Verificado con `tsc --noEmit` sin errores.
