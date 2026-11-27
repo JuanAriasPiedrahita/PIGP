@@ -258,7 +258,7 @@ function ReferidosContent() {
                 <SiNoSelect value={votaronValor} onChange={setVotaronValor} disabled={!votaronFilter} />
               </div>
               <div className="flex items-center gap-1">
-                <Checkbox label="Solo damnificados en terremoto" checked={damnificadoFilter} onChange={setDamnificadoFilter} />
+                <Checkbox label="Damnificados en terremoto" checked={damnificadoFilter} onChange={setDamnificadoFilter} />
                 <SiNoSelect value={damnificadoValor} onChange={setDamnificadoValor} disabled={!damnificadoFilter} />
               </div>
             </div>
