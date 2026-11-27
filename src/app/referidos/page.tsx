@@ -27,13 +27,7 @@ function ReferidosContent() {
   const [barrioFilter, setBarrioFilter] = useState("");
   const [puestoFilter, setPuestoFilter] = useState("");
   const [damnificadoFilter, setDamnificadoFilter] = useState(() => searchParams.get("damnificado") === "true");
-  const [votaronFilter, setVotaronFilter] = useState(() => {
-    const v = searchParams.get("votaron");
-    return v === "true" || v === "false";
-  });
-  const [votaronValor, setVotaronValor] = useState<"true" | "false">(() =>
-    searchParams.get("votaron") === "false" ? "false" : "true"
-  );
+  const [votaronFilter, setVotaronFilter] = useState(() => searchParams.get("votaron") === "true");
   const [atributosFilter, setAtributosFilter] = useState<Atributos>(DEFAULT_ATRIBUTOS);
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -55,7 +49,7 @@ function ReferidosContent() {
       if (barrioFilter) params.set("barrio_id", barrioFilter);
       if (puestoFilter) params.set("puesto_id", puestoFilter);
       if (damnificadoFilter) params.set("damnificado", "true");
-      if (votaronFilter) params.set("votaron", votaronValor);
+      if (votaronFilter) params.set("votaron", "true");
       (Object.keys(atributosFilter) as (keyof Atributos)[]).forEach((k) => {
         if (atributosFilter[k]) params.set(k, "true");
       });
@@ -68,7 +62,7 @@ function ReferidosContent() {
       setLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search, liderFilter, comunaFilter, barrioFilter, puestoFilter, damnificadoFilter, votaronFilter, votaronValor, atributosFilter]);
+  }, [search, liderFilter, comunaFilter, barrioFilter, puestoFilter, damnificadoFilter, votaronFilter, atributosFilter]);
 
   useEffect(() => {
     const t = setTimeout(() => load(), 300);
@@ -111,7 +105,6 @@ function ReferidosContent() {
     setPuestoFilter("");
     setDamnificadoFilter(false);
     setVotaronFilter(false);
-    setVotaronValor("true");
     setAtributosFilter(DEFAULT_ATRIBUTOS);
   }
 
@@ -191,15 +184,6 @@ function ReferidosContent() {
           <AtributosCheckboxes value={atributosFilter} onChange={setAtributosFilter} />
           <div className="flex gap-2">
             <Checkbox label="Votó la vez pasada" checked={votaronFilter} onChange={setVotaronFilter} />
-            <select
-              value={votaronValor}
-              onChange={(e) => setVotaronValor(e.target.value as "true" | "false")}
-              disabled={!votaronFilter}
-              className="field-input w-20 disabled:opacity-50"
-            >
-              <option value="true">Sí</option>
-              <option value="false">No</option>
-            </select>
             <Checkbox label="Solo damnificados en terremoto" checked={damnificadoFilter} onChange={setDamnificadoFilter} />
           </div>
         </div>
