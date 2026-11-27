@@ -49,18 +49,16 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    if (params.get("damnificado") === "true") {
-      conditions.push("r.damnificado_terremoto = 1");
+    function aplicarFiltroBooleano(nombreParam: string, columna: string) {
+      const valor = params.get(nombreParam);
+      if (valor === "true") conditions.push(`${columna} = 1`);
+      else if (valor === "false") conditions.push(`${columna} = 0`);
     }
 
-    if (params.get("votaron") === "true") {
-      conditions.push("r.voto_anterior = 1");
-    }
-
+    aplicarFiltroBooleano("damnificado", "r.damnificado_terremoto");
+    aplicarFiltroBooleano("votaron", "r.voto_anterior");
     for (const atributo of ATRIBUTO_PARAMS) {
-      if (params.get(atributo) === "true") {
-        conditions.push(`r.${atributo} = 1`);
-      }
+      aplicarFiltroBooleano(atributo, `r.${atributo}`);
     }
 
     if (q) {

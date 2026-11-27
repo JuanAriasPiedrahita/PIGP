@@ -3,7 +3,7 @@
 import { Checkbox } from "@/components/ui/FormControls";
 import type { Atributos } from "@/lib/types";
 
-const ATRIBUTOS_META: { key: keyof Atributos; label: string }[] = [
+export const ATRIBUTOS_META: { key: keyof Atributos; label: string }[] = [
   { key: "vehiculo", label: "Vehículo" },
   { key: "redes_sociales", label: "Redes sociales" },
   { key: "orador_publico", label: "Orador en público" },
