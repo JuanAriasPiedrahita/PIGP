@@ -96,6 +96,27 @@ export function Checkbox({ label, checked, onChange, icon }: CheckboxProps) {
   );
 }
 
+interface SiNoSelectProps {
+  value: "true" | "false";
+  onChange: (value: "true" | "false") => void;
+  disabled?: boolean;
+}
+
+/** Combobox angosto Sí/No usado junto a un Checkbox de filtro, para elegir entre "cumple" y "no cumple". */
+export function SiNoSelect({ value, onChange, disabled }: SiNoSelectProps) {
+  return (
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value as "true" | "false")}
+      disabled={disabled}
+      className="w-12 appearance-none rounded-lg border border-slate-300 bg-white py-2 text-center text-sm text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100 disabled:opacity-50"
+    >
+      <option value="true">Sí</option>
+      <option value="false">No</option>
+    </select>
+  );
+}
+
 interface RadioGroupProps {
   label: string;
   name: string;

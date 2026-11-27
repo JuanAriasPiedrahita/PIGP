@@ -56,14 +56,15 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    if (params.get("contratista") === "true") {
-      conditions.push("l.contratista = 1");
+    function aplicarFiltroBooleano(nombreParam: string, columna: string) {
+      const valor = params.get(nombreParam);
+      if (valor === "true") conditions.push(`${columna} = 1`);
+      else if (valor === "false") conditions.push(`${columna} = 0`);
     }
 
+    aplicarFiltroBooleano("contratista", "l.contratista");
     for (const atributo of ATRIBUTO_PARAMS) {
-      if (params.get(atributo) === "true") {
-        conditions.push(`l.${atributo} = 1`);
-      }
+      aplicarFiltroBooleano(atributo, `l.${atributo}`);
     }
 
     if (q) {

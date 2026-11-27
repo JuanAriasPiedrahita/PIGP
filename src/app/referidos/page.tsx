@@ -9,31 +9,9 @@ import { ReferidoTable } from "@/components/referidos/ReferidoTable";
 import { ReferidoForm } from "@/components/referidos/ReferidoForm";
 import { HistorialReferidoModal } from "@/components/referidos/HistorialReferidoModal";
 import { Modal, ConfirmDialog } from "@/components/ui/Modal";
-import { Checkbox } from "@/components/ui/FormControls";
+import { Checkbox, SiNoSelect } from "@/components/ui/FormControls";
 import { ATRIBUTOS_META, DEFAULT_ATRIBUTOS } from "@/components/shared/AtributosCheckboxes";
 import { useToast } from "@/components/ui/Toast";
-
-function SiNoSelect({
-  value,
-  onChange,
-  disabled,
-}: {
-  value: "true" | "false";
-  onChange: (value: "true" | "false") => void;
-  disabled: boolean;
-}) {
-  return (
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value as "true" | "false")}
-      disabled={disabled}
-      className="w-12 appearance-none rounded-lg border border-slate-300 bg-white py-2 text-center text-sm text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100 disabled:opacity-50"
-    >
-      <option value="true">Sí</option>
-      <option value="false">No</option>
-    </select>
-  );
-}
 
 function ReferidosContent() {
   const searchParams = useSearchParams();

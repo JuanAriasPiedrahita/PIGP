@@ -8,8 +8,8 @@ import type { Atributos, Lider, Parametros } from "@/lib/types";
 import { LiderTable } from "@/components/lideres/LiderTable";
 import { LiderForm } from "@/components/lideres/LiderForm";
 import { Modal, ConfirmDialog } from "@/components/ui/Modal";
-import { Checkbox } from "@/components/ui/FormControls";
-import { AtributosCheckboxes, DEFAULT_ATRIBUTOS } from "@/components/shared/AtributosCheckboxes";
+import { Checkbox, SiNoSelect } from "@/components/ui/FormControls";
+import { ATRIBUTOS_META, DEFAULT_ATRIBUTOS } from "@/components/shared/AtributosCheckboxes";
 import { useToast } from "@/components/ui/Toast";
 
 const SESSION_KEY = "pigp:lideres:envio-correo";
@@ -28,7 +28,15 @@ function LideresContent() {
   const [barrioFilter, setBarrioFilter] = useState("");
   const [puestoFilter, setPuestoFilter] = useState("");
   const [contratistaFilter, setContratistaFilter] = useState(false);
+  const [contratistaValor, setContratistaValor] = useState<"true" | "false">("true");
   const [atributosFilter, setAtributosFilter] = useState<Atributos>(DEFAULT_ATRIBUTOS);
+  const [atributosValor, setAtributosValor] = useState<Record<keyof Atributos, "true" | "false">>({
+    vehiculo: "true",
+    redes_sociales: "true",
+    orador_publico: "true",
+    cantante: "true",
+    testigo_electoral: "true",
+  });
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | undefined>(undefined);
@@ -60,9 +68,9 @@ function LideresContent() {
       if (comunaFilter) params.set("comuna_id", comunaFilter);
       if (barrioFilter) params.set("barrio_id", barrioFilter);
       if (puestoFilter) params.set("puesto_id", puestoFilter);
-      if (contratistaFilter) params.set("contratista", "true");
+      if (contratistaFilter) params.set("contratista", contratistaValor);
       (Object.keys(atributosFilter) as (keyof Atributos)[]).forEach((k) => {
-        if (atributosFilter[k]) params.set(k, "true");
+        if (atributosFilter[k]) params.set(k, atributosValor[k]);
       });
       const url = `/api/lideres${params.toString() ? `?${params}` : ""}`;
       const data = await apiGet<Lider[]>(url);
@@ -75,7 +83,7 @@ function LideresContent() {
       setLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search, comunaFilter, barrioFilter, puestoFilter, contratistaFilter, atributosFilter]);
+  }, [search, comunaFilter, barrioFilter, puestoFilter, contratistaFilter, contratistaValor, atributosFilter, atributosValor]);
 
   useEffect(() => {
     const t = setTimeout(() => load(), 300);
@@ -150,7 +158,15 @@ function LideresContent() {
     setBarrioFilter("");
     setPuestoFilter("");
     setContratistaFilter(false);
+    setContratistaValor("true");
     setAtributosFilter(DEFAULT_ATRIBUTOS);
+    setAtributosValor({
+      vehiculo: "true",
+      redes_sociales: "true",
+      orador_publico: "true",
+      cantante: "true",
+      testigo_electoral: "true",
+    });
   }
 
   const barriosDisponibles = catalogos.barrios.filter((b) => !comunaFilter || String(b.comuna_id) === comunaFilter);
@@ -233,8 +249,32 @@ function LideresContent() {
         </div>
 
         <div className="flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-start sm:justify-between">
-          <AtributosCheckboxes value={atributosFilter} onChange={setAtributosFilter} />
-          <Checkbox label="Solo contratistas" checked={contratistaFilter} onChange={setContratistaFilter} />
+          <div>
+            <span className="field-label">Atributos</span>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {ATRIBUTOS_META.map((a) => (
+                <div key={a.key} className="flex items-center gap-1">
+                  <Checkbox
+                    label={a.label}
+                    checked={atributosFilter[a.key]}
+                    onChange={(checked) => setAtributosFilter({ ...atributosFilter, [a.key]: checked })}
+                  />
+                  <SiNoSelect
+                    value={atributosValor[a.key]}
+                    onChange={(v) => setAtributosValor({ ...atributosValor, [a.key]: v })}
+                    disabled={!atributosFilter[a.key]}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+          <div>
+            <span className="field-label">Otros</span>
+            <div className="flex items-center gap-1">
+              <Checkbox label="Contratista" checked={contratistaFilter} onChange={setContratistaFilter} />
+              <SiNoSelect value={contratistaValor} onChange={setContratistaValor} disabled={!contratistaFilter} />
+            </div>
+          </div>
         </div>
       </div>
 
