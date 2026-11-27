@@ -163,7 +163,7 @@ export function ParametrosManager() {
 
       <section className="space-y-4 border-t border-slate-100 pt-4">
         <h4 className="text-sm font-semibold text-slate-700">Despacho automático</h4>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div className="flex flex-col gap-3">
           <Checkbox
             label="Enviar felicitaciones de cumpleaños"
             checked={form.despacho_automatico_cumpleanos}
