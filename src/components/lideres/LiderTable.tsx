@@ -40,7 +40,6 @@ export function LiderTable({ lideres, onEdit, onDelete, selectedIds, onToggleSel
             <th className="px-3 py-3 font-medium">Ubicación</th>
             <th className="px-3 py-3 font-medium">Votación</th>
             <th className="px-3 py-3 font-medium">Referidos</th>
-            <th className="px-3 py-3 font-medium">Edad</th>
             <th className="py-3 pl-3 pr-2 text-right font-medium">Acciones</th>
           </tr>
         </thead>
@@ -76,7 +75,10 @@ export function LiderTable({ lideres, onEdit, onDelete, selectedIds, onToggleSel
                   </div>
                 </div>
               </td>
-              <td className="px-3 py-3 text-slate-600">{l.cedula}</td>
+              <td className="px-3 py-3 text-slate-600">
+                <p>{l.cedula}</p>
+                {l.edad != null && <p className="text-xs text-slate-400">{l.edad} años</p>}
+              </td>
               <td className="px-3 py-3 text-slate-600">
                 <p>{l.celular}</p>
                 {l.email && <p className="text-xs text-slate-400">{l.email}</p>}
@@ -94,7 +96,6 @@ export function LiderTable({ lideres, onEdit, onDelete, selectedIds, onToggleSel
                   {l.total_referidos ?? 0}
                 </Link>
               </td>
-              <td className="px-3 py-3 text-slate-600">{l.edad ?? "—"}</td>
               <td className="py-3 pl-3 pr-2">
                 <div className="flex justify-end">
                   <button onClick={(e) => { e.stopPropagation(); onDelete(l.id); }} className="btn-ghost !px-2 !py-1 text-red-500 hover:bg-red-50" aria-label="Eliminar">
