@@ -23,7 +23,6 @@ export function ReferidoTable({ referidos, onEdit, onDelete, onHistorial }: Prop
             <th className="py-3 pl-2 pr-3 font-medium">Referido</th>
             <th className="px-3 py-3 font-medium">Cédula</th>
             <th className="px-3 py-3 font-medium">Líder</th>
-            <th className="px-3 py-3 font-medium">Parentesco</th>
             <th className="px-3 py-3 font-medium">Ubicación</th>
             <th className="px-3 py-3 font-medium">Votación</th>
             <th className="px-3 py-3 font-medium">Edad</th>
@@ -38,8 +37,10 @@ export function ReferidoTable({ referidos, onEdit, onDelete, onHistorial }: Prop
                 <p className="text-xs text-slate-400">{r.celular}</p>
               </td>
               <td className="px-3 py-3 text-slate-600">{r.cedula}</td>
-              <td className="px-3 py-3 text-slate-600">{r.lider_nombre}</td>
-              <td className="px-3 py-3 text-slate-600">{r.parentesco_descripcion}</td>
+              <td className="px-3 py-3 text-slate-600">
+                <p>{r.lider_nombre}</p>
+                <p className="text-xs text-slate-400">{r.parentesco_descripcion}</p>
+              </td>
               <td className="px-3 py-3 text-slate-600">
                 <p>{r.barrio_nombre}</p>
                 <p className="text-xs text-slate-400">{r.comuna_descripcion}</p>
