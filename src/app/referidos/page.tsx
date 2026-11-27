@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useCallback, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCatalogos } from "@/hooks/useCatalogos";
 import { apiGet, apiDelete } from "@/lib/api";
 import type { Atributos, Lider, Parametros, Referido } from "@/lib/types";
@@ -14,14 +14,17 @@ import { ATRIBUTOS_META, DEFAULT_ATRIBUTOS } from "@/components/shared/Atributos
 import { useToast } from "@/components/ui/Toast";
 
 const DEFAULT_PAGE_SIZE = 15;
+const SESSION_KEY = "pigp:referidos:envio-correo";
 
 function ReferidosContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const catalogos = useCatalogos();
   const toast = useToast();
   const [referidos, setReferidos] = useState<Referido[]>([]);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [lideres, setLideres] = useState<Lider[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -85,6 +88,7 @@ function ReferidosContent() {
       const url = `/api/referidos${params.toString() ? `?${params}` : ""}`;
       const data = await apiGet<Referido[]>(url);
       setReferidos(data);
+      setSelectedIds(new Set());
       setPage(1);
     } catch (err) {
       toast.show(err instanceof Error ? err.message : "Error cargando referidos", "error");
@@ -132,6 +136,36 @@ function ReferidosContent() {
     setPage(1);
   }
 
+  function toggleSelect(id: number) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleSelectAll() {
+    setSelectedIds((prev) => {
+      const todosSeleccionados = paginaReferidos.length > 0 && paginaReferidos.every((r) => prev.has(r.id));
+      const next = new Set(prev);
+      if (todosSeleccionados) {
+        paginaReferidos.forEach((r) => next.delete(r.id));
+      } else {
+        paginaReferidos.forEach((r) => next.add(r.id));
+      }
+      return next;
+    });
+  }
+
+  function irAEnviarCorreo() {
+    const seleccionados = referidos
+      .filter((r) => selectedIds.has(r.id))
+      .map((r) => ({ id: r.id, nombre: r.nombre, apellidos: r.apellidos, email: r.email }));
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(seleccionados));
+    router.push("/referidos/enviar-correo");
+  }
+
   function limpiarFiltros() {
     setSearch("");
     setLiderFilter("");
@@ -173,12 +207,22 @@ function ReferidosContent() {
           <h2 className="text-xl font-semibold text-slate-900">Referidos</h2>
           <p className="text-sm text-slate-500">Personas registradas por cada líder de la campaña.</p>
         </div>
-        <button className="btn-primary" onClick={openCreate} disabled={lideres.length === 0}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18">
-            <path d="M12 5v14M5 12h14" strokeLinecap="round" />
-          </svg>
-          Nuevo referido
-        </button>
+        <div className="flex gap-2">
+          {selectedIds.size > 0 && (
+            <button className="btn-secondary" onClick={irAEnviarCorreo}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18">
+                <path d="M3 6l9 6 9-6M4 6h16v12H4V6z" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              Enviar correo ({selectedIds.size})
+            </button>
+          )}
+          <button className="btn-primary" onClick={openCreate} disabled={lideres.length === 0}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18">
+              <path d="M12 5v14M5 12h14" strokeLinecap="round" />
+            </svg>
+            Nuevo referido
+          </button>
+        </div>
       </div>
 
       {lideres.length === 0 && (
@@ -270,7 +314,15 @@ function ReferidosContent() {
             {[1, 2, 3].map((i) => <div key={i} className="h-12 animate-pulse rounded-lg bg-slate-100" />)}
           </div>
         ) : (
-          <ReferidoTable referidos={paginaReferidos} onEdit={openEdit} onDelete={setDeleteId} onHistorial={setHistorialReferido} />
+          <ReferidoTable
+            referidos={paginaReferidos}
+            onEdit={openEdit}
+            onDelete={setDeleteId}
+            onHistorial={setHistorialReferido}
+            selectedIds={selectedIds}
+            onToggleSelect={toggleSelect}
+            onToggleSelectAll={toggleSelectAll}
+          />
         )}
 
         {!loading && referidos.length > 0 && (

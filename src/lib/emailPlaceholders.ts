@@ -1,5 +1,6 @@
 import type { Sexo } from "@/lib/types";
 
+/** Placeholders de persona (nombre/dirección/ubicación/contacto), usados tanto en "Enviar correo" de Líderes como de Referidos. */
 export const LIDER_PLACEHOLDERS: [string, string][] = [
   ["$nombre", "nombre"],
   ["$apellido", "apellido"],

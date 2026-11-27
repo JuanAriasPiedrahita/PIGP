@@ -8,18 +8,35 @@ interface Props {
   onEdit: (id: number) => void;
   onDelete: (id: number) => void;
   onHistorial?: (referido: Referido) => void;
+  selectedIds?: Set<number>;
+  onToggleSelect?: (id: number) => void;
+  onToggleSelectAll?: () => void;
 }
 
-export function ReferidoTable({ referidos, onEdit, onDelete, onHistorial }: Props) {
+export function ReferidoTable({ referidos, onEdit, onDelete, onHistorial, selectedIds, onToggleSelect, onToggleSelectAll }: Props) {
   if (referidos.length === 0) {
     return <p className="py-10 text-center text-sm text-slate-400">No hay referidos registrados con los filtros actuales.</p>;
   }
+
+  const seleccionable = !!selectedIds && !!onToggleSelect && !!onToggleSelectAll;
+  const todosSeleccionados = seleccionable && referidos.length > 0 && referidos.every((r) => selectedIds!.has(r.id));
 
   return (
     <div className="thin-scroll overflow-x-auto">
       <table className="w-full min-w-[900px] text-left text-sm">
         <thead>
           <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-400">
+            {seleccionable && (
+              <th className="py-3 pl-2 pr-2 font-medium">
+                <input
+                  type="checkbox"
+                  checked={todosSeleccionados}
+                  onChange={onToggleSelectAll}
+                  aria-label="Seleccionar todos"
+                  className="h-4 w-4 rounded border-slate-300"
+                />
+              </th>
+            )}
             <th className="py-3 pl-2 pr-3 font-medium">Referido</th>
             <th className="px-3 py-3 font-medium">Cédula</th>
             <th className="px-3 py-3 font-medium">Líder</th>
@@ -31,6 +48,17 @@ export function ReferidoTable({ referidos, onEdit, onDelete, onHistorial }: Prop
         <tbody className="divide-y divide-slate-100">
           {referidos.map((r) => (
             <tr key={r.id} onClick={() => onEdit(r.id)} className="cursor-pointer hover:bg-slate-50">
+              {seleccionable && (
+                <td className="py-3 pl-2 pr-2" onClick={(e) => e.stopPropagation()}>
+                  <input
+                    type="checkbox"
+                    checked={selectedIds!.has(r.id)}
+                    onChange={() => onToggleSelect!(r.id)}
+                    aria-label={`Seleccionar ${r.nombre} ${r.apellidos}`}
+                    className="h-4 w-4 rounded border-slate-300"
+                  />
+                </td>
+              )}
               <td className="py-3 pl-2 pr-3">
                 <p className={`font-medium ${sexoTextClass(r.sexo)}`}>{r.nombre} {r.apellidos}</p>
                 <p className="text-xs text-slate-400">{r.celular}</p>
