@@ -123,7 +123,7 @@ export function ParametrosManager() {
             value={form.contrato_meses_alerta}
             error={errors.contrato_meses_alerta}
             onChange={(e) => set("contrato_meses_alerta", e.target.value)}
-            hint="Los contratos inferiores a este rango serán mostrados en rojo"
+            hint="Se envía alerta por correo al alcanzar este umbral"
             style={{ maxWidth: "6rem" }}
           />
           <Input
