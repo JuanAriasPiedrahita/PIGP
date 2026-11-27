@@ -24,7 +24,6 @@ export function ReferidoTable({ referidos, onEdit, onDelete, onHistorial }: Prop
             <th className="px-3 py-3 font-medium">Cédula</th>
             <th className="px-3 py-3 font-medium">Líder</th>
             <th className="px-3 py-3 font-medium">Ubicación</th>
-            <th className="px-3 py-3 font-medium">Votación</th>
             <th className="px-3 py-3 font-medium">Edad</th>
             <th className="py-3 pl-3 pr-2 text-right font-medium">Acciones</th>
           </tr>
@@ -36,7 +35,12 @@ export function ReferidoTable({ referidos, onEdit, onDelete, onHistorial }: Prop
                 <p className={`font-medium ${sexoTextClass(r.sexo)}`}>{r.nombre} {r.apellidos}</p>
                 <p className="text-xs text-slate-400">{r.celular}</p>
               </td>
-              <td className="px-3 py-3 text-slate-600">{r.cedula}</td>
+              <td className="px-3 py-3 text-slate-600">
+                <p>{r.cedula}</p>
+                <span className={`badge ${r.voto_anterior ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
+                  {r.voto_anterior ? "Votó" : "No votó"}
+                </span>
+              </td>
               <td className="px-3 py-3 text-slate-600">
                 <p>{r.lider_nombre}</p>
                 <p className="text-xs text-slate-400">{r.parentesco_descripcion}</p>
@@ -44,11 +48,6 @@ export function ReferidoTable({ referidos, onEdit, onDelete, onHistorial }: Prop
               <td className="px-3 py-3 text-slate-600">
                 <p>{r.barrio_nombre}</p>
                 <p className="text-xs text-slate-400">{r.comuna_descripcion}</p>
-              </td>
-              <td className="px-3 py-3">
-                <span className={`badge ${r.voto_anterior ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-500"}`}>
-                  {r.voto_anterior ? "Votó" : "No votó"}
-                </span>
               </td>
               <td className="px-3 py-3 text-slate-600">{r.edad ?? "—"}</td>
               <td className="py-3 pl-3 pr-2">
